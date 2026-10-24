@@ -45,7 +45,7 @@
     cargo:function(v){return !v?'Выберите тип груза':''},
     weight:function(v){var n=+v;if(!v)return'Укажите вес';if(n<1)return'Вес должен быть больше 0';if(n>3000)return'Мы возим грузы до 3000 кг';return''},
     date:function(v){if(!v)return'Выберите дату';if(v<iso)return'Дата не может быть в прошлом';return''},
-    price:function(v){var n=+v;if(!v)return'Предложите цену';if(n<300)return'Минимальная сумма — 300 ₽';return''},
+    price:function(v){var n=+v;if(!v)return'Предложите цену';if(n<2000)return'Минимальная сумма — 2000 ₸';return''},
     phone:function(v){return phoneOk(v)?'':'Введите номер в формате +7 (XXX) XXX-XX-XX'},
     name:function(v){return v.trim().length<2?'Введите имя':''},
     city:function(v){return v.trim().length<2?'Укажите город':''},
@@ -86,7 +86,7 @@
       '<p>Ищем водителей рядом. Они увидят вашу цену и откликнутся — мы пришлём SMS на '+esc(f.get('phone'))+'.</p>'+
       '<dl><dt>Откуда</dt><dd>'+esc(f.get('from'))+'</dd><dt>Куда</dt><dd>'+esc(f.get('to'))+'</dd>'+
       '<dt>Груз</dt><dd>'+esc(f.get('cargo'))+', '+esc(f.get('weight'))+' кг</dd><dt>Дата</dt><dd>'+dt+'</dd>'+
-      '<dt>Грузчики</dt><dd>'+esc(f.get('loaders'))+'</dd><dt>Ваша цена</dt><dd>'+price+' ₽</dd></dl>'+
+      '<dt>Грузчики</dt><dd>'+esc(f.get('loaders'))+'</dd><dt>Ваша цена</dt><dd>'+price+' ₸</dd></dl>'+
       '<p style="margin-top:12px;font-size:.8rem">Демо‑версия: данные не отправлялись.</p>');
     this.reset(); d.value=iso;
   });
