@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Создать визитку водителя — ВЕЗУ</title>
+<meta name="description" content="Бесплатная цифровая визитка для водителя грузотакси: ссылка, QR-код, кнопка WhatsApp, печать визиток и наклейки на машину.">
+<meta name="theme-color" content="#06061a">
+<meta property="og:title" content="Создать визитку водителя — ВЕЗУ">
+<meta property="og:description" content="Бесплатная цифровая визитка для водителя грузотакси: ссылка, QR-код, кнопка WhatsApp, печать визиток и наклейки на машину.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8f7cff"/><stop offset=".55" stop-color="#4fd1ff"/><stop offset="1" stop-color="#ff8f70"/></linearGradient></defs>
+  <symbol id="logo" viewBox="0 0 40 40"><rect width="40" height="40" rx="12" fill="url(#lg)"/><path d="M10 11l8 17 13-13M24.5 15H31v6.5" fill="none" stroke="#0b0b1f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-wa" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3z"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+  <symbol id="i-brick" viewBox="0 0 24 24"><path d="M3 5h18v14H3zM3 9.7h18M3 14.3h18M9 5v4.7M15 5v4.7M6 9.7v4.6M12 9.7v4.6M18 9.7v4.6M9 14.3V19M15 14.3V19" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+  <symbol id="i-sofa" viewBox="0 0 24 24"><path d="M5 11V8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v3M3 13a2 2 0 0 1 4 0v2h10v-2a2 2 0 0 1 4 0v5H3zM5 18v2M19 18v2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+  <symbol id="i-worker" viewBox="0 0 24 24"><circle cx="12" cy="7" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 21v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M3 7.5L12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="10" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 20v-1a6 6 0 0 1 6-6h2a6 6 0 0 1 4 1.5M18 13v7M14.5 16.5h7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-print" viewBox="0 0 24 24"><path d="M7 9V3h10v6M7 17H4v-7a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v7h-3M7 14h10v7H7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+</svg>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="./" aria-label="ВЕЗУ — на главную"><svg><use href="#logo"/></svg><span>везу<small>конструктор визитки</small></span></a>
+    <a class="btn btn-glass btn-sm" href="card.html?demo">Пример</a>
+  </div>
+</header>
+
+<main class="wrap build">
+  <div class="steps">
+    <span class="badge"><i></i>Бесплатно · без регистрации</span>
+    <h1 style="margin-top:14px">Визитка водителя <span class="grad-text">за 1 минуту</span></h1>
+    <p class="muted" style="margin-top:8px">Заполните поля — получите ссылку, QR-код и готовые визитки для печати.</p>
+
+    <form id="f" class="f" novalidate autocomplete="on">
+      <section class="step glass f">
+        <h2>Кто вы</h2>
+        <label class="fld"><span>Имя *</span><input class="inp" name="n" maxlength="40" placeholder="Например: Ерлан" autocomplete="name" required></label>
+        <label class="fld"><span>Номер WhatsApp *</span><input class="inp" name="p" type="tel" inputmode="tel" placeholder="+7 7__ ___ __ __" autocomplete="tel" required></label>
+        <label class="fld"><span>Город</span><input class="inp" name="t" list="cities" maxlength="40" placeholder="Алматы"></label>
+      </section>
+
+      <section class="step glass f">
+        <h2>Машина</h2>
+        <label class="fld"><span>Марка / тип</span><input class="inp" name="c" list="cars" maxlength="40" placeholder="Газель"></label>
+        <div class="fld"><span>Грузоподъёмность</span><div class="qchips" id="cap"></div></div>
+      </section>
+
+      <section class="step glass f">
+        <h2>Что возите</h2>
+        <div class="svc-pick qchips" id="svc"></div>
+      </section>
+
+      <section class="step glass f">
+        <h2>Детали (по желанию)</h2>
+        <label class="fld"><span>Ссылка на фото (https://…)</span><input class="inp" name="i" type="url" inputmode="url" placeholder="https://…/photo.jpg"></label>
+        <label class="fld"><span>Коротко о себе <em class="counter" id="cnt">0/80</em></span><textarea class="inp" name="m" maxlength="80" rows="2" placeholder="Аккуратно, без опозданий. Есть ремни и тележка."></textarea></label>
+      </section>
+    </form>
+
+  </div>
+
+  <aside class="preview">
+    <p class="lbl">Так увидит клиент</p>
+    <div id="pv"></div>
+    <div class="actions" aria-hidden="true" style="pointer-events:none">
+      <span class="btn btn-wa"><svg><use href="#i-wa"/></svg>Написать в WhatsApp</span>
+      <span class="btn btn-glass"><svg><use href="#i-phone"/></svg>Позвонить</span>
+      <span class="btn btn-glass"><svg><use href="#i-user"/></svg>В контакты</span>
+    </div>
+
+    <section class="result glass glow" id="result">
+      <h2 style="font-size:19px;font-weight:800;letter-spacing:-.02em">Ваша визитка готова</h2>
+      <p class="muted" id="rhint" style="font-size:14px;margin:4px 0 14px">Укажите имя и номер WhatsApp — появятся ссылка и QR.</p>
+      <div id="rbody">
+        <div class="linkrow">
+          <input class="inp" id="link" readonly aria-label="Ссылка на визитку">
+          <button class="btn btn-glass" type="button" id="copy" aria-label="Копировать ссылку"><svg><use href="#i-link"/></svg></button>
+        </div>
+        <div class="res-grid">
+          <div class="qr" id="qr"></div>
+          <div class="res-btns">
+            <a class="btn btn-grad btn-sm" id="open" href="#" target="_blank" rel="noopener">Открыть визитку</a>
+            <button class="btn btn-glass btn-sm" type="button" id="share"><svg><use href="#i-share"/></svg>Поделиться</button>
+            <button class="btn btn-glass btn-sm" type="button" id="png"><svg><use href="#i-down"/></svg>QR в PNG</button>
+          </div>
+        </div>
+        <div class="btns" style="margin-top:12px">
+          <button class="btn btn-glass btn-sm" type="button" id="pcards" style="flex:1"><svg><use href="#i-print"/></svg>Визитки (A4, 10 шт.)</button>
+          <button class="btn btn-glass btn-sm" type="button" id="psticker" style="flex:1"><svg><use href="#i-print"/></svg>Наклейка на авто</button>
+        </div>
+      </div>
+    </section>
+  </aside>
+</main>
+
+<datalist id="cities"><option>Алматы</option><option>Астана</option><option>Шымкент</option><option>Караганда</option><option>Актобе</option><option>Тараз</option><option>Павлодар</option><option>Усть-Каменогорск</option><option>Семей</option><option>Атырау</option><option>Костанай</option><option>Кызылорда</option><option>Уральск</option><option>Петропавловск</option><option>Актау</option><option>Туркестан</option><option>Кокшетау</option><option>Талдыкорган</option><option>Экибастуз</option></datalist>
+<datalist id="cars"><option>Газель</option><option>Газель Next</option><option>Газель удлинённая</option><option>Каблук</option><option>Hyundai Porter</option><option>Бычок</option><option>Isuzu</option><option>Mercedes Sprinter</option><option>Ford Transit</option></datalist>
+
+<div id="print-area"></div>
+
+<script src="js/vendor/qrcode.js"></script>
+<script src="js/common.js"></script>
+<script src="js/new.js"></script>
+</body>
+</html>

@@ -2,328 +2,129 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ДоГруз — грузоперевозки до 3 тонн по лучшей цене</title>
-<meta name="description" content="ДоГруз — доставка грузов до 3 тонн, переезды, стройматериалы, мебель, вывоз мусора, грузчики. Предложите свою цену — водитель примет.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ВЕЗУ — перевезём что угодно по лучшей цене</title>
+<meta name="description" content="Грузоперевозки до 3 тонн по Казахстану: переезды, стройматериалы, мебель, вывоз мусора, грузчики. Заказ в WhatsApp за 2 касания. Водителям — бесплатная цифровая визитка с QR-кодом.">
+<meta name="theme-color" content="#06061a">
+<meta property="og:title" content="ВЕЗУ — перевезём что угодно по лучшей цене">
+<meta property="og:description" content="Грузы до 3 тонн. Заказ в WhatsApp за 2 касания. Водителям — визитка с QR за 1 минуту.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="css/style.css">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23C1F11D'/%3E%3Cpath d='M7 20V11h11v9M18 14h4l3 3v3h-7' fill='none' stroke='%23111' stroke-width='2.4' stroke-linejoin='round'/%3E%3Ccircle cx='11' cy='22' r='2.2' fill='%23111'/%3E%3Ccircle cx='22' cy='22' r='2.2' fill='%23111'/%3E%3C/svg%3E">
 </head>
 <body>
-
-<!-- SVG sprite -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <symbol id="i-truck" viewBox="0 0 24 24"><path d="M2 6h11v10H2zM13 9h4.5L21 12.5V16h-8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="6" cy="17.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17" cy="17.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8f7cff"/><stop offset=".55" stop-color="#4fd1ff"/><stop offset="1" stop-color="#ff8f70"/></linearGradient></defs>
+  <symbol id="logo" viewBox="0 0 40 40"><rect width="40" height="40" rx="12" fill="url(#lg)"/><path d="M10 11l8 17 13-13M24.5 15H31v6.5" fill="none" stroke="#0b0b1f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-wa" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3z"/></symbol>
   <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
-  <symbol id="i-office" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 7h2M14 7h2M8 11h2M14 11h2M8 15h2M14 15h2M10 21v-3h4v3" stroke="currentColor" stroke-width="1.8" fill="none"/></symbol>
   <symbol id="i-brick" viewBox="0 0 24 24"><path d="M3 5h18v14H3zM3 9.7h18M3 14.3h18M9 5v4.7M15 5v4.7M6 9.7v4.6M12 9.7v4.6M18 9.7v4.6M9 14.3V19M15 14.3V19" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
   <symbol id="i-sofa" viewBox="0 0 24 24"><path d="M5 11V8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v3M3 13a2 2 0 0 1 4 0v2h10v-2a2 2 0 0 1 4 0v5H3zM5 18v2M19 18v2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
   <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
-  <symbol id="i-worker" viewBox="0 0 24 24"><circle cx="12" cy="7" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 21v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2M8.5 5.5h7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-worker" viewBox="0 0 24 24"><circle cx="12" cy="7" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 21v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
   <symbol id="i-box" viewBox="0 0 24 24"><path d="M3 7.5L12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
-  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="9.5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
-  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
-  <symbol id="i-ruble" viewBox="0 0 24 24"><path d="M6 4h12M6 8.5h12M12 8.5V20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z M8.5 12l2.5 2.5 4.5-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
-  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
-  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 10h8" stroke="currentColor" stroke-width="1.8"/></symbol>
-  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
-  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
-  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 6.5L12 13l8.5-6.5" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
-  <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h13v4M3 7v11a2 2 0 0 0 2 2h15V9H5a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="16" cy="14.5" r="1.3" fill="currentColor"/></symbol>
   <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="10" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 20v-1a6 6 0 0 1 6-6h2a6 6 0 0 1 4 1.5M18 13v7M14.5 16.5h7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-print" viewBox="0 0 24 24"><path d="M7 9V3h10v6M7 17H4v-7a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v7h-3M7 14h10v7H7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
 </svg>
 
-<header class="header" id="top">
-  <div class="container header__inner">
-    <a href="#top" class="logo" aria-label="ДоГруз — на главную">
-      <span class="logo__mark"><svg><use href="#i-truck"/></svg></span>
-      <span class="logo__text">До<b>Груз</b></span>
-    </a>
-    <nav class="nav" id="nav">
-      <a href="#services">Услуги</a>
-      <a href="#how">Как это работает</a>
-      <a href="#fleet">Машины</a>
-      <a href="#drivers">Водителям</a>
-      <a href="#faq">Вопросы</a>
-      <a href="#order" class="btn btn--lime nav__cta-mobile">Заказать перевозку</a>
-    </nav>
-    <a href="#order" class="btn btn--lime header__cta">Заказать перевозку</a>
-    <button class="burger" id="burger" aria-label="Меню" aria-expanded="false"><span></span><span></span><span></span></button>
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="./" aria-label="ВЕЗУ — на главную"><svg><use href="#logo"/></svg><span>везу<small>грузы до 3 тонн</small></span></a>
+    <a class="btn btn-glass btn-sm" href="new.html">Я водитель</a>
   </div>
 </header>
 
-<main>
-<!-- HERO -->
-<section class="hero" id="order">
-  <div class="container hero__grid">
-    <div class="hero__text">
-      <span class="pill"><span class="dot"></span> Грузоперевозки до 3 тонн</span>
-      <h1>Перевезём что угодно<br><span class="hl">по лучшей цене</span></h1>
-      <p class="lead">Переезды, мебель, стройматериалы, вывоз мусора. Вы предлагаете цену — водители откликаются, а вы выбираете лучшего по рейтингу, машине и времени подачи.</p>
-      <ul class="hero__bullets">
-        <li><svg><use href="#i-check"/></svg> Без скрытых наценок и диспетчеров</li>
-        <li><svg><use href="#i-check"/></svg> Газели и грузовики до 3 тонн</li>
-        <li><svg><use href="#i-check"/></svg> Грузчики — по желанию</li>
-      </ul>
-      <div class="hero__truck" aria-hidden="true">
-        <svg viewBox="0 0 420 170" class="truck-art">
-          <rect x="10" y="20" width="250" height="110" rx="10" fill="#C1F11D"/>
-          <text x="40" y="88" font-family="Manrope,sans-serif" font-weight="800" font-size="40" fill="#111">ДоГруз</text>
-          <path d="M260 55h75l45 40v35H260z" fill="#fff"/>
-          <path d="M275 68h52l30 27h-82z" fill="#1b1b1b"/>
-          <rect x="260" y="118" width="120" height="12" fill="#e9e9e9"/>
-          <circle cx="75" cy="135" r="24" fill="#111"/><circle cx="75" cy="135" r="10" fill="#bbb"/>
-          <circle cx="330" cy="135" r="24" fill="#111"/><circle cx="330" cy="135" r="10" fill="#bbb"/>
-          <rect x="0" y="160" width="420" height="4" rx="2" fill="#2a2a2a"/>
-        </svg>
-      </div>
-    </div>
-
-    <form class="card order" id="orderForm" novalidate>
-      <h2 class="order__title">Новый заказ</h2>
-      <div class="route">
-        <div class="field">
-          <label for="from">Откуда</label>
-          <div class="input-ic"><svg class="ic-green"><use href="#i-pin"/></svg><input id="from" name="from" type="text" placeholder="Улица, дом" autocomplete="street-address" required minlength="3"></div>
-          <small class="err"></small>
-        </div>
-        <div class="field">
-          <label for="to">Куда</label>
-          <div class="input-ic"><svg><use href="#i-flag"/></svg><input id="to" name="to" type="text" placeholder="Улица, дом" required minlength="3"></div>
-          <small class="err"></small>
-        </div>
-      </div>
-      <div class="row2">
-        <div class="field">
-          <label for="cargo">Тип груза</label>
-          <select id="cargo" name="cargo" required>
-            <option value="">Выберите…</option>
-            <option>Квартирный переезд</option>
-            <option>Офисный переезд</option>
-            <option>Мебель</option>
-            <option>Стройматериалы</option>
-            <option>Бытовая техника</option>
-            <option>Вывоз мусора</option>
-            <option>Коробки / посылки</option>
-            <option>Другое</option>
-          </select>
-          <small class="err"></small>
-        </div>
-        <div class="field">
-          <label for="weight">Вес, кг (до 3000)</label>
-          <input id="weight" name="weight" type="number" inputmode="numeric" min="1" max="3000" placeholder="Например, 800" required>
-          <small class="err"></small>
-        </div>
-      </div>
-      <div class="row2">
-        <div class="field">
-          <label for="date">Дата</label>
-          <input id="date" name="date" type="date" required>
-          <small class="err"></small>
-        </div>
-        <div class="field">
-          <span class="label">Грузчики</span>
-          <div class="seg" role="radiogroup" aria-label="Нужны грузчики">
-            <input type="radio" id="ld-no" name="loaders" value="Не нужны" checked><label for="ld-no">Не нужны</label>
-            <input type="radio" id="ld-yes" name="loaders" value="Нужны"><label for="ld-yes">Нужны</label>
-          </div>
-        </div>
-      </div>
-      <div class="field price-field">
-        <label for="price">Предложите свою цену</label>
-        <div class="input-ic input-ic--big"><svg><use href="#i-ruble"/></svg><input id="price" name="price" type="number" inputmode="numeric" min="2000" step="500" placeholder="Например, 15000" required><span class="suffix">₸</span></div>
-        <small class="hint">Водители увидят вашу цену и смогут принять её или предложить свою.</small>
-        <small class="err"></small>
-      </div>
-      <div class="field">
-        <label for="phone">Телефон</label>
-        <div class="input-ic"><svg><use href="#i-phone"/></svg><input id="phone" name="phone" type="tel" placeholder="+7 (___) ___-__-__" autocomplete="tel" required></div>
-        <small class="err"></small>
-      </div>
-      <button type="submit" class="btn btn--lime btn--block btn--lg">Найти водителя <svg><use href="#i-arrow"/></svg></button>
-      <p class="fine">Нажимая кнопку, вы соглашаетесь с условиями сервиса. Это демо‑форма: данные никуда не отправляются.</p>
-    </form>
-  </div>
-</section>
-
-<!-- SERVICES -->
-<section class="section" id="services">
-  <div class="container">
-    <div class="sec-head">
-      <h2>Что перевозим</h2>
-      <p>Всё, что помещается в кузов до 3 тонн — от одного дивана до полного переезда.</p>
-    </div>
-    <div class="grid grid--3">
-      <article class="svc"><div class="svc__ic"><svg><use href="#i-home"/></svg></div><h3>Квартирные переезды</h3><p>Перевезём вещи, мебель и технику в новую квартиру. Упакуем, погрузим, поднимем на этаж.</p></article>
-      <article class="svc"><div class="svc__ic"><svg><use href="#i-office"/></svg></div><h3>Офисные переезды</h3><p>Столы, кресла, оргтехника и архивы. Переезд в выходные — без остановки работы.</p></article>
-      <article class="svc"><div class="svc__ic"><svg><use href="#i-brick"/></svg></div><h3>Стройматериалы</h3><p>Кирпич, смеси, гипсокартон, доски, трубы. Доставка на объект или дачу.</p></article>
-      <article class="svc"><div class="svc__ic"><svg><use href="#i-sofa"/></svg></div><h3>Мебель и техника</h3><p>Из магазина, с Авито или от родственников. Бережно, с ремнями и защитной плёнкой.</p></article>
-      <article class="svc"><div class="svc__ic"><svg><use href="#i-trash"/></svg></div><h3>Вывоз мусора</h3><p>Строительный мусор, старая мебель, хлам с балкона и гаража. Погрузка — по запросу.</p></article>
-      <article class="svc"><div class="svc__ic"><svg><use href="#i-worker"/></svg></div><h3>Грузчики</h3><p>Нужны крепкие руки? Добавьте грузчиков к заказу — или закажите их отдельно.</p></article>
-    </div>
-  </div>
-</section>
-
-<!-- HOW -->
-<section class="section section--dark" id="how">
-  <div class="container">
-    <div class="sec-head sec-head--light">
-      <h2>Как это работает</h2>
-      <p>Честная модель: цену предлагаете вы, водитель решает сам.</p>
-    </div>
-    <ol class="steps">
-      <li class="step"><span class="step__n">1</span><h3>Опишите груз</h3><p>Укажите адреса, тип и вес груза, дату и нужны ли грузчики.</p></li>
-      <li class="step"><span class="step__n">2</span><h3>Предложите цену</h3><p>Назовите сумму, которую готовы заплатить. Подскажем ориентир по похожим заказам.</p></li>
-      <li class="step"><span class="step__n">3</span><h3>Выберите водителя</h3><p>Водители принимают вашу цену или предлагают свою. Сравните рейтинг, машину и время подачи.</p></li>
-      <li class="step"><span class="step__n">4</span><h3>Получите груз</h3><p>Следите за машиной, общайтесь с водителем в чате и платите напрямую — удобным способом.</p></li>
-    </ol>
-  </div>
-</section>
-
-<!-- FLEET -->
-<section class="section" id="fleet">
-  <div class="container">
-    <div class="sec-head">
-      <h2>Машины под любую задачу</h2>
-      <p>Характеристики ориентировочные и зависят от конкретного автомобиля.</p>
-    </div>
-    <div class="grid grid--4">
-      <article class="car">
-        <svg class="car__art" viewBox="0 0 160 70"><rect x="8" y="22" width="78" height="30" rx="5" fill="#C1F11D"/><path d="M86 30h28l18 14v8H86z" fill="#1b1b1b"/><circle cx="32" cy="55" r="9" fill="#111"/><circle cx="116" cy="55" r="9" fill="#111"/></svg>
-        <h3>Каблук</h3><span class="tag">до 700 кг</span>
-        <ul><li>Объём ~ 2–3 м³</li><li>Коробки, техника, мелкая мебель</li></ul>
-      </article>
-      <article class="car">
-        <svg class="car__art" viewBox="0 0 160 70"><rect x="6" y="10" width="96" height="42" rx="5" fill="#C1F11D"/><path d="M102 24h26l22 18v10h-48z" fill="#1b1b1b"/><circle cx="32" cy="55" r="9" fill="#111"/><circle cx="126" cy="55" r="9" fill="#111"/></svg>
-        <h3>Газель</h3><span class="tag">до 1,5 т</span>
-        <ul><li>Объём ~ 9–16 м³</li><li>Переезд 1–2‑комнатной квартиры</li></ul>
-      </article>
-      <article class="car car--accent">
-        <svg class="car__art" viewBox="0 0 160 70"><rect x="4" y="6" width="104" height="46" rx="5" fill="#111"/><path d="M108 22h24l22 18v12h-46z" fill="#C1F11D"/><circle cx="30" cy="55" r="9" fill="#111" stroke="#C1F11D" stroke-width="2"/><circle cx="130" cy="55" r="9" fill="#111" stroke="#C1F11D" stroke-width="2"/></svg>
-        <h3>Газель удлинённая</h3><span class="tag">до 2 т</span>
-        <ul><li>Объём ~ 18–22 м³</li><li>Длинномер до 4–6 м, стройматериалы</li></ul>
-      </article>
-      <article class="car">
-        <svg class="car__art" viewBox="0 0 160 70"><rect x="2" y="4" width="110" height="48" rx="5" fill="#C1F11D"/><path d="M112 18h22l24 20v14h-46z" fill="#1b1b1b"/><circle cx="26" cy="55" r="9" fill="#111"/><circle cx="48" cy="55" r="9" fill="#111"/><circle cx="134" cy="55" r="9" fill="#111"/></svg>
-        <h3>Грузовик</h3><span class="tag">до 3 т</span>
-        <ul><li>Объём ~ 20–30 м³</li><li>Офисы, 3‑комнатные квартиры, объекты</li></ul>
-      </article>
-    </div>
-    <p class="note">Цену вы назначаете сами — фиксированных тарифов нет. Опции: тент, борт, гидроборт — уточняйте у водителя.</p>
-  </div>
-</section>
-
-<!-- ADVANTAGES -->
-<section class="section section--soft" id="why">
-  <div class="container">
-    <div class="sec-head"><h2>Почему ДоГруз</h2></div>
-    <div class="grid grid--3 adv">
-      <div class="adv__item"><svg><use href="#i-wallet"/></svg><h3>Своя цена</h3><p>Никаких навязанных тарифов — вы и водитель договариваетесь напрямую.</p></div>
-      <div class="adv__item"><svg><use href="#i-star"/></svg><h3>Выбор водителя</h3><p>Рейтинг, отзывы, фото машины и количество поездок — до того, как вы согласитесь.</p></div>
-      <div class="adv__item"><svg><use href="#i-shield"/></svg><h3>Проверенные водители</h3><p>Проверяем документы и автомобиль перед допуском к заказам.</p></div>
-      <div class="adv__item"><svg><use href="#i-clock"/></svg><h3>Подача от 30 минут</h3><p>Срочно или на конкретную дату — найдём свободную машину рядом.</p></div>
-      <div class="adv__item"><svg><use href="#i-chat"/></svg><h3>Чат с водителем</h3><p>Уточните детали: этаж, лифт, габариты, нужен ли разбор мебели.</p></div>
-      <div class="adv__item"><svg><use href="#i-box"/></svg><h3>Любые грузы до 3 т</h3><p>От одной стиральной машины до полного офиса.</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- DRIVERS -->
-<section class="section section--dark drivers" id="drivers">
-  <div class="container drivers__grid">
+<main class="wrap">
+  <section class="hero">
     <div>
-      <span class="pill pill--dark"><span class="dot"></span> Для водителей</span>
-      <h2 class="drivers__h">Есть грузовая машина?<br><span class="hl">Зарабатывайте с ДоГруз.</span></h2>
-      <ul class="drivers__list">
-        <li><svg><use href="#i-check"/></svg><div><b>Выбирайте заказы сами</b><span>Видите адрес, груз и цену клиента до отклика.</span></div></li>
-        <li><svg><use href="#i-check"/></svg><div><b>Предлагайте свою цену</b><span>Не устраивает сумма — назовите свою.</span></div></li>
-        <li><svg><use href="#i-check"/></svg><div><b>Свободный график</b><span>Работайте, когда удобно, без смен и диспетчеров.</span></div></li>
-        <li><svg><use href="#i-check"/></svg><div><b>Оплата напрямую</b><span>Клиент платит вам сразу после перевозки.</span></div></li>
-      </ul>
+      <span class="badge"><i></i>Казахстан · грузы до 3 тонн</span>
+      <h1 class="h1">Перевезём <span class="grad-text">что угодно</span> по лучшей цене</h1>
+      <p class="lead">Переезды, стройматериалы, мебель, вывоз мусора, грузчики. Пишете водителю в WhatsApp напрямую — без диспетчеров и звонков в никуда.</p>
     </div>
-    <form class="card driver-form" id="driverForm" novalidate>
-      <h3>Стать водителем</h3>
-      <div class="field"><label for="dname">Имя</label><input id="dname" name="name" type="text" placeholder="Как к вам обращаться" required minlength="2"><small class="err"></small></div>
-      <div class="field"><label for="dphone">Телефон</label><input id="dphone" name="phone" type="tel" placeholder="+7 (___) ___-__-__" required><small class="err"></small></div>
-      <div class="row2">
-        <div class="field"><label for="dcity">Город</label><input id="dcity" name="city" type="text" placeholder="Ваш город" required minlength="2"><small class="err"></small></div>
-        <div class="field"><label for="dcar">Машина</label>
-          <select id="dcar" name="car" required>
-            <option value="">Выберите…</option>
-            <option>Каблук (до 700 кг)</option>
-            <option>Газель (до 1,5 т)</option>
-            <option>Газель удлинённая (до 2 т)</option>
-            <option>Грузовик (до 3 т)</option>
-          </select><small class="err"></small></div>
+
+    <form class="order glass glow f" id="order" novalidate>
+      <div>
+        <h2>Заказ <b>2 касания</b></h2>
+        <p class="sub">Выберите, что везём, и отправьте — остальное обсудите в чате.</p>
       </div>
-      <label class="check"><input type="checkbox" id="dloader" name="loader"> <span>Могу помочь с погрузкой</span></label>
-      <label class="check"><input type="checkbox" id="dagree" name="agree" required> <span>Согласен на обработку персональных данных</span></label>
-      <small class="err" id="dagreeErr"></small>
-      <button class="btn btn--lime btn--block btn--lg" type="submit">Оставить заявку <svg><use href="#i-arrow"/></svg></button>
+      <div class="qchips" aria-label="Что везём">
+        <button type="button" class="qchip" data-fill="what">Переезд</button>
+        <button type="button" class="qchip" data-fill="what">Стройматериалы</button>
+        <button type="button" class="qchip" data-fill="what">Мебель</button>
+        <button type="button" class="qchip" data-fill="what">Вывоз мусора</button>
+        <button type="button" class="qchip" data-fill="what" data-v="Нужны грузчики">Грузчики</button>
+      </div>
+      <label class="fld"><span class="sr">Что везём</span><input class="inp" name="what" placeholder="Что везём? Например: диван и 10 коробок" maxlength="120"></label>
+      <div class="route">
+        <i class="dot d1"></i><i class="dot d2"></i>
+        <label class="fld"><span class="sr">Откуда</span><input class="inp" name="from" placeholder="Откуда" maxlength="120" autocomplete="street-address"></label>
+        <label class="fld"><span class="sr">Куда</span><input class="inp" name="to" placeholder="Куда" maxlength="120"></label>
+      </div>
+      <div class="row2">
+        <label class="fld"><span class="sr">Когда</span>
+          <select class="inp" name="when"><option>Сейчас</option><option>Сегодня</option><option>Завтра</option><option>На этой неделе</option><option value="">Договоримся</option></select>
+        </label>
+        <label class="fld"><span class="sr">Ваша цена</span><input class="inp" name="price" inputmode="numeric" placeholder="Ваша цена"><b class="suffix">₸</b></label>
+      </div>
+      <button class="btn btn-wa btn-lg btn-block" type="submit"><svg><use href="#i-wa"/></svg>Отправить в WhatsApp</button>
+      <p class="hint">Откроется WhatsApp с готовым сообщением. Цену можно не указывать.</p>
     </form>
-  </div>
-</section>
+  </section>
 
-<!-- FAQ -->
-<section class="section" id="faq">
-  <div class="container container--narrow">
-    <div class="sec-head"><h2>Частые вопросы</h2></div>
-    <div class="faq">
-      <details><summary>Как сформировать цену, если я не знаю, сколько это стоит?<span class="faq__ic"><svg><use href="#i-plus"/></svg></span></summary><p>Ориентируйтесь на расстояние, вес, объём и время работы. Если цена окажется низкой, водители предложат свою — и вы сможете выбрать подходящее предложение.</p></details>
-      <details><summary>Какой максимальный вес груза?<span class="faq__ic"><svg><use href="#i-plus"/></svg></span></summary><p>ДоГруз специализируется на грузах до 3 тонн. Для каждой машины вы видите её грузоподъёмность и примерный объём кузова.</p></details>
-      <details><summary>Можно ли заказать грузчиков?<span class="faq__ic"><svg><use href="#i-plus"/></svg></span></summary><p>Да. Отметьте «Грузчики — нужны» в форме заказа и укажите в комментарии этаж и наличие лифта. Многие водители также помогают с погрузкой сами.</p></details>
-      <details><summary>Как оплатить перевозку?<span class="faq__ic"><svg><use href="#i-plus"/></svg></span></summary><p>Оплата производится напрямую водителю после выполнения заказа — наличными или переводом, как договоритесь.</p></details>
-      <details><summary>Возите ли вы за город и между городами?<span class="faq__ic"><svg><use href="#i-plus"/></svg></span></summary><p>Да, укажите адреса — водители, готовые к междугородней поездке, откликнутся на заказ.</p></details>
-      <details><summary>Что будет, если груз повредят?<span class="faq__ic"><svg><use href="#i-plus"/></svg></span></summary><p>Опишите хрупкие предметы заранее и обсудите упаковку с водителем в чате. При спорной ситуации свяжитесь с поддержкой — мы поможем разобраться.</p></details>
+  <p class="sec-title">Что возим</p>
+  <section class="svc" aria-label="Услуги">
+    <button type="button" data-svc="Переезд"><svg><use href="#i-home"/></svg>Переезды</button>
+    <button type="button" data-svc="Стройматериалы"><svg><use href="#i-brick"/></svg>Стройка</button>
+    <button type="button" data-svc="Мебель"><svg><use href="#i-sofa"/></svg>Мебель</button>
+    <button type="button" data-svc="Вывоз мусора"><svg><use href="#i-trash"/></svg>Вывоз мусора</button>
+    <button type="button" data-svc="Нужны грузчики"><svg><use href="#i-worker"/></svg>Грузчики</button>
+    <button type="button" data-svc="Груз до 3 тонн"><svg><use href="#i-box"/></svg>До 3 тонн</button>
+  </section>
+
+  <section class="drivers glass glow" id="drivers">
+    <div>
+      <span class="badge"><i></i>Для водителей · бесплатно</span>
+      <h2>Ваша визитка<br><span class="grad-text">за 1 минуту</span></h2>
+      <ul class="ticks">
+        <li><svg><use href="#i-check"/></svg><span><b>Своя ссылка и QR-код.</b> Покажите клиенту — он отсканирует и напишет вам.</span></li>
+        <li><svg><use href="#i-check"/></svg><span><b>Заказы сразу в WhatsApp.</b> Откуда, куда, что и цена — в одном сообщении.</span></li>
+        <li><svg><use href="#i-check"/></svg><span><b>Печать.</b> Бумажные визитки и наклейка на машину — в один клик.</span></li>
+      </ul>
+      <div class="btns">
+        <a class="btn btn-grad" href="new.html">Создать визитку<svg><use href="#i-arrow"/></svg></a>
+        <a class="btn btn-glass" href="card.html?demo">Посмотреть пример</a>
+      </div>
     </div>
-  </div>
-</section>
-
-<!-- CTA -->
-<section class="cta">
-  <div class="container cta__inner">
-    <h2>Готовы к перевозке?</h2>
-    <p>Создайте заказ за минуту и получите отклики водителей.</p>
-    <a href="#order" class="btn btn--dark btn--lg">Заказать перевозку <svg><use href="#i-arrow"/></svg></a>
-  </div>
-</section>
+    <a class="mock" href="card.html?demo" aria-label="Пример визитки водителя" id="mock"></a>
+  </section>
 </main>
 
-<footer class="footer">
-  <div class="container footer__grid">
-    <div>
-      <a href="#top" class="logo logo--light"><span class="logo__mark"><svg><use href="#i-truck"/></svg></span><span class="logo__text">До<b>Груз</b></span></a>
-      <p class="footer__desc">Грузоперевозки до 3 тонн по цене, которую предлагаете вы.</p>
-    </div>
-    <div><h4>Клиентам</h4><a href="#services">Услуги</a><a href="#fleet">Машины</a><a href="#how">Как это работает</a><a href="#faq">Вопросы</a></div>
-    <div><h4>Водителям</h4><a href="#drivers">Стать водителем</a><a href="#faq">Помощь</a></div>
-    <div>
-      <h4>Контакты <span class="ph">заглушка</span></h4>
-      <a href="tel:+70000000000"><svg><use href="#i-phone"/></svg> +7 (000) 000‑00‑00</a>
-      <a href="mailto:info@example.com"><svg><use href="#i-mail"/></svg> info@example.com</a>
-      <span class="muted">Адрес: г. ________, ул. ________ (заглушка)</span>
-    </div>
-  </div>
-  <div class="container footer__bottom">
-    <span>© <span id="year">2026</span> ДоГруз. Демонстрационный сайт.</span>
-    <span class="muted">Контакты и реквизиты — заполнители, замените на реальные.</span>
+<footer class="foot">
+  <div class="wrap">
+    <span>© 2026 ВЕЗУ · грузоперевозки до 3 тонн</span>
+    <span><a href="new.html">Создать визитку</a> · <a href="card.html?demo">Пример визитки</a></span>
   </div>
 </footer>
 
-<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden>
-  <div class="modal__box">
-    <div class="modal__ic"><svg><use href="#i-check"/></svg></div>
-    <h3 id="modalTitle">Готово!</h3>
-    <div id="modalBody"></div>
-    <button class="btn btn--lime btn--block" id="modalClose">Понятно</button>
-  </div>
-</div>
-
-<script src="js/main.js"></script>
+<script src="js/common.js"></script>
+<script>
+(function () {
+  var V = window.VEZU, form = document.getElementById('order');
+  V.bindOrderForm(form, function () { return V.SITE_PHONE; });
+  document.querySelectorAll('[data-svc]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var w = form.querySelector('[name=what]'); w.value = b.dataset.svc;
+      form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(function () { form.querySelector('[name=from]').focus({ preventScroll: true }); }, 400);
+    });
+  });
+  document.getElementById('mock').innerHTML = V.cardHero(V.DEMO);
+})();
+</script>
 </body>
 </html>
