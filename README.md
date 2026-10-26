@@ -119,29 +119,34 @@
   Чат: оставьте заявку на визитке → откроется чат, «исполнитель» сам ответит и предложит цену; кнопки
   «Глазами клиента / Глазами исполнителя» в демо-полосе переключают сторону; «⏩ перемотать 4 дня» показывает удаление переписки.
 
-## Миграции базы (ждут вашего подтверждения)
+## База данных (Supabase, проект VEZU `sfgrwquitlnzlkyzashb`)
 
-Файлы в `supabase/` только **добавляют** (колонки, таблицы, функции, политики) — данные не удаляются, повторный запуск безопасен.
+С 26.10.2026 сайт работает на проекте **VEZU** — том же, что у сайта ВЕЗУ (dogruz). Объекты не пересекаются:
+у ВЕЗУ — `vz_*`, `vz_private`, корзина `vz_photos`, функция `vz-photo`; у АвтоМастер24 — только `am_*`,
+корзины `am-photos`/`am-public`, функция `am-telegram-auth`, задача pg_cron `am-purge-order-chats`.
+Старый проект `wzhwnffdylhkmapijkrn` больше не используется (публичные справочники перенесены 1:1, исполнителей и отзывов там не было).
 
-| Файл | Что делает | Статус в проекте `wzhwnffdylhkmapijkrn` |
+Файлы в `supabase/` только **добавляют** (колонки, таблицы, функции, политики), повторный запуск безопасен,
+права выдаются только на объекты `am_*`.
+
+| Файл | Что делает | Статус в VEZU |
 |---|---|---|
-| `01_schema.sql`, `02_seed.sql` | таблицы `am_*`, RLS, справочники | уже выполнены |
-| `03_features.sql` | фото, чат, профиль исполнителя | уже выполнен |
-| **`04_cards_cargo_shop.sql`** | тип `cargo`; колонки `card`, `store_url`, `shop_enabled`; функции `am_create_card`, `am_create_lead`, `am_set_lead_status`; таблицы `am_leads`, `am_products` (RLS); фото товаров `am-public/shop/<id>/` | **не выполнен — нужно ваше «да»** |
-| **`05_order_chat.sql`** | чат по заказу `am_order_messages` (RLS + Realtime), цикл статусов, секрет клиента, предложение/принятие цены, оценка → рейтинг визитки, отзывы по заказам, возврат в чат по телефону, автозакрытие и удаление переписки через 3 дня (`am_purge_order_chats`, ежедневно через pg_cron, если он включён); вместе с 04 исправляет старую ошибку — рейтинг из отзывов в приложении не пересчитывался (его откатывал триггер-страж) | **не выполнен — нужно ваше «да»** (после 04) |
+| `01_schema.sql`, `02_seed.sql` | таблицы `am_*`, RLS, справочники | выполнены |
+| `03_features.sql` | фото, чат, профиль исполнителя | выполнен |
+| `04_cards_cargo_shop.sql` | тип `cargo`; визитки (`card`, `store_url`, `shop_enabled`); `am_create_card`, `am_create_lead`, `am_set_lead_status`; `am_leads`, `am_products` | выполнен |
+| `05_order_chat.sql` | чат по заказу `am_order_messages` (RLS + Realtime), цикл статусов, предложение/принятие цены, оценка → рейтинг визитки, автозакрытие (7/30/60 дней) и удаление переписки через 3 дня (pg_cron, 03:17 UTC ежедневно) | выполнен |
+| `06_hardening.sql` | права: служебные функции закрыты от API, «только для вошедших» — без anon; закрыта дыра `am_make_admin` (гость мог назначить админа); `search_path`; политики с `(select auth.uid())`; индексы внешних ключей | выполнен |
 
-Как выполнить: Supabase → SQL Editor → вставить `supabase/04_cards_cargo_shop.sql` → Run, затем `supabase/05_order_chat.sql` → Run (для ежедневной очистки чатов включите Database → Extensions → pg_cron до запуска 05 или запустите 05 ещё раз после). Сайт сам увидит новые таблицы
-и включит визитки, магазин и лиды. Для нового проекта с нуля — `all_in_one.sql` (01+02+03+04+05).
-Проверка на локальном PostgreSQL: `bash tests/run_db_tests.sh` (тесты `flow_test`, `features_test`, `cards_test`, `order_chat_test`).
+Новый проект с нуля — `all_in_one.sql` (01…06). Проверка на локальном PostgreSQL: `bash tests/run_db_tests.sh`.
 
-## Свой бот для входа
+## Вход через Telegram
 
-Сейчас кнопка входа использует бота **@VeloMaster24bot** (его функция входа уже работает в Supabase, домен `avtomaster24bot-lab.github.io` у него привязан).
-Чтобы входить через **@TochkaSborki_A24_bot**:
-1. В @BotFather: `/setdomain` → выберите бота → `avtomaster24bot-lab.github.io`.
-2. Разверните в Supabase копию функции `telegram-auth` из репозитория velomarket под именем `am-telegram-auth`
-   и задайте ей секрет `TELEGRAM_BOT_TOKEN` (токен бота АвтоМастер24 — только в Supabase, не в GitHub).
-3. В `site/js/config.js` поменяйте `TELEGRAM_AUTH_URL` на `…/functions/v1/am-telegram-auth` и `TELEGRAM_LOGIN_BOT` на `TochkaSborki_A24_bot`.
+Функция `supabase/functions/am-telegram-auth` развёрнута в VEZU (verify_jwt выключен — она сама проверяет подпись Telegram).
+Чтобы вход заработал, нужно (делает владелец):
+1. В @BotFather: `/setdomain` → **@TochkaSborki_A24_bot** → `avtomaster24bot-lab.github.io`.
+2. Supabase → проект VEZU → Edge Functions → Secrets → `TELEGRAM_BOT_TOKEN` = токен этого бота (только в Supabase, не в GitHub).
+Пока секрета нет, функция отвечает `server_misconfigured`, а сайт пишет «Вход через Telegram ещё настраивается»;
+заказы, визитки и чат по ссылке работают и без входа.
 
 ## Безопасность и личные данные
 

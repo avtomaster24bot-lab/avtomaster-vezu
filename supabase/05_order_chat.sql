@@ -286,4 +286,10 @@ grant execute on function am_create_order(jsonb), am_order_get(bigint, text), am
   am_order_accept_offer(bigint, text, bigint), am_order_set_status(bigint, text, text), am_order_rate(bigint, text, int, text),
   am_provider_order_reviews(int), am_order_claim(bigint, text) to anon, authenticated;
 revoke execute on function am_set_lead_status(bigint, text) from anon;
-grant usage, select on all sequences in schema public to authenticated;
+-- права на последовательности только для таблиц am_* (не трогаем чужие объекты в общей базе)
+do $$ declare s record; begin
+  for s in select c.oid::regclass as r from pg_class c join pg_namespace n on n.oid = c.relnamespace
+           where c.relkind = 'S' and n.nspname = 'public' and c.relname like 'am\_%' loop
+    execute format('grant usage, select on sequence %s to authenticated', s.r);
+  end loop;
+end $$;

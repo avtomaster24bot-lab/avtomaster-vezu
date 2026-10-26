@@ -197,4 +197,10 @@ grant insert, update, delete on am_products to authenticated;
 grant execute on function am_create_lead(jsonb) to anon, authenticated;
 grant execute on function am_create_card(jsonb), am_set_lead_status(bigint, text) to authenticated;
 revoke execute on function am_create_card(jsonb), am_set_lead_status(bigint, text) from anon;
-grant usage, select on all sequences in schema public to authenticated;
+-- права на последовательности только для таблиц am_* (не трогаем чужие объекты в общей базе)
+do $$ declare s record; begin
+  for s in select c.oid::regclass as r from pg_class c join pg_namespace n on n.oid = c.relnamespace
+           where c.relkind = 'S' and n.nspname = 'public' and c.relname like 'am\_%' loop
+    execute format('grant usage, select on sequence %s to authenticated', s.r);
+  end loop;
+end $$;

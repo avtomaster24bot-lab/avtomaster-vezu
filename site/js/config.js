@@ -8,15 +8,15 @@ export const CONFIG = {
   SITE_NAME: 'АвтоМастер24',
   SITE_TAGLINE: 'СТО, эвакуатор, мойка, запчасти, выездные мастера и грузоперевозки — в одном месте',
 
-  // Supabase (тот же проект, что у VeloMarket). anon-ключ публичный, защита — RLS в базе.
-  SUPABASE_URL: 'https://wzhwnffdylhkmapijkrn.supabase.co',
-  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6aHduZmZkeWxoa21hcGlqa3JuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzNDg3NjEsImV4cCI6MjA5MTkyNDc2MX0.G7Ieq0C-FECBFaC5y5ks5tv5KApUqY_S7pH-P8sHXCs',
+  // Supabase: проект VEZU (общий с сайтом ВЕЗУ; наши объекты — только am_*). anon-ключ публичный, защита — RLS в базе.
+  SUPABASE_URL: 'https://sfgrwquitlnzlkyzashb.supabase.co',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmZ3J3cXVpdGxuemxreXphc2hiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwMjUzODgsImV4cCI6MjEwODYwMTM4OH0.ZbGQavzc2Zlj0J1Ip-kQP2J4YNWNTGZI1YkPNMzhPQo',
 
   // Вход через Telegram: функция проверки подписи и бот, токеном которого она проверяет подпись.
-  // Сейчас используется уже работающая функция VeloMarket (бот VeloMaster24bot, домен github.io уже привязан).
-  // Чтобы входить через бота АвтоМастер24 — см. README, раздел «Свой бот для входа».
-  TELEGRAM_AUTH_URL: 'https://wzhwnffdylhkmapijkrn.supabase.co/functions/v1/telegram-auth',
-  TELEGRAM_LOGIN_BOT: 'VeloMaster24bot',
+  // Функция am-telegram-auth развёрнута в проекте VEZU; ей нужен секрет TELEGRAM_BOT_TOKEN этого бота
+  // (Supabase → Edge Functions → Secrets) и /setdomain у бота — см. README, раздел «Свой бот для входа».
+  TELEGRAM_AUTH_URL: 'https://sfgrwquitlnzlkyzashb.supabase.co/functions/v1/am-telegram-auth',
+  TELEGRAM_LOGIN_BOT: 'TochkaSborki_A24_bot',
 
   // Основной Telegram-бот сервиса (кнопка «Открыть бота»)
   TELEGRAM_BOT: 'TochkaSborki_A24_bot',

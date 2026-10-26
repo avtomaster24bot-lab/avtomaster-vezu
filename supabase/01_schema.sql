@@ -508,4 +508,10 @@ grant select on am_cities, am_categories, am_subcategories, am_price_services, a
 grant select, insert, update, delete on am_vehicles, am_prices, am_providers to authenticated;
 grant select on am_profiles, am_requests, am_declines, am_offers, am_registrations to authenticated;
 grant insert, update, delete on am_cities, am_categories, am_subcategories, am_price_services, am_brands, am_models to authenticated;
-grant usage, select on all sequences in schema public to authenticated;
+-- права на последовательности только для таблиц am_* (не трогаем чужие объекты в общей базе)
+do $$ declare s record; begin
+  for s in select c.oid::regclass as r from pg_class c join pg_namespace n on n.oid = c.relnamespace
+           where c.relkind = 'S' and n.nspname = 'public' and c.relname like 'am\_%' loop
+    execute format('grant usage, select on sequence %s to authenticated', s.r);
+  end loop;
+end $$;

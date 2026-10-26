@@ -59,7 +59,7 @@ export const live = {
       headers: { 'Content-Type': 'application/json', apikey: CONFIG.SUPABASE_ANON_KEY, Authorization: `Bearer ${CONFIG.SUPABASE_ANON_KEY}` }, body: JSON.stringify(tgUser) });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) {
-      const map = { invalid_hash: 'Подпись Telegram не прошла проверку', auth_expired: 'Данные входа устарели, попробуйте ещё раз', too_many_requests: 'Слишком много попыток, подождите минуту', banned: 'Аккаунт заблокирован' };
+      const map = { invalid_hash: 'Подпись Telegram не прошла проверку', auth_expired: 'Данные входа устарели, попробуйте ещё раз', too_many_requests: 'Слишком много попыток, подождите минуту', banned: 'Аккаунт заблокирован', server_misconfigured: 'Вход через Telegram ещё настраивается — попробуйте позже' };
       throw new Error(map[j.error] || `Ошибка входа (${j.error || r.status})`);
     }
     const s = await client();
