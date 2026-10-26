@@ -61,7 +61,7 @@
 <header class="top">
   <div class="wrap">
     <a class="logo" href="./" aria-label="ВЕЗУ — на главную"><svg><use href="#logo"/></svg><span>везу<small>тарифы</small></span></a>
-    <nav class="topnav"><a class="btn btn-glass btn-sm" href="new.html">Создать визитку</a></nav>
+    <nav class="topnav"><a href="catalog.html">Водители</a><a class="btn btn-glass btn-sm" href="new.html">Создать визитку</a></nav>
   </div>
 </header>
 
@@ -77,11 +77,12 @@
       <a class="btn btn-glass btn-block" href="new.html">Создать визитку</a>
     </section>
     <section class="plan glass glow pro">
-      <span class="tag-soon">Скоро</span>
+      <span class="tag-soon">7 дней бесплатно</span>
       <h2>Про</h2>
-      <p class="price">1 500 ₸<small>в месяц</small></p>
-      <ul><li><svg><use href="#i-check"/></svg><span>Короткий адрес визитки</span><em>скоро</em></li><li><svg><use href="#i-check"/></svg><span>Место в каталоге водителей</span><em>скоро</em></li><li><svg><use href="#i-check"/></svg><span>Фото на сервере — видно всем</span><em>скоро</em></li><li><svg><use href="#i-check"/></svg><span>Статистика просмотров</span><em>скоро</em></li><li><svg><use href="#i-check"/></svg><span>Без надписи «Сделано на ВЕЗУ»</span><em>скоро</em></li></ul>
-      <button type="button" class="btn btn-grad btn-block" data-wa="pro"><svg><use href="#i-wa"/></svg>Хочу Про</button>
+      <p class="price">1 500 ₸<small>в месяц · первые 7 дней бесплатно</small></p>
+      <ul><li><svg><use href="#i-check"/></svg><span>Короткий адрес: …/dogruz/ваше-имя</span></li><li><svg><use href="#i-check"/></svg><span>Фото видят все клиенты</span></li><li><svg><use href="#i-check"/></svg><span>Место в каталоге водителей</span></li><li><svg><use href="#i-check"/></svg><span>Статистика: просмотры, WhatsApp, звонки</span></li><li><svg><use href="#i-check"/></svg><span>Без надписи «Сделано на ВЕЗУ»</span></li></ul>
+      <a class="btn btn-grad btn-block" href="new.html">Попробовать 7 дней бесплатно</a>
+      <button type="button" class="btn btn-wa btn-block" data-wa="pro"><svg><use href="#i-wa"/></svg>Оплатить Про (Kaspi)</button>
     </section>
     <section class="plan glass">
       <h2>Визитки + наклейка</h2>
@@ -98,17 +99,17 @@
       <button type="button" class="btn btn-glass btn-sm" data-wa="partner"><svg><use href="#i-wa"/></svg>Обсудить</button>
     </section>
     <section class="plan glass mini">
-      <h2>Приведи водителя <em class="soon">идея</em></h2>
-      <p class="muted">Когда запустится Про: водитель, которого вы пригласили, подключил Про — вам месяц Про бесплатно.</p>
+      <h2>Приведи водителя <em class="soon">скоро</em></h2>
+      <p class="muted">Водитель, которого вы пригласили, оплатил Про — вам месяц Про бесплатно. Пока договариваемся вручную через WhatsApp.</p>
       <button type="button" class="btn btn-glass btn-sm" id="shareApp"><svg><use href="#i-share"/></svg>Рассказать коллеге</button>
     </section>
   </div>
-  <p class="fine">Цены Про — планируемые, функции с пометкой «скоро» ещё в разработке. Всё, что есть на сайте сейчас, — бесплатно.</p>
+  <p class="fine">Про включается в конструкторе: шаг 3 → «ВЕЗУ Про» → «Сохранить в облаке» (регистрация не нужна). Оплата — Kaspi перевод, Про продлевается вручную после оплаты. Если не продлить — визитка-ссылка и короткий адрес продолжают работать, без фото, каталога и статистики. Базовая визитка — бесплатно навсегда.</p>
 </main>
 <footer class="foot">
   <div class="wrap">
     <span>© 2026 ВЕЗУ · грузоперевозки до 3 тонн</span>
-    <span><a href="new.html">Создать визитку</a> · <a href="card.html?demo">Пример</a> · <a href="tarify.html">Тарифы</a></span>
+    <span><a href="new.html">Создать визитку</a> · <a href="catalog.html">Водители</a> · <a href="tarify.html">Тарифы</a></span>
   </div>
 </footer>
 
@@ -118,8 +119,9 @@
 (function () {
   var V = window.VEZU, mine = '';
   try { var d = JSON.parse(localStorage.getItem('vezu-card') || 'null'); if (d && d.n && d.p) mine = V.cardUrl(d); } catch (e) {}
+  try { var sl = JSON.parse(localStorage.getItem('vezu-cloud-slug') || 'null'); if (sl) mine = location.href.replace(/[^/]*$/, '') + sl; } catch (e) {}
   var T = {
-    pro: 'Здравствуйте! Хочу ВЕЗУ Про. Напишите, когда запустится.',
+    pro: 'Здравствуйте! Хочу оплатить ВЕЗУ Про (1 500 ₸/мес) через Kaspi.',
     print: 'Здравствуйте! Хочу заказать печать визиток и наклейку на машину (ВЕЗУ).',
     partner: 'Здравствуйте! Интересует реклама/партнёрство с ВЕЗУ.'
   };

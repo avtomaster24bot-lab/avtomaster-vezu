@@ -1,14 +1,30 @@
 (function () {
   'use strict';
-  var V = window.VEZU, d = V.readCard();
+  var V = window.VEZU, C = window.VZC;
   var app = document.getElementById('app');
   var langBtns = document.querySelectorAll('[data-lang]');
   function markLang() { langBtns.forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.lang === V.lang())); }); }
   V.setLang(V.savedLang()); markLang();
 
+  // короткий адрес: card.html?u=<slug> (или /dogruz/<slug> через 404.html) — визитка из облака ВЕЗУ Про
+  var slug = (new URLSearchParams(location.search).get('u') || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 20);
+  if (slug && C) {
+    app.classList.add('loading');
+    C.ready().then(function (ok) { return ok ? C.rpc('vz_card', { p_slug: slug }) : null; })
+      .then(function (r) {
+        app.classList.remove('loading');
+        if (!r || !r.d) return start(null);
+        var d = V.clean(r.d);
+        if (r.photo) d.i = C.photoUrl(r.photo);
+        start(d, { slug: r.slug, pro: !!r.pro });
+      }, function () { app.classList.remove('loading'); start(null, { offline: true }); });
+  } else start(V.readCard());
+
+  function start(d, cloud) {
+  cloud = cloud || {};
   if (!d || !d.n) {
     var renderErr = function () {
-      app.innerHTML = '<div class="err glass"><h1>' + V.esc(V.t('nf_t')) + '</h1><p class="muted">' + V.esc(V.t('nf_s')) + '</p>' +
+      app.innerHTML = '<div class="err glass"><h1>' + V.esc(V.t('nf_t')) + '</h1><p class="muted">' + V.esc(cloud.offline ? 'Не удалось загрузить визитку — проверьте интернет и обновите страницу.' : V.t('nf_s')) + '</p>' +
         '<div class="btns" style="justify-content:center;margin-top:20px"><a class="btn btn-grad" href="new.html">' + V.esc(V.t('nf_new')) + '</a><a class="btn btn-glass" href="./">' + V.esc(V.t('nf_home')) + '</a></div></div>';
     };
     renderErr();
@@ -17,7 +33,7 @@
   }
 
   V.applyTheme(document.documentElement, d.th);
-  var url = V.cardUrl(d);
+  var url = cloud.slug ? C.shortUrl(cloud.slug) : V.cardUrl(d);
   document.title = d.n + (d.c ? ' · ' + d.c : '') + ' — грузоперевозки | ВЕЗУ';
   var hero = document.getElementById('hero'), det = document.getElementById('details');
   function render() {
@@ -33,6 +49,12 @@
   var wa = document.getElementById('wa'), call = document.getElementById('call'), tg = document.getElementById('tg');
   V.bindWaLink(wa, d.p, hello);
   call.href = 'tel:+' + d.p;
+  if (cloud.pro) {
+    C.track(cloud.slug, 'view');
+    wa.addEventListener('click', function () { C.track(cloud.slug, 'wa'); }, true);
+    call.addEventListener('click', function () { C.track(cloud.slug, 'call'); }, true);
+    document.getElementById('order').addEventListener('submit', function () { C.track(cloud.slug, 'wa'); }, true);
+  }
   if (!d.p) { wa.setAttribute('disabled', ''); call.setAttribute('disabled', ''); }
   if (d.tg) { tg.href = 'https://t.me/' + d.tg; tg.hidden = false; }
 
@@ -41,7 +63,8 @@
   document.getElementById('vcf').addEventListener('click', function () {
     V.download(V.fileName(d.n) + '.vcf', V.vcf(d, url), 'text/vcard;charset=utf-8');
   });
-  V.cardUrlAsync(d).then(function (u) { url = u; V.cardManifest(d, url); });
+  if (cloud.slug) V.cardManifest(d, url);
+  else V.cardUrlAsync(d).then(function (u) { url = u; V.cardManifest(d, url); });
   function showQR() {
     var s = V.sheet(V.t('qr_t'), '<p class="muted">' + V.esc(V.t('qr_s')) + '</p><div class="qr qr-big" id="qrsheet">' + V.qrSvg(url) + '</div>' +
       '<button type="button" class="btn btn-glass btn-block" id="qrcopy"><svg><use href="#i-link"/></svg>' + V.esc(V.t('copy')) + '</button>', 'sheet-qr');
@@ -53,9 +76,12 @@
   });
   V.editUrl(d).then(function (u) { document.getElementById('edit').href = u; });
   V.bindInstall(document.getElementById('install'));
-  document.getElementById('made').href = 'new.html';
+  var made = document.getElementById('made');
+  made.href = 'new.html';
+  if (cloud.pro) made.hidden = true;           // ВЕЗУ Про: без надписи «Сделано на ВЕЗУ»
 
   langBtns.forEach(function (b) {
     b.addEventListener('click', function () { V.setLang(b.dataset.lang, true); markLang(); render(); });
   });
+  }
 })();
