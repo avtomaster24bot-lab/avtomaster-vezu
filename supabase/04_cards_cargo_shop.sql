@@ -28,10 +28,11 @@ alter table am_providers add column if not exists shop_enabled boolean not null 
 
 create or replace function am_providers_guard() returns trigger language plpgsql security definer set search_path = public as $$
 begin
+  -- рейтинг пересчитывают только функции сервиса (am_recalc_rating ставит am.trusted на время транзакции)
   if not am_is_admin(old.city) then
-    new.owner_id := old.owner_id; new.kind := old.kind; new.rating := old.rating;
-    new.reviews_count := old.reviews_count; new.is_active := old.is_active; new.city := old.city;
+    new.owner_id := old.owner_id; new.kind := old.kind; new.is_active := old.is_active; new.city := old.city;
     new.verified := old.verified;
+    if coalesce(current_setting('am.trusted', true), '') <> '1' then new.rating := old.rating; new.reviews_count := old.reviews_count; end if;
   end if;
   new.about := left(coalesce(new.about, ''), 2000);
   if cardinality(new.photos) > 12 then new.photos := new.photos[1:12]; end if;
@@ -122,9 +123,12 @@ begin
   if ph <> '' and (select count(*) from am_leads where regexp_replace(customer_phone, '\D', '', 'g') = ph and created_at > now() - interval '1 hour') >= 20 then
     raise exception 'Слишком много заявок с этого номера'; end if;
   insert into am_leads(provider_id, kind, source, user_id, customer_name, customer_phone, message, payload, total, ip_hash)
-  values (pid, coalesce(nullif(p->>'kind',''), 'request'), coalesce(nullif(p->>'source',''), 'card'), auth.uid(),
+  values (pid, case when p->>'kind' in ('request','order','callback') then p->>'kind' else 'request' end,
+    case when p->>'source' in ('card','shop','site','app') then p->>'source' else 'card' end, auth.uid(),
     left(coalesce(p->>'customer_name',''),120), left(coalesce(p->>'customer_phone',''),30), left(p->>'message',4000),
-    case when jsonb_typeof(p->'payload') = 'object' and length((p->'payload')::text) < 20000 then p->'payload' else '{}' end,
+    -- тип услуги (sto, cargo…) кладём в payload.service
+    (case when jsonb_typeof(p->'payload') = 'object' and length((p->'payload')::text) < 20000 then p->'payload' else '{}' end)
+      || case when p->>'kind' in ('sto','tow','wash','parts','urgent','cargo') then jsonb_build_object('service', p->>'kind') else '{}' end,
     nullif(p->>'total','')::numeric::int, h)
   returning id into nid;
   return nid;

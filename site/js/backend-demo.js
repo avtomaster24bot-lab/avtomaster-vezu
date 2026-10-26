@@ -2,8 +2,9 @@
 // только в этом браузере (localStorage). Все люди и организации здесь — вымышленные.
 import { SEED } from './seed.js';
 
-const KEY = 'am24-demo-db-v4', UKEY = 'am24-demo-user', PKEY = 'am24-demo-photos';
+const KEY = 'am24-demo-db-v5', UKEY = 'am24-demo-user', PKEY = 'am24-demo-photos';
 const now = () => new Date().toISOString();
+const tok = () => (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()) + Date.now()).replace(/[^a-z0-9]/gi, '').slice(0, 32);
 const plus = (min) => new Date(Date.now() + min * 60000).toISOString();
 const ago = (min) => new Date(Date.now() - min * 60000).toISOString();
 const C = 'Талдыкорган';
@@ -75,7 +76,12 @@ function initial() {
     registrations: [{ id: 1, user_id: 'u-other', kind: 'sto', name: 'Демо-заявка: СТО «Новое»', phone: '+77005550000', address: 'ул. Новая, 1', city: C, details: { specs: [1, 2] }, status: 'pending', created_at: ago(60) }],
     cities: SEED.cities.map((c) => ({ ...c })), products: demoProducts(), leads: [
       { id: 1, provider_id: 14, kind: 'cargo', source: 'card', customer_name: 'Айгерим', customer_phone: '+77011112233', message: 'Переезд: Шевченко 10 → Абая 55, завтра в 10:00', payload: { what: 'Переезд' }, total: null, status: 'new', created_at: ago(30) },
-      { id: 2, provider_id: 8, kind: 'order', source: 'shop', customer_name: 'Ерлан', customer_phone: '+77012223344', message: 'Масло 5W-30 4 л × 1, Фильтр масляный × 1', payload: { items: [] }, total: 21400, status: 'in_work', created_at: ago(120) }] };
+      { id: 2, provider_id: 8, kind: 'order', source: 'shop', customer_name: 'Ерлан', customer_phone: '+77012223344', message: 'Масло 5W-30 4 л × 1, Фильтр масляный × 1', payload: { items: [] }, total: 21400, status: 'in_work', created_at: ago(120) }].map((x) => ({ ...x, token: tok(), chan: tok(), last_msg_at: x.created_at, last_from: 'client' })),
+    orderMsgs: [
+      { id: 1, lead_id: 1, author: 'system', body: 'Заявка создана. Здесь можно уточнить детали и цену — переписка остаётся на сайте.', created_at: ago(30) },
+      { id: 2, lead_id: 2, author: 'system', body: 'Заявка создана. Здесь можно уточнить детали и цену — переписка остаётся на сайте.', created_at: ago(120) },
+      { id: 3, lead_id: 2, author: 'owner', body: 'Здравствуйте! Всё в наличии, соберём к 18:00.', created_at: ago(110) },
+      { id: 4, lead_id: 2, author: 'system', body: 'Заказ в работе.', created_at: ago(109) }] };
 }
 function demoProducts() {
   const L = [['Моторное масло 5W-30, 4 л', 'Масла и жидкости', 18900, 12], ['Антифриз G12, 5 л', 'Масла и жидкости', 7900, 8], ['Тормозная жидкость DOT-4', 'Масла и жидкости', 2400, 20],
@@ -271,7 +277,7 @@ export const demo = {
   async setProviderVerified(pid, v) { const p = prov(pid); if (!p || !isAdmin(p.city)) fail('Нет прав'); p.verified = !!v; save(); },
 
   // ---- обновление 3: фото, чат, статистика, ответы на отзывы
-  async caps() { return { v3: true, v4: true }; },
+  async caps() { return { v3: true, v4: true, v5: true }; },
   async uploadRequestPhoto(blob) { if (!uid()) fail('Войдите'); return putPhoto(`req/${uid()}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`, blob); },
   async photoUrls(paths) { const m = photos(); return (paths || []).map((x) => (/^(assets|https?:|data:)/.test(x) ? x : m[x]) || ''); },
   async uploadProviderPhoto(pid, blob) { const p = prov(pid); if (!p || (p.owner_id !== uid() && !isAdmin(p.city))) fail('Нет прав'); return new Promise((ok, no) => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.onerror = () => no(new Error('Не удалось прочитать фото')); fr.readAsDataURL(blob); }); },
@@ -327,18 +333,93 @@ export const demo = {
   async createLead(l) {
     if (!(l.message || '').trim()) fail('Пустая заявка');
     if (l.provider_id && !prov(l.provider_id)?.is_active) fail('Исполнитель не найден');
-    const x = { id: id(), provider_id: l.provider_id ? +l.provider_id : null, kind: l.kind || 'request', source: l.source || 'card', user_id: uid() || null,
-      customer_name: (l.customer_name || '').slice(0, 120), customer_phone: (l.customer_phone || '').slice(0, 30), message: l.message.slice(0, 4000), payload: l.payload || {},
-      total: l.total ? +l.total : null, status: 'new', created_at: now() };
+    const svc = KINDS4.includes(l.kind) ? { service: l.kind } : {};
+    const x = { id: id(), provider_id: l.provider_id ? +l.provider_id : null, kind: ['request', 'order', 'callback'].includes(l.kind) ? l.kind : 'request', source: l.source || 'card', user_id: uid() || null,
+      customer_name: (l.customer_name || '').slice(0, 120), customer_phone: (l.customer_phone || '').slice(0, 30), message: l.message.slice(0, 4000), payload: { ...(l.payload || {}), ...svc },
+      total: l.total ? +l.total : null, status: 'new', created_at: now(), token: tok(), chan: tok(), last_msg_at: now(), last_from: 'client' };
     load().leads.push(x); save(); return x.id;
   },
   async myLeads(pid) { myProv(pid); return clone(load().leads.filter((x) => x.provider_id === +pid).sort((a, b) => b.id - a.id)); },
   async dispatchLeads() { if (!isAdmin()) fail('Нет прав'); return clone(load().leads.filter((x) => !x.provider_id).sort((a, b) => b.id - a.id)); },
-  async setLeadStatus(lid, status) {
-    const x = load().leads.find((l) => l.id === +lid) || fail('Заявка не найдена');
-    if (!((x.provider_id && prov(x.provider_id)?.owner_id === uid()) || isAdmin())) fail('Нет прав');
-    if (!['new', 'in_work', 'done', 'cancelled'].includes(status)) fail('Неверный статус'); x.status = status; x.updated_at = now(); save();
+  async setLeadStatus(lid, status) { return demo.setOrderStatus(lid, null, status); },
+
+  // ---------- чат по заказу (обновление 5) ----------
+  async createOrder(l) {
+    fresh(); const nid = await demo.createLead(l); const x = lead(nid);
+    sys(x, 'Заявка создана. Здесь можно уточнить детали и цену — переписка остаётся на сайте.');
+    // демо: «исполнитель» отвечает сам, если это не ваша организация
+    if (!x.provider_id || prov(x.provider_id)?.owner_id !== uid()) x.demo_reply_at = new Date(Date.now() + 2500).toISOString();
+    save(); ping(x); return { id: x.id, token: x.token, chan: x.chan };
   },
+  async getOrder(oid, token) {
+    fresh(); const x = lead(oid); const r = orderRole(x, token); const p = prov(x.provider_id);
+    const { token: _t, ip_hash: _h, demo_reply_at: _d, ...o } = x;
+    return clone({ ...o, role: r, provider: p ? { id: p.id, name: p.name, kind: p.kind, phone: p.phone, whatsapp: p.whatsapp, city: p.city, address: p.address, rating: p.rating, reviews_count: p.reviews_count } : null });
+  },
+  async orderMessages(oid, token, after = 0) {
+    fresh(); const x = lead(oid); const r = orderRole(x, token);
+    demoReply(x); purge();
+    x[r === 'owner' ? 'owner_seen_at' : 'client_seen_at'] = now(); save();
+    return clone(msgs().filter((m) => m.lead_id === x.id && m.id > (after || 0)).sort((a, b) => a.id - b.id));
+  },
+  async sendOrderMessage(oid, token, m) {
+    fresh(); const x = lead(oid); const r = orderRole(x, token);
+    if (x.closed_at || ['closed', 'cancelled'].includes(x.status)) fail('Заказ закрыт — переписка недоступна');
+    const body = (m.body || '').slice(0, 2000), price = m.offer_price ? Math.round(+m.offer_price) : null;
+    if (!body.trim() && !m.photo && !price) fail('Пустое сообщение');
+    if (price && r !== 'owner') fail('Цену предлагает исполнитель');
+    if (m.photo && (!/^data:image\/(jpeg|png|webp);base64,/.test(m.photo) || m.photo.length > 400000)) fail('Фото слишком большое');
+    if (price) msgs().forEach((o) => { if (o.lead_id === x.id && o.offer_state === 'open') o.offer_state = 'expired'; });
+    const n = { id: id(), lead_id: x.id, author: r, body, photo: m.photo || null, offer_price: price, offer_state: price ? 'open' : null, created_at: now() };
+    msgs().push(n); Object.assign(x, { last_msg_at: now(), last_from: r, updated_at: now() }); if (r === 'owner' && x.status === 'new') x.status = 'clarify';
+    save(); ping(x); return clone(n);
+  },
+  async acceptOffer(oid, token, mid) {
+    fresh(); const x = lead(oid); if (orderRole(x, token) !== 'client') fail('Цену принимает клиент');
+    const m = msgs().find((o) => o.id === +mid && o.lead_id === x.id && o.offer_state === 'open') || fail('Предложение уже неактуально');
+    m.offer_state = 'accepted'; x.agreed_price = m.offer_price; if (['new', 'clarify', 'agreed'].includes(x.status)) x.status = 'agreed';
+    sys(x, `Цена согласована: ${m.offer_price}.`); save(); ping(x);
+  },
+  async setOrderStatus(oid, token, st) {
+    fresh(); const x = lead(oid); const r = orderRole(x, token);
+    if (x.closed_at) fail('Заказ уже закрыт');
+    const from = { in_work: ['new', 'clarify', 'agreed'], done: ['new', 'clarify', 'agreed', 'in_work'], paid: ['agreed', 'in_work', 'done'], clarify: null, cancelled: null };
+    if (r === 'client') { if (st !== 'cancelled' || !['new', 'clarify', 'agreed'].includes(x.status)) fail('Клиент может только отменить заказ до начала работ'); }
+    else if (!(st in from)) fail('Неверный статус');
+    else if (from[st] && !from[st].includes(x.status)) fail(st === 'paid' ? 'Сначала выполните заказ' : 'Нельзя из этого статуса');
+    x.status = st; x.updated_at = now(); if (['done', 'paid'].includes(st)) x.done_at = x.done_at || now(); if (st === 'paid') x.paid_at = now();
+    sys(x, { clarify: 'Исполнитель уточняет детали.', in_work: 'Заказ в работе.', done: 'Исполнитель отметил: выполнено. Оцените, пожалуйста, работу.', paid: 'Оплата получена.' }[st] || (r === 'client' ? 'Клиент отменил заказ.' : 'Исполнитель отменил заказ.'));
+    if (st === 'cancelled') closeOrder(x, 'Заказ отменён.'); else if (st === 'paid' && x.rating) closeOrder(x, 'Заказ оплачен и оценён — закрыт.');
+    save(); ping(x);
+  },
+  async rateOrder(oid, token, rating, review) {
+    fresh(); const x = lead(oid); if (orderRole(x, token) !== 'client') fail('Оценивает клиент');
+    if (!(rating >= 1 && rating <= 5)) fail('Оценка от 1 до 5');
+    if (!['done', 'paid'].includes(x.status)) fail('Оценить можно после выполнения'); if (x.rating) fail('Вы уже оценили этот заказ');
+    Object.assign(x, { rating: +rating, review: (review || '').slice(0, 1000), rated_at: now() });
+    const p = prov(x.provider_id);
+    if (p) { if (p.base_rating == null) { p.base_rating = p.rating || 0; p.base_count = p.reviews_count || 0; }
+      const L = load().leads.filter((l) => l.provider_id === p.id && l.rating); const n = p.base_count + L.length;
+      p.rating = Math.round((p.base_rating * p.base_count + L.reduce((s2, l) => s2 + l.rating, 0)) / n * 100) / 100; p.reviews_count = n; }
+    sys(x, `Клиент поставил оценку ${rating}★.`);
+    if (x.status === 'paid') closeOrder(x, 'Заказ оплачен и оценён — закрыт.');
+    save(); ping(x);
+  },
+  async claimOrder(oid, phone) {
+    fresh(); const x = lead(oid); const d = String(phone || '').replace(/\D/g, '');
+    x.claim_tries = x.claim_at && Date.now() - new Date(x.claim_at) < 36e5 ? (x.claim_tries || 0) + 1 : 1; if (x.claim_tries === 1) x.claim_at = now(); save();
+    if (x.claim_tries > 5) fail('Слишком много попыток. Попробуйте через час');
+    return d.length >= 10 && String(x.customer_phone || '').replace(/\D/g, '').slice(-10) === d.slice(-10) ? x.token : null;
+  },
+  async providerOrderReviews(pid) { return clone(load().leads.filter((l) => l.provider_id === +pid && l.rating).sort((a, b) => (b.rated_at > a.rated_at ? 1 : -1)).slice(0, 30)
+    .map((l) => ({ rating: l.rating, review: l.review, rated_at: l.rated_at, name: (l.customer_name || 'Клиент').split(' ')[0] }))); },
+  subscribeOrder(o, cb) {
+    const f = (e) => { if (e.key === KEY) { db = null; cb(); } }; window.addEventListener('storage', f);
+    const g = (c) => { if (c === o.chan) cb(); }; obus.add(g);
+    return () => { window.removeEventListener('storage', f); obus.delete(g); };
+  },
+  // демо: «перемотать время» — показать, как удаляется переписка через 3 дня после закрытия
+  async demoTimeTravel(oid) { fresh(); const x = lead(oid); if (x.closed_at) x.closed_at = new Date(Date.now() - 4 * 864e5).toISOString(); purge(); save(); ping(x); },
   async shopProducts(pid) { return clone(load().products.filter((x) => x.provider_id === +pid && x.is_published).sort((a, b) => b.id - a.id)); },
   async myProducts(pid) { myProv(pid); return clone(load().products.filter((x) => x.provider_id === +pid).sort((a, b) => b.id - a.id)); },
   async saveProduct(pid, x) {
@@ -352,6 +433,34 @@ export const demo = {
   async uploadProductPhoto(pid, blob) { myProv(pid); return new Promise((ok, no) => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.onerror = () => no(new Error('Не удалось прочитать фото')); fr.readAsDataURL(blob); }); },
 };
 const KINDS4 = ['sto', 'tow', 'wash', 'parts', 'urgent', 'cargo'];
+// ---------- помощники чата по заказу ----------
+const fresh = () => { db = null; return load(); };
+const msgs = () => (load().orderMsgs ||= []);
+const lead = (oid) => load().leads.find((l) => l.id === +oid) || fail('Заказ не найден');
+const obus = new Set();
+const ping = (x) => obus.forEach((f) => f(x.chan));
+function orderRole(x, token) {
+  if (token) { if (token === x.token) return 'client'; fail('Заказ не найден'); }
+  if ((x.provider_id && prov(x.provider_id)?.owner_id === uid()) || (!x.provider_id && isAdmin()) || (x.provider_id && isAdmin(prov(x.provider_id)?.city))) return 'owner';
+  if (x.user_id && x.user_id === uid()) return 'client';
+  fail('Заказ не найден');
+}
+const sys = (x, body) => msgs().push({ id: id(), lead_id: x.id, author: 'system', body, created_at: now() });
+function closeOrder(x, why) { if (x.closed_at) return; x.closed_at = now(); if (x.status !== 'cancelled') x.status = 'closed'; sys(x, why + ' Переписка будет удалена через 3 дня. Итог заказа, цена и отзыв сохранятся.'); }
+function purge() {
+  const d = load(), old = (t, days) => t && Date.now() - new Date(t) > days * 864e5;
+  d.leads.forEach((x) => { if (!x.closed_at && x.status === 'paid' && old(x.paid_at, 7)) closeOrder(x, 'Заказ оплачен, оценки не было 7 дней — закрыт.'); });
+  const gone = new Set(d.leads.filter((x) => old(x.closed_at, 3)).map((x) => x.id));
+  if (gone.size) { d.orderMsgs = msgs().filter((m) => !gone.has(m.lead_id)); d.leads.forEach((x) => { if (gone.has(x.id) && !x.chat_purged_at) x.chat_purged_at = now(); }); }
+}
+function demoReply(x) {
+  if (!x.demo_reply_at || new Date(x.demo_reply_at) > new Date() || x.closed_at) return;
+  delete x.demo_reply_at;
+  const p = prov(x.provider_id), price = x.total || ({ cargo: 12000, tow: 15000, sto: 9000, wash: 6000, parts: 18000, urgent: 7000 }[x.payload?.service || p?.kind] || 10000);
+  msgs().push({ id: id(), lead_id: x.id, author: 'owner', body: `Здравствуйте${x.customer_name ? ', ' + x.customer_name : ''}! Это ${p?.name || 'диспетчер'} (демо). Всё понял, уточню пару деталей. Предварительно так:`, created_at: now() });
+  msgs().push({ id: id(), lead_id: x.id, author: 'owner', body: 'Цена с учётом всего, что вы описали', offer_price: price, offer_state: 'open', created_at: now() });
+  Object.assign(x, { status: x.status === 'new' ? 'clarify' : x.status, last_msg_at: now(), last_from: 'owner' });
+}
 
 const bus = new Set();
 const photos = () => { try { return JSON.parse(localStorage.getItem(PKEY)) || {}; } catch { return {}; } };

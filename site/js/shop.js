@@ -6,6 +6,7 @@ import { SHOP_DELIVERY } from './consts.js';
 import { REGION, money, mapSearch, validPhone } from './region.js';
 import { PRIMARY, sendLink, orderText, ownerContact } from './messaging.js';
 import { cardUrl, externalStore } from './cardkit.js';
+import { startOrder } from './orders.js';
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -106,9 +107,17 @@ function openCart() {
     const text = orderText({ shop: { name: p.card?.shop_title || p.name }, items, total: sum, customer: { name: d.name, phone: d.phone }, delivery: d.delivery, address: d.address, payment: d.payment, comment: d.comment });
     const link = sendLink(ownerContact(p), text);
     if (!link) return toast(`У магазина не указан ${PRIMARY.label}`);
+    const lead = { provider_id: p.id, kind: 'order', source: 'shop', customer_name: d.name, customer_phone: d.phone, message: text, payload: { items, delivery: d.delivery, address: d.address || '', payment: d.payment }, total: sum };
+    if (S.caps.v5) { // заказ → чат на сайте + уведомление магазину в WhatsApp со ссылкой на чат
+      const btn = $('#checkout button.wa'); btn.disabled = true;
+      startOrder({ to: ownerContact(p), text, lead, title: `Заказ: ${items.length} поз. на ${money(sum)}`, providerName: p.card?.shop_title || p.name, demo: IS_DEMO })
+        .then((r) => { localStorage.removeItem(CK); location.href = r.chatUrl + '&new=1'; })
+        .catch((er) => { btn.disabled = false; toast(er.message); });
+      return;
+    }
     window.open(link, '_blank', 'noopener');
     $('#done').innerHTML = `<div class="sh-note">✅ Заказ сформирован — открываем ${PRIMARY.label}. Не открылся? <a class="btn sm wa" id="waOrder" href="${esc(link)}" target="_blank" rel="noopener">Открыть ещё раз</a></div>`;
-    if (S.caps.v4) api.createLead({ provider_id: p.id, kind: 'order', source: 'shop', customer_name: d.name, customer_phone: d.phone, message: text, payload: { items, delivery: d.delivery, address: d.address || '', payment: d.payment }, total: sum })
+    if (S.caps.v4) api.createLead(lead)
       .then((n) => { $('#done').insertAdjacentHTML('beforeend', `<p class="sh-muted">Заказ №${n} сохранён у магазина.</p>`); localStorage.removeItem(CK); badge(); }).catch(() => {});
   };
 }

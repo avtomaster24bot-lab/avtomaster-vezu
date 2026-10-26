@@ -4,6 +4,7 @@ import { KINDS, URGENT, SUPPLIER, TOW_VEHICLES, WHEELS, WASH_SERVICES, CAR_TYPES
   CARD_ROLE, CARGO_SERVICES, CARGO_VEHICLES, CARGO_WHEN, CARGO_EXTRAS, LEAD_STATUS } from './consts.js';
 import { REGION, money as rMoney, mapSearch, mapPoint, fmtPhone, validPhone } from './region.js';
 import { PRIMARY, sendLink, requestText, ownerContact, dispatcherPhone } from './messaging.js';
+import { startOrder, orderUrl, ownerOrderUrl, myOrders } from './orders.js';
 import { qrSvg, qrPng, download, cardUrl, shopUrl, hasShop, isExternalShop, share as shareLink } from './cardkit.js';
 
 // ------------------------------------------------------------ утилиты
@@ -401,13 +402,23 @@ newRequest.after = (v, kind) => {
 async function sendGuest(v, btn, kind, p, d) {
   if (d.g_phone && !validPhone(d.g_phone)) return toast(`Телефон в формате ${REGION.phone.placeholder}`, true);
   btn.disabled = true;
-  try {
+  const prep = async () => {
     const prov = p.target_provider_id ? await api.getProvider(p.target_provider_id) : null;
     const to = prov ? ownerContact(prov) : dispatcherPhone();
     if (!to) throw new Error(`У исполнителя не указан ${PRIMARY.label} — выберите другого или позвоните ему`);
     const text = requestText({ title: reqTitleText(p), provider: prov, fields: reqPlain(p), customer: { name: d.g_name || S.me?.full_name, phone: d.g_phone || S.me?.phone } });
+    return { to, text, prov, title: reqTitleText(p), providerName: prov?.name || '', demo: IS_DEMO,
+      lead: { provider_id: prov?.id || null, kind, source: 'app', customer_name: d.g_name || S.me?.full_name || '', customer_phone: d.g_phone || S.me?.phone || '', message: text, payload: p } };
+  };
+  if (S.caps.v5) { // заявка → чат на сайте; WhatsApp исполнителя/диспетчера — уведомление со ссылкой на чат
+    let info = null;
+    return startOrder(async () => (info = await prep())).then((r) => { location.href = r.chatUrl + '&new=1'; })
+      .catch((e) => { toast(e.message, true); btn.disabled = false; if (info) v.innerHTML = sentCard({ to: info.to, text: info.text, prov: info.prov, leadId: null }); });
+  }
+  try {
+    const { to, text, prov, lead } = await prep();
     let leadId = null;
-    if (S.caps.v4) leadId = await api.createLead({ provider_id: prov?.id || null, kind, source: 'app', customer_name: d.g_name || S.me?.full_name || '', customer_phone: d.g_phone || S.me?.phone || '', message: text, payload: p });
+    if (S.caps.v4) leadId = await api.createLead(lead);
     v.innerHTML = sentCard({ to, text, prov, leadId });
     $('#copyTxt', v).onclick = () => { navigator.clipboard?.writeText(text); toast('Текст скопирован'); };
     try { window.open(sendLink(to, text), '_blank', 'noopener'); } catch { /* блокировщик окон — есть кнопка */ }
@@ -457,13 +468,14 @@ function timeline(r) {
   const idx = Math.max(0, flow.findIndex(([s]) => s === st));
   return `<div class="tl" aria-label="Ход заявки">${flow.map(([, t], i) => `<div class="step ${i < idx || st === 'completed' ? 'done' : i === idx ? 'cur' : ''}"><i></i><span>${t}${i === 0 ? `<small>${dt(r.created_at)}</small>` : i === 1 && r.accepted_at ? `<small>${dt(r.accepted_at)}</small>` : ''}</span></div>`).join('')}</div>`;
 }
+const myChats = () => { const n = myOrders().filter((x) => !!x.demo === IS_DEMO).length; return n ? `<a class="card promo" href="order.html"><span class="big-i">💬</span><div><b>Чаты по заявкам с визиток и магазинов (${n})</b><small>Переписка с исполнителями на сайте — без входа, с этого устройства</small></div></a>` : ''; };
 async function requests(_, q) {
-  if (!S.me) return `<h1>Мои заявки</h1>${needLogin('просмотра заявок')}`;
+  if (!S.me) return `<h1>Мои заявки</h1>${myChats()}${needLogin('просмотра заявок')}`;
   const all = await api.myRequests(); autoRefresh();
   const act_ = all.filter((r) => !['completed', 'cancelled', 'expired'].includes(effStatus(r)));
   const tab = q.t || (act_.length ? 'a' : 'h');
   const list = tab === 'a' ? act_ : all.filter((r) => !act_.includes(r));
-  return `<h1>Мои заявки</h1><div class="tabs"><a href="#/requests?t=a" class="${tab === 'a' ? 'on' : ''}">Активные (${act_.length})</a><a href="#/requests?t=h" class="${tab === 'h' ? 'on' : ''}">История (${all.length - act_.length})</a></div>
+  return `<h1>Мои заявки</h1>${myChats()}<div class="tabs"><a href="#/requests?t=a" class="${tab === 'a' ? 'on' : ''}">Активные (${act_.length})</a><a href="#/requests?t=h" class="${tab === 'h' ? 'on' : ''}">История (${all.length - act_.length})</a></div>
     ${list.length ? list.map((r) => `<a class="card req" href="#/request/${r.id}"><div class="row between"><b>${reqTitle(r)}</b>${badge(effStatus(r))}</div>
     <div class="small muted">#${r.id} · ${dt(r.created_at)}${r.vehicle_info ? ' · ' + esc(r.vehicle_info) : ''}${r.details?.photos?.length ? ' · 📷 ' + r.details.photos.length : ''}</div><div class="small">${esc((r.description || r.subcategory || '').slice(0, 120))}</div></a>`).join('')
     : empty('📋', tab === 'a' ? 'Активных заявок нет.' : 'История пуста.', '<a class="btn p" href="#/new/sto">Создать заявку</a>')}`;
@@ -489,12 +501,12 @@ async function request(id, q = {}) {
   if (!['completed', 'cancelled', 'expired'].includes(st)) {
     const tid = r.accepted_by || r.target_provider_id;
     const list = tid ? [prov || await api.getProvider(tid).catch(() => null)].filter(Boolean) : (await api.listProviders({ kind: r.type, city: r.city })).filter((p) => ownerContact(p)).slice(0, 8);
-    const txt = (p) => requestText({ title: reqTitleText(r), provider: p, fields: reqPlain(r), customer: { name: S.me.full_name, phone: S.me.phone }, id: r.id });
+    const txt = (p) => requestText({ title: reqTitleText(r), provider: p, fields: reqPlain(r), customer: { name: S.me.full_name, phone: S.me.phone }, id: r.id, url: location.origin + location.pathname + '#/request/' + r.id });
     const btns2 = list.filter((p) => ownerContact(p)).map((p) => wa(ownerContact(p), txt(p), `${PRIMARY.icon} ${esc(p.name)}`, 'btn wa')).join('') + (!tid && dispatcherPhone() ? wa(dispatcherPhone(), txt(null), '📢 Диспетчер', 'btn') : '');
     if (btns2) waBlock = `<div class="card wa-card"><h3>📲 ${q.sent ? `Заявка сохранена — отправьте в ${PRIMARY.label}` : `Написать в ${PRIMARY.label}`}</h3><p class="small muted">${tid ? 'Исполнитель получит готовое сообщение с номером заявки.' : 'Заявку уже видят подходящие исполнители города. Чтобы ответили быстрее — отправьте её напрямую:'}</p><div class="row">${btns2}</div></div>`;
   }
   const chatOk = S.caps.v3 && r.accepted_by && !['cancelled'].includes(st) && !(r.type === 'parts' && ['new', 'offers'].includes(st));
-  if (prov && !['new', 'offers'].includes(st)) block += `<h2>Исполнитель</h2>${provCard(prov, `${tel(prov.phone)}${wa(prov.whatsapp, `Здравствуйте! По заявке #${r.id} на АвтоМастер24.`)}${chatOk ? `<a class="btn p sm" href="#/chat/${r.id}">💬 Написать в чат</a>` : ''}`)}`;
+  if (prov && !['new', 'offers'].includes(st)) block += `<h2>Исполнитель</h2>${provCard(prov, `${tel(prov.phone)}${wa(prov.whatsapp, `Здравствуйте! По заявке #${r.id} на АвтоМастер24 (чат на сайте): ${location.origin + location.pathname}#/request/${r.id}`)}${chatOk ? `<a class="btn p sm" href="#/chat/${r.id}">💬 Написать в чат</a>` : ''}`)}`;
   const btns = [];
   if (r.type === 'wash' && st === 'price_offered') btns.push(`<div class="notice">Мойка предлагает: <b>${money(r.price)}</b>, время <b>${dt(r.assigned_time)}</b></div><button class="ok" data-a="washApprove">✅ Подтвердить запись</button>`);
   if (r.type === 'wash' && st === 'waiting_client') btns.push('<div class="notice">🚗 Машина готова — можно забирать!</div><button class="ok" data-a="clientConfirm">Забрал машину</button>');
@@ -669,11 +681,26 @@ business.after = (v) => {
 
 // ------------------------------------------------------------ WhatsApp-заявки (визитка, магазин, сайт)
 const leadBadge = (st) => { const [t, c] = LEAD_STATUS[st] || [st, 'grey']; return `<span class="badge ${c}">${esc(t)}</span>`; };
-const leadCard = (x) => `<div class="card lead"><div class="row between"><b>${x.kind === 'order' ? '🛍 Заказ' : x.kind === 'cargo' ? '🚚 Перевозка' : `${KINDS[x.kind]?.icon || '📝'} Заявка`} №${x.id}</b>${leadBadge(x.status)}</div>
-  <div class="small muted">${dt(x.created_at)} · ${{ card: 'с визитки', shop: 'из магазина', app: 'с сайта' }[x.source] || esc(x.source)}${x.total ? ' · <b>' + money(x.total) + '</b>' : ''}</div>
+const unread = (x) => x.last_from === 'client' && x.last_msg_at && (!x.owner_seen_at || x.last_msg_at > x.owner_seen_at) && !x.closed_at;
+const leadCard = (x) => { const v5 = S.caps.v5, chat = ownerOrderUrl(x.id), svc = x.payload?.service;
+  const next = v5 ? { new: [['in_work', '🔧 В работу', 'ok']], clarify: [['in_work', '🔧 В работу', 'ok']], agreed: [['in_work', '🔧 В работу', 'ok']], in_work: [['done', '🏁 Выполнено', 'ok']], done: [['paid', '💰 Оплата получена', 'ok']] }[x.status] || []
+    : ({ new: [['in_work', '✅ Взять в работу', 'ok']], in_work: [['done', '🏁 Выполнено', 'ok']] }[x.status] || []);
+  if (!['paid', 'closed', 'cancelled'].includes(x.status) && !(x.status === 'done' && !v5)) next.push(['cancelled', 'Отменить', 'ghost']);
+  return `<div class="card lead ${unread(x) ? 'unread' : ''}"><div class="row between"><b>${x.kind === 'order' ? '🛍 Заказ' : `${KINDS[svc || x.kind]?.icon || '📝'} Заявка`} №${x.id}${unread(x) ? ' <span class="badge red">новое сообщение</span>' : ''}</b>${leadBadge(x.status)}</div>
+  <div class="small muted">${dt(x.created_at)} · ${{ card: 'с визитки', shop: 'из магазина', app: 'с сайта', site: 'с сайта' }[x.source] || esc(x.source)}${x.total ? ' · <b>' + money(x.total) + '</b>' : ''}${x.agreed_price ? ' · согласовано <b>' + money(x.agreed_price) + '</b>' : ''}${x.rating ? ' · ' + '★'.repeat(x.rating) : ''}</div>
   <pre class="msgtext">${esc(x.message)}</pre>
-  ${x.customer_name || x.customer_phone ? `<div class="row small"><b>👤 ${esc(x.customer_name || 'Клиент')}</b>${x.customer_phone ? `${tel(fmtPhone(x.customer_phone))}${wa(x.customer_phone, `Здравствуйте${x.customer_name ? ', ' + x.customer_name : ''}! По вашей заявке №${x.id}:`)}` : '<span class="muted">телефон — в переписке ' + PRIMARY.label + '</span>'}</div>` : ''}
-  <div class="row" style="margin-top:8px">${{ new: [['in_work', '✅ Взять в работу', 'ok'], ['cancelled', 'Отменить', 'ghost']], in_work: [['done', '🏁 Выполнено', 'ok'], ['cancelled', 'Отменить', 'ghost']] }[x.status]?.map(([s2, t, c]) => `<button class="sm ${c}" data-lead="${x.id}:${s2}">${t}</button>`).join('') || `<button class="sm ghost" data-lead="${x.id}:in_work">↩️ Вернуть в работу</button>`}</div></div>`;
+  ${x.customer_name || x.customer_phone ? `<div class="row small"><b>👤 ${esc(x.customer_name || 'Клиент')}</b>${x.customer_phone ? `${tel(fmtPhone(x.customer_phone))}${wa(x.customer_phone, v5 ? `Здравствуйте${x.customer_name ? ', ' + x.customer_name : ''}! Ответил(а) вам в чате по заявке №${x.id}:\n${orderUrl(x.id)}&c=1` : `Здравствуйте${x.customer_name ? ', ' + x.customer_name : ''}! По вашей заявке №${x.id}:`)}` : '<span class="muted">телефон — в переписке ' + PRIMARY.label + '</span>'}</div>` : ''}
+  <div class="row" style="margin-top:8px">${v5 && !x.chat_purged_at ? `<a class="btn sm p" href="${esc(chat)}">💬 Чат${x.closed_at ? ' (архив)' : ''}</a>` : ''}${next.map(([s2, t, c]) => `<button class="sm ${c}" data-lead="${x.id}:${s2}">${t}</button>`).join('')}${!v5 && x.status !== 'new' && x.status !== 'in_work' ? `<button class="sm ghost" data-lead="${x.id}:in_work">↩️ Вернуть в работу</button>` : ''}</div></div>`; };
+// уведомление в браузере о новых сообщениях клиентов (кабинет обновляется сам)
+function notifyLeads(L) {
+  const seen = S.leadSeen || (S.leadSeen = new Map()); const first = !S.leadSeenInit; S.leadSeenInit = true;
+  for (const x of L.filter(unread)) {
+    if (!first && seen.get(x.id) !== x.last_msg_at && 'Notification' in window && Notification.permission === 'granted') {
+      try { const n = new Notification(`Новое сообщение · заявка №${x.id}`, { body: `${x.customer_name || 'Клиент'} написал(а) в чате`, icon: 'assets/icon-192.png', tag: 'am24-order-' + x.id }); n.onclick = () => { location.href = ownerOrderUrl(x.id); }; } catch { /* ignore */ }
+    }
+    seen.set(x.id, x.last_msg_at);
+  }
+}
 
 // ------------------------------------------------------------ кабинет исполнителя
 async function cabinet(_, q) {
@@ -684,7 +711,7 @@ async function cabinet(_, q) {
   const tab = q.t || 'feed';
   const head = `<h1>🛠 Кабинет</h1><div class="tabs">${S.myProv.map((x) => `<a href="#/cabinet?p=${x.id}&t=${tab}" class="${x.id === p.id ? 'on' : ''}">${KINDS[x.kind].icon} ${esc(x.name)}</a>`).join('')}</div>
     ${p.is_active ? '' : '<div class="notice warn">Организация отключена администратором — новые заявки не приходят.</div>'}
-    <div class="tabs">${[['feed', '📥 Заявки'], ...(S.caps.v4 ? [['leads', `📲 ${PRIMARY.label}`], ['card', '🪪 Визитка']] : []), ...(S.caps.v4 && p.kind === 'parts' ? [['shop', '🛍 Магазин']] : []), ...(p.kind === 'sto' ? [['prices', '💰 Прайс']] : []), ['reviews', '⭐ Отзывы'], ['org', '🏢 Профиль'], ...(S.caps.v4 ? [] : [['link', '🔗 Ссылка']])].map(([t, n]) => `<a href="#/cabinet?p=${p.id}&t=${t}" class="${t === tab ? 'on' : ''}">${n}</a>`).join('')}</div>`;
+    <div class="tabs">${[['feed', '📥 Заявки'], ...(S.caps.v4 ? [['leads', S.caps.v5 ? '💬 Заявки и чаты' : `📲 ${PRIMARY.label}`], ['card', '🪪 Визитка']] : []), ...(S.caps.v4 && p.kind === 'parts' ? [['shop', '🛍 Магазин']] : []), ...(p.kind === 'sto' ? [['prices', '💰 Прайс']] : []), ['reviews', '⭐ Отзывы'], ['org', '🏢 Профиль'], ...(S.caps.v4 ? [] : [['link', '🔗 Ссылка']])].map(([t, n]) => `<a href="#/cabinet?p=${p.id}&t=${t}" class="${t === tab ? 'on' : ''}">${n}</a>`).join('')}</div>`;
   if (tab === 'prices') {
     const pr = await api.providerPrices(p.id);
     return `${head}<div class="card"><h3>Мой прайс</h3>${pr.length ? `<table><tr><th>Услуга</th><th>Авто</th><th>Цена</th><th></th></tr>${pr.map((x) => `<tr><td>${esc(x.service)}</td><td>${esc([x.brand, x.model].filter(Boolean).join(' ') || 'Все')}${x.year_from ? ` ${x.year_from}–${x.year_to || ''}` : ''}</td><td>${money(x.price)}</td><td><button class="danger" data-dp="${x.id}">✕</button></td></tr>`).join('')}</table>` : '<p class="muted">Прайс пуст. Клиенты находят вас в «Узнать цены» по этим строкам.</p>'}</div>
@@ -714,11 +741,14 @@ async function cabinet(_, q) {
         <label class="drop"><input type="file" id="orgPh" accept="image/*" multiple hidden><span>📷 Добавить фото</span></label></div>` : ''}`;
   }
   if (tab === 'leads' && S.caps.v4) {
-    const L = await api.myLeads(p.id); autoRefresh();
-    const f = q.f || 'open';
-    const flt = (k) => L.filter((x) => k === 'all' || (k === 'open' ? ['new', 'in_work'].includes(x.status) : x.status === k));
-    return `${head}<p class="small muted">Здесь заявки и заказы, которые клиенты отправили вам в ${PRIMARY.label} с визитки, магазина и сайта. Отмечайте статус — так ничего не потеряется. Заявки «всем в городе» — во вкладке «Заявки».</p>
-      <div class="fchips">${[['open', 'Открытые'], ['new', 'Новые'], ['in_work', 'В работе'], ['done', 'Выполнены'], ['cancelled', 'Отменены'], ['all', 'Все']].map(([k, t]) => `<a class="fchip ${f === k ? 'on' : ''}" href="#/cabinet?p=${p.id}&t=leads&f=${k}">${t} (${flt(k).length})</a>`).join('')}</div>
+    const L = await api.myLeads(p.id); autoRefresh(); if (S.caps.v5) notifyLeads(L);
+    const f = q.f || 'open', OPEN = ['new', 'clarify', 'agreed', 'in_work', 'done', 'paid'];
+    const flt = (k) => L.filter((x) => k === 'all' || (k === 'open' ? OPEN.includes(x.status) : k === 'unread' ? unread(x) : k === 'closed' ? ['closed', 'cancelled'].includes(x.status) : x.status === k));
+    const chips = S.caps.v5 ? [['open', 'Открытые'], ['unread', '🔴 Непрочитанные'], ['new', 'Новые'], ['in_work', 'В работе'], ['done', 'Ждут оплаты'], ['closed', 'Закрытые'], ['all', 'Все']]
+      : [['open', 'Открытые'], ['new', 'Новые'], ['in_work', 'В работе'], ['done', 'Выполнены'], ['cancelled', 'Отменены'], ['all', 'Все']];
+    return `${head}<p class="small muted">${S.caps.v5 ? `Заявки и заказы с визитки, магазина и сайта. По каждой есть <b>чат на сайте</b>: уточняйте детали, предлагайте цену, меняйте статус. ${PRIMARY.label} приходит как уведомление со ссылкой на чат. Переписка удаляется через 3 дня после закрытия (оплата + оценка), итог и отзыв остаются.` : `Здесь заявки и заказы, которые клиенты отправили вам в ${PRIMARY.label} с визитки, магазина и сайта. Отмечайте статус — так ничего не потеряется.`} Заявки «всем в городе» — во вкладке «Заявки».</p>
+      ${S.caps.v5 && 'Notification' in window && Notification.permission !== 'granted' ? '<button class="sm" id="notifOn">🔔 Уведомлять о новых сообщениях</button>' : ''}
+      <div class="fchips">${chips.map(([k, t]) => `<a class="fchip ${f === k ? 'on' : ''}" href="#/cabinet?p=${p.id}&t=leads&f=${k}">${t} (${flt(k).length})</a>`).join('')}</div>
       ${flt(f).map((x) => leadCard(x)).join('') || empty('📲', 'Пока пусто. Поделитесь визиткой — заявки появятся здесь.', `<a class="btn p" href="#/cabinet?p=${p.id}&t=card">🪪 Моя визитка и QR</a>`)}`;
   }
   if (tab === 'card' && S.caps.v4) {
@@ -814,6 +844,7 @@ cabinet.after = (v, _, q) => {
     act($('button', of), () => api.updateProvider(pid, patch), 'Сохранено'); };
   const cl = $('#copyLink', v); if (cl) cl.onclick = () => { navigator.clipboard?.writeText($('#myLink', v).value); toast('Ссылка скопирована'); };
   $$('[data-lead]', v).forEach((b) => b.onclick = () => { const [id, st] = b.dataset.lead.split(':'); act(b, () => api.setLeadStatus(+id, st), 'Статус обновлён'); });
+  const nOn = $('#notifOn', v); if (nOn) nOn.onclick = async () => { const r = await Notification.requestPermission(); toast(r === 'granted' ? 'Уведомления включены — пока открыт кабинет, браузер сообщит о новых сообщениях' : 'Уведомления не разрешены', r !== 'granted'); nOn.hidden = r === 'granted'; };
   const qd = $('#qrDl', v); if (qd) qd.onclick = async () => { try { download(`vizitka-${pid}.png`, await qrPng(cardUrl(pid), { title: cur.name, sub: CARD_ROLE[cur.kind] + ' · ' + cardUrl(pid).replace(/^https?:\/\//, '') })); } catch (e) { toast(e.message, true); } };
   const cf = $('#cardForm', v); if (cf) cf.onsubmit = (e) => { e.preventDefault(); const d = formData(cf);
     const services = String(d.services || '').split('\n').map((l) => l.trim()).filter(Boolean).slice(0, 40).map((l) => { const m = /^(.*?)\s*[—–-]\s*([^—–-]+)$/.exec(l); return m ? { name: m[1].trim(), price: /^\d+$/.test(m[2].trim()) ? +m[2].trim() : m[2].trim() } : { name: l, price: '' }; });

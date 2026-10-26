@@ -21,7 +21,11 @@ export const CARGO_WHEN = ['Сейчас', 'Сегодня', 'Завтра', 'Н
 export const CARGO_EXTRAS = ['Грузчики', 'Тент', 'Ремни', 'Сборка/разборка мебели'];
 export const CARGO_IMG = { 'Переезд': 'assets/img/cargo/s-move.webp', 'Мебель': 'assets/img/cargo/s-furniture.webp', 'Стройматериалы': 'assets/img/cargo/s-build.webp', 'Вывоз мусора': 'assets/img/cargo/s-trash.webp' };
 // Статусы WhatsApp-заявок и заказов (кабинет владельца)
-export const LEAD_STATUS = { new: ['Новая', 'blue'], in_work: ['В работе', 'gold'], done: ['Выполнена', 'green'], cancelled: ['Отменена', 'grey'] };
+export const LEAD_STATUS = { new: ['Новая', 'blue'], clarify: ['Уточнение', 'blue'], agreed: ['Цена согласована', 'gold'], in_work: ['В работе', 'gold'], done: ['Выполнена', 'green'],
+  paid: ['Оплачена', 'green'], closed: ['Закрыта', 'grey'], cancelled: ['Отменена', 'grey'] };
+// Шаги заказа для шкалы в чате (оценка — отдельный флаг rating)
+export const ORDER_STEPS = [['new', 'Новая'], ['clarify', 'Уточнение'], ['agreed', 'Цена согласована'], ['in_work', 'В работе'], ['done', 'Выполнено'], ['paid', 'Оплачено'], ['rated', 'Оценено'], ['closed', 'Закрыт']];
+export const CHAT_PURGE_DAYS = 3;
 export const SHOP_DELIVERY = ['Самовывоз', 'Курьер по городу', 'Доставка по Казахстану'];
 export const URGENT = {
   locksmith: '🔓 Вскрытие замков', tire: '🛞 Выездной шиномонтаж', electrician: '⚡ Выездной электрик',

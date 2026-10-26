@@ -36,10 +36,11 @@
 | Исполнитель | `providerFeed`, `myOffers`, `accept`, `decline`, `complete`, `makeOffer`, `washQuote`, `washStatus`, `clientContact`, `replyReview` |
 | Чат | `messages`, `sendMessage`, `subscribeMessages` |
 | **Лиды / WhatsApp (v4)** | `createLead(l)` (можно без входа), `myLeads(pid)`, `dispatchLeads()`, `setLeadStatus(id, status)` |
+| **Чат по заказу (v5)** | `createOrder(l)` → {id, token, chan}, `getOrder(id, token)`, `orderMessages(id, token, after)`, `sendOrderMessage(id, token, {body, photo, offer_price})`, `acceptOffer`, `setOrderStatus`, `rateOrder`, `claimOrder(id, phone)`, `subscribeOrder(order, cb)`, `providerOrderReviews(pid)` |
 | **Витрина (v4)** | `shopProducts(pid)`, `myProducts(pid)`, `saveProduct(pid, x)`, `deleteProduct(id)`, `uploadProductPhoto(pid, blob)` |
 | Гараж, цены, бизнес, админ | `vehicles`, `addVehicle`, `deleteVehicle`, `searchPrices`, `providerPrices`, `addPrice`, `deletePrice`, `registerBusiness`, `myRegistrations`, `admin*`, `setProvider*`, `setCityActive`, `addCity`, `moderateReview`, `pendingReviews` |
 
-`caps()` сообщает, какие возможности есть у бэкенда (`v3` — фото/чат, `v4` — визитки/лиды/витрина).
+`caps()` сообщает, какие возможности есть у бэкенда (`v3` — фото/чат, `v4` — визитки/лиды/витрина, `v5` — чат по заказу).
 Интерфейс прячет то, чего нет, поэтому сайт можно выкатить раньше миграции базы.
 
 **Модель данных v4** (таблицы, которые нужны любому бэкенду):
@@ -62,6 +63,18 @@
 
 Тексты заявок и заказов собираются в одном месте — `requestText()` и `orderText()`, поэтому их легко перевести
 или переделать под другой мессенджер. Добавить канал (MAX, Viber, LINE, iMessage) = добавить объект в `CHANNELS`.
+
+**Роль мессенджера после обновления 5 — уведомление, а не место переписки.** Сама переписка идёт в чате заказа на сайте
+(`order.html`), а `sendLink()` гарантирует, что в любом сообщении есть ссылка на сайт; сообщения о заказе содержат ссылку
+на его чат (владельцу — `order.html?id=N&as=owner`, клиенту — `order.html?id=N&c=1` с подтверждением телефона).
+
+Уведомления владельцу о новых сообщениях:
+1. **Браузер** (сделано): страница чата и Кабинет показывают системное уведомление, если разрешить «🔔 Уведомления».
+2. **Telegram-бот** (готово, не развёрнуто): `supabase/functions/am-notify` — Database Webhook на вставку в `am_leads` и
+   `am_order_messages` → сообщение владельцу от бота входа (у владельца есть `tg_id`, кнопка входа запрашивает право писать).
+   Идея взята из бота `avtomaster24-v2perviy` (handlers/chat.py, services/notify.py): анонимный чат клиент ↔ исполнитель
+   с пересылкой текста и фото, уведомление исполнителю, «Завершить чат».
+3. **WhatsApp Business Cloud API** (позже): тот же webhook, шаблонное сообщение «Новое сообщение по заявке №N: <ссылка>».
 
 Следующий шаг (нужен сервер): **уведомление владельцу без участия клиента** — WhatsApp Business Cloud API (Meta)
 или Telegram-бот. Для этого после `am_create_lead` вызывается Edge Function / webhook, который отправляет

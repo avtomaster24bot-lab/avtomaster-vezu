@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Чат по заказу — АвтоМастер24</title>
+<meta name="description" content="Переписка с исполнителем по заказу на АвтоМастер24: уточнение деталей, цена, статус, оценка.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0F0F0F">
+<meta property="og:type" content="website"><meta property="og:site_name" content="АвтоМастер24"><meta property="og:locale" content="ru_RU">
+<meta property="og:title" content="Чат по заказу — АвтоМастер24"><meta property="og:description" content="Уточните детали и цену с исполнителем прямо на сайте.">
+<meta property="og:image" content="https://avtomaster24bot-lab.github.io/avtomaster-vezu/assets/og.jpg">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="assets/icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script>try{var t=localStorage.getItem('am24-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body class="vc-body oc-body">
+<header class="top">
+  <a href="./#/" class="logo" aria-label="АвтоМастер24 — на главную"><img src="assets/favicon.svg" alt=""><span>АВТОМАСТЕР<b>24</b></span></a>
+  <button id="themeBtn" class="iconbtn" type="button" aria-label="Сменить тему">☀️</button>
+  <a href="order.html" class="chip">💬 Мои заказы</a>
+</header>
+<div id="demoBar" class="demobar" hidden></div>
+<main id="order" class="vc oc"><div class="sk-wrap" aria-busy="true"><div class="sk sk-c" style="height:220px"></div><div class="sk sk-h"></div><div class="sk sk-c"></div></div></main>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<script type="module" src="js/order.js"></script>
+<noscript>Для работы чата включите JavaScript.</noscript>
+</body>
+</html>

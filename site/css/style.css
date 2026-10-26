@@ -154,3 +154,27 @@ table.svc td:last-child{text-align:right}
 .vc-made{display:block;text-align:center;font-size:13px;color:var(--m)!important;margin:18px 0}
 .qr-modal .card{animation:none}
 @media (max-width:440px){.vc-main{grid-template-columns:1fr}.vc-hero h1{font-size:23px}.vc-veh img{width:100px}}
+/* ---- обновление 5: чат по заказу (order.html) ---- */
+.oc{max-width:720px}.oc h1{font-size:22px;margin:0}
+.oc-head{margin-top:6px}.oc-sum summary{cursor:pointer;font-weight:700;margin-top:8px}
+.oc-steps{display:flex;flex-wrap:wrap;gap:4px;list-style:none;padding:0;margin:10px 0 2px;counter-reset:s}
+.oc-steps li{font-size:12px;font-weight:700;padding:4px 9px;border-radius:999px;background:var(--s2);color:var(--m)}
+.oc-steps li.on{background:rgba(232,184,75,.18);color:var(--t)}.oc-steps li.cur{background:var(--p);color:#111}.oc-steps .bad{background:rgba(239,68,68,.18);color:#ef4444;padding:4px 9px;border-radius:999px;font-weight:700}
+.oc-bar{margin:10px 0;gap:8px;flex-wrap:wrap}.oc-acts{gap:6px;flex-wrap:wrap}
+.oc-chat{display:flex;flex-direction:column;gap:8px;max-height:58vh;min-height:180px;overflow:auto;padding:12px;border-radius:18px;background:var(--s1);border:1px solid var(--line)}
+.oc-msg{max-width:82%;padding:9px 12px;border-radius:16px;line-height:1.4;word-wrap:break-word}.oc-msg small,.oc-sys small{display:block;font-size:11px;opacity:.6;margin-top:3px}
+.oc-msg.me{align-self:flex-end;background:var(--p);color:#111;border-bottom-right-radius:4px}.oc-msg.me a{color:#111}
+.oc-msg.them{align-self:flex-start;background:var(--s2);border-bottom-left-radius:4px}
+.oc-who{font-size:11.5px;font-weight:800;opacity:.75;margin-bottom:2px}
+.oc-sys{align-self:center;text-align:center;font-size:12.5px;color:var(--m);background:transparent;max-width:90%}
+.oc-ph{max-width:240px;max-height:240px;border-radius:12px;display:block;margin:4px 0}
+.oc-offer{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-top:6px;padding:8px 10px;border-radius:12px;background:rgba(0,0,0,.18)}.oc-msg.me .oc-offer{background:rgba(0,0,0,.1)}
+.oc-offer b{font-size:19px}.oc-offer span{font-size:12px;font-weight:700;opacity:.8;width:100%}.oc-offer.expired b{text-decoration:line-through;opacity:.6}.oc-offer.accepted{outline:2px solid #22c55e}
+.oc-compose{margin-top:10px}.oc-compose textarea{min-height:48px;resize:vertical}.oc-compose .row{gap:6px;align-items:flex-end}.oc-tools{margin-bottom:6px}.oc-price{max-width:170px}
+.oc-note{margin:6px 2px 20px}.oc-closed{text-align:center;margin-top:10px}.oc-rate{margin-top:10px}.oc-new{margin-top:6px}
+.stars-in{display:flex;gap:4px;font-size:30px}.stars-in input{position:absolute;opacity:0;pointer-events:none}.stars-in span{cursor:pointer;color:var(--m);font-size:32px;line-height:1}
+.stars-in label.on span{color:var(--p)}
+.oc-li{display:flex;flex-direction:column;gap:2px;text-decoration:none;color:inherit}
+.lead.unread{border-color:#ff7b7b}
+.vc-chat{margin:12px 0 0;padding:14px;font-size:15.5px;border-radius:14px}.vc-rev{padding:8px 0;border-top:1px solid var(--line)}.vc-rev:first-of-type{border-top:0}.vc-rev p{margin:4px 0 0}.vc-rev b{color:var(--p)}
+@media (max-width:560px){.oc-msg{max-width:92%}.oc-chat{max-height:52vh}}

@@ -25,7 +25,10 @@ export const PRIMARY = channel(CONFIG.MESSENGER || 'whatsapp');
 // Куда писать, если исполнитель не выбран: диспетчер сервиса
 export const dispatcherPhone = () => CONFIG.DISPATCH_WHATSAPP || '';
 export const ownerContact = (p) => (p && (p.whatsapp || p.phone)) || '';
-export const sendLink = (to, text, ch = PRIMARY) => ch.link(to, text);
+// Любое сообщение в мессенджер содержит ссылку на сайт (по умолчанию — главная; для заказов — чат заказа)
+const siteUrl = () => (typeof location === 'undefined' ? '' : location.origin + location.pathname.replace(/[^/]*$/, ''));
+export const withSite = (text, url) => (!text || /https?:\/\//.test(text) ? text : `${text}\n\n🌐 ${CONFIG.SITE_NAME}: ${url || siteUrl()}`);
+export const sendLink = (to, text, ch = PRIMARY) => ch.link(to, withSite(text));
 
 // ---------- тексты сообщений (одинаковые для сайта, визиток и магазина) ----------
 const line = (k, v) => (v == null || v === '' || (Array.isArray(v) && !v.length) ? '' : `${k}: ${Array.isArray(v) ? v.join(', ') : v}\n`);

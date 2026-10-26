@@ -1,9 +1,9 @@
 // АвтоМастер24 — service worker: приложение открывается без сети (последняя версия из кэша).
 // Сначала сеть (чтобы после обновления сайта сразу была новая версия), при ошибке — кэш.
-const CACHE = 'am24-v4.0';
+const CACHE = 'am24-v5.0';
 const SHELL = ['./', 'index.html', 'css/style.css', 'js/app.js', 'js/api.js', 'js/config.js', 'js/consts.js', 'js/seed.js',
-  'js/backend-demo.js', 'js/backend-supabase.js', 'js/region.js', 'js/messaging.js', 'js/cardkit.js', 'js/card.js', 'js/shop.js', 'js/vendor/qrcode.js',
-  'card.html', 'shop.html', 'css/shop.css', 'assets/favicon.svg', 'assets/icon-192.png', 'manifest.webmanifest'];
+  'js/backend-demo.js', 'js/backend-supabase.js', 'js/region.js', 'js/messaging.js', 'js/cardkit.js', 'js/card.js', 'js/shop.js', 'js/orders.js', 'js/order.js', 'js/vendor/qrcode.js',
+  'card.html', 'shop.html', 'order.html', 'css/shop.css', 'assets/favicon.svg', 'assets/icon-192.png', 'manifest.webmanifest'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k.startsWith('am24-') && k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', (e) => {

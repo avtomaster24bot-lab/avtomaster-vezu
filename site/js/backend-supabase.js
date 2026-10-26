@@ -3,6 +3,11 @@ import { CONFIG } from './config.js';
 import { stems } from './backend-demo.js';
 
 let sb = null, capsCache = null;
+const orderChan = {}, orderSub = {};
+const pingOrder = (chan) => { const ch = chan && orderSub[chan]; if (ch) ch.send({ type: 'broadcast', event: 'ping', payload: {} }).catch(() => {}); };
+const LEAD4 = 'id,provider_id,kind,source,user_id,customer_name,customer_phone,message,payload,total,status,created_at,updated_at';
+const LEAD5 = LEAD4 + ',chan,agreed_price,rating,review,rated_at,paid_at,done_at,closed_at,chat_purged_at,last_msg_at,last_from,owner_seen_at,client_seen_at';
+const leadCols = async () => ((await live.caps()).v5 ? LEAD5 : LEAD4);
 async function client() {
   if (sb) return sb;
   const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
@@ -140,8 +145,8 @@ export const live = {
     const r = await (await from('am_messages')).select('id').limit(1);
     // 42P01 — таблицы ещё нет (миграция не применена); ошибка прав (аноним) значит таблица есть
     const missing = (x) => !!(x.error && /does not exist|42P01|PGRST205|schema cache/i.test(x.error.message + x.error.code));
-    const r4 = await (await from('am_products')).select('id').limit(1);
-    capsCache = { v3: !missing(r), v4: !missing(r4) };
+    const [r4, r5] = await Promise.all([(await from('am_products')).select('id').limit(1), (await from('am_order_messages')).select('id').limit(1)]);
+    capsCache = { v3: !missing(r), v4: !missing(r4), v5: !missing(r4) && !missing(r5) };
     return capsCache;
   },
   async uploadRequestPhoto(blob) {
@@ -183,9 +188,26 @@ export const live = {
   async createCard(p) { return rpc('am_create_card', { p }); },
   // заявку/заказ может оставить и гость (без входа) — функция проверяет данные и ограничивает частоту
   async createLead(l) { return rpc('am_create_lead', { p: l }); },
-  async myLeads(pid) { return must(await (await from('am_leads')).select('*').eq('provider_id', +pid).order('id', { ascending: false }).limit(300)); },
-  async dispatchLeads() { return must(await (await from('am_leads')).select('*').is('provider_id', null).order('id', { ascending: false }).limit(300)); },
+  async myLeads(pid) { return must(await (await from('am_leads')).select(await leadCols()).eq('provider_id', +pid).order('id', { ascending: false }).limit(300)); },
+  async dispatchLeads() { return must(await (await from('am_leads')).select(await leadCols()).is('provider_id', null).order('id', { ascending: false }).limit(300)); },
   async setLeadStatus(id, status) { return rpc('am_set_lead_status', { p_id: +id, p_status: status }); },
+  // ---------- чат по заказу (обновление 5, supabase/05_order_chat.sql) ----------
+  async createOrder(l) { return rpc('am_create_order', { p: l }); },
+  async getOrder(id, token) { return rpc('am_order_get', { p_id: +id, p_token: token || null }); },
+  async orderMessages(id, token, after = 0) { return rpc('am_order_messages_list', { p_id: +id, p_token: token || null, p_after: +after || 0 }); },
+  async sendOrderMessage(id, token, m) { const r = await rpc('am_order_send', { p_id: +id, p_token: token || null, p: m }); pingOrder(r && orderChan[+id]); return r; },
+  async acceptOffer(id, token, mid) { await rpc('am_order_accept_offer', { p_id: +id, p_token: token || null, p_msg: +mid }); pingOrder(orderChan[+id]); },
+  async setOrderStatus(id, token, st) { await rpc('am_order_set_status', { p_id: +id, p_token: token || null, p_status: st }); pingOrder(orderChan[+id]); },
+  async rateOrder(id, token, rating, review) { await rpc('am_order_rate', { p_id: +id, p_token: token || null, p_rating: +rating, p_review: review || '' }); pingOrder(orderChan[+id]); },
+  async claimOrder(id, phone) { return rpc('am_order_claim', { p_id: +id, p_phone: phone || '' }); },
+  async providerOrderReviews(pid) { return rpc('am_provider_order_reviews', { p_provider: +pid }); },
+  // Realtime: по каналу идёт только «пинг» (без текста), сам текст забирается через функцию с проверкой секрета.
+  subscribeOrder(o, cb) {
+    let ch = null, off = false; orderChan[+o.id] = o.chan;
+    client().then((s) => { if (off) return; ch = s.channel('am-order-' + o.chan, { config: { broadcast: { self: false } } }).on('broadcast', { event: 'ping' }, () => cb()).subscribe();
+      orderSub[o.chan] = ch; });
+    return () => { off = true; delete orderSub[o.chan]; if (ch) sb.removeChannel(ch); };
+  },
   async shopProducts(pid) { return must(await (await from('am_products')).select('*').eq('provider_id', +pid).eq('is_published', true).order('id', { ascending: false }).limit(1000)); },
   async myProducts(pid) { return must(await (await from('am_products')).select('*').eq('provider_id', +pid).order('id', { ascending: false }).limit(1000)); },
   async saveProduct(pid, x) {

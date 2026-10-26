@@ -5,6 +5,7 @@ import { api, IS_DEMO, FORCED_DEMO, leaveDemo } from './api.js';
 import { KINDS, CARD_ROLE, URGENT, SUPPLIER, WASH_SERVICES, CAR_TYPES, WHEELS, PARTS_ORIG, PARTS_DELIVERY, CARGO_SERVICES, CARGO_VEHICLES, CARGO_WHEN } from './consts.js';
 import { REGION, money, mapSearch, mapPoint, fmtPhone, validPhone } from './region.js';
 import { PRIMARY, sendLink, requestText, ownerContact } from './messaging.js';
+import { startOrder, myOrders } from './orders.js';
 import { qrSvg, qrPng, download, vcard, share, cardUrl, shopUrl, hasShop, isExternalShop } from './cardkit.js';
 
 const $ = (s, el = document) => el.querySelector(s);
@@ -75,13 +76,14 @@ async function main() {
     <div class="grow"><div class="vc-role">${KINDS[p.kind].icon} ${esc(role)}</div><h1>${esc(p.name)}</h1>
     <div class="row small">${p.verified ? '<span class="vbadge">✔ Проверен</span>' : ''}${open == null ? '' : open ? '<span class="chip-s ok">● Сейчас работает</span>' : '<span class="chip-s off">● Сейчас закрыто</span>'}${p.reviews_count ? `<span class="chip-s">★ ${Number(p.rating).toFixed(1)} · ${p.reviews_count} отз.</span>` : ''}<span class="chip-s">📍 ${esc(p.city)}</span></div></div></div></section>
   ${c.slogan ? `<p class="vc-slogan">${esc(c.slogan)}</p>` : ''}
-  <div class="vc-main">${to ? `<a class="btn wa big" id="waBtn" target="_blank" rel="noopener" href="${esc(sendLink(to, `Здравствуйте! Нашёл вашу визитку на ${CONFIG.SITE_NAME}.`))}">${PRIMARY.icon} Написать в ${PRIMARY.label}</a>` : ''}${p.phone ? `<a class="btn big" href="tel:+${esc(String(p.phone).replace(/\D/g, ''))}">📞 Позвонить</a>` : ''}</div>
+  ${caps.v5 ? '<a class="btn p block vc-chat" href="#orderF">💬 Написать здесь, на сайте — ответ придёт в чат</a>' : ''}
+  <div class="vc-main">${to ? `<a class="btn wa big" id="waBtn" target="_blank" rel="noopener" href="${esc(sendLink(to, `Здравствуйте! Нашёл вашу визитку на ${CONFIG.SITE_NAME}: ${url}`))}">${PRIMARY.icon} Написать в ${PRIMARY.label}</a>` : ''}${p.phone ? `<a class="btn big" href="tel:+${esc(String(p.phone).replace(/\D/g, ''))}">📞 Позвонить</a>` : ''}</div>
   ${shopBtn}
   <div class="vc-acts"><a class="btn" id="vcf" href="#" download="${esc(p.name)}.vcf">👤 В контакты</a><button id="shareBtn">🔗 Поделиться</button><button id="qrBtn">▦ QR-код</button>
     ${c.tg ? `<a class="btn" href="https://t.me/${esc(c.tg)}" target="_blank" rel="noopener">✈️ Telegram</a>` : ''}${c.ig ? `<a class="btn" href="https://instagram.com/${esc(c.ig)}" target="_blank" rel="noopener">📷 Instagram</a>` : ''}</div>
   ${p.kind === 'cargo' && cg.vehicle ? `<div class="card vc-veh"><img src="${esc(veh(cg.vehicle)?.img || IMG.cargo)}" alt="${esc(veh(cg.vehicle)?.name || '')}"><div><b>${esc(veh(cg.vehicle)?.name || '')}</b> <span class="muted">${esc(veh(cg.vehicle)?.cap || '')}</span>
     ${cg.price ? `<div class="price">от ${money(cg.price)}<small> / ${esc(cg.unit || 'час')}</small></div>` : ''}${cg.extras?.length ? `<div class="small">Есть: ${esc(cg.extras.join(', '))}</div>` : ''}${c.zones ? `<div class="small muted">Районы: ${esc(c.zones)}</div>` : ''}</div></div>` : ''}
-  <form class="card" id="orderF" novalidate><h2 style="margin-top:0">📝 Быстрая заявка</h2><p class="small muted">Заполните — сообщение уйдёт ${esc(p.name)} в ${PRIMARY.label}${caps.v4 ? ' и сохранится у него в кабинете' : ''}.</p>
+  <form class="card" id="orderF" novalidate><h2 style="margin-top:0">📝 Быстрая заявка</h2><p class="small muted">Заполните — ${caps.v5 ? 'откроется чат на сайте, а' : ''} сообщение уйдёт ${esc(p.name)} в ${PRIMARY.label}${caps.v4 ? ' и сохранится у него в кабинете' : ''}.</p>
     ${orderFields(p)}<input type="hidden" name="lat"><input type="hidden" name="lon"><label>Комментарий</label><textarea name="comment" rows="2" maxlength="1000"></textarea>
     <div class="row"><div class="grow"><label>Ваше имя</label><input name="name" autocomplete="name" maxlength="80"></div><div class="grow"><label>Телефон (необязательно)</label><input name="phone" type="tel" autocomplete="tel" placeholder="${esc(REGION.phone.placeholder)}"></div></div>
     <button class="btn wa big block" style="margin-top:14px" ${to ? '' : 'disabled'}>${PRIMARY.icon} Отправить заявку в ${PRIMARY.label}</button><div id="sent"></div></form>
@@ -90,6 +92,7 @@ async function main() {
     <dt>Город</dt><dd>${esc(p.city)}</dd>${p.working_hours ? `<dt>Часы</dt><dd>${esc(p.working_hours)}</dd>` : ''}${p.phone ? `<dt>Телефон</dt><dd>${esc(fmtPhone(p.phone))}</dd>` : ''}${pay.length ? `<dt>Оплата</dt><dd>${esc(pay.join(', '))}</dd>` : ''}${p.kind === 'parts' && p.delivery ? '<dt>Доставка</dt><dd>Есть</dd>' : ''}</dl>
     ${p.about ? `<p>${esc(p.about)}</p>` : ''}</div>
   ${(p.photos || []).length > 1 ? `<div class="gallery">${p.photos.map((u, i) => `<a class="gph" href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" alt="Фото ${i + 1}" loading="lazy"></a>`).join('')}</div>` : ''}
+  <section id="ordRev"></section>
   <div class="row" style="justify-content:center;margin:8px 0"><a class="btn sm" href="./#/provider/${p.id}">⭐ Отзывы и рейтинг</a><a class="btn sm" href="./#/catalog/${p.kind}">Другие: ${esc(KINDS[p.kind].title)}</a></div>
   <a class="vc-made" href="./#/business">Сделано на ${esc(CONFIG.SITE_NAME)} — <b>создайте свою визитку бесплатно →</b></a>`;
   $('#vcf').href = vcard(p, url);
@@ -101,6 +104,11 @@ async function main() {
     navigator.geolocation.getCurrentPosition((pos) => { const f = $('#orderF'); f.lat.value = pos.coords.latitude.toFixed(6); f.lon.value = pos.coords.longitude.toFixed(6); const inp = f[b.dataset.geo]; if (!inp.value) inp.value = 'По геолокации'; b.textContent = '✅ Есть точка'; toast('Точка добавлена — исполнитель получит ссылку на карту'); },
       () => { b.disabled = false; b.textContent = '📍 Я здесь'; toast('Не удалось определить место — разрешите геолокацию или впишите адрес', true); }, { enableHighAccuracy: true, timeout: 10000 });
   });
+  if (caps.v5) api.providerOrderReviews(p.id).then((R) => { if (!R.length) return;
+    $('#ordRev').innerHTML = `<div class="card"><h2 style="margin-top:0">⭐ Отзывы по заказам · ${Number(p.rating).toFixed(1)} (${p.reviews_count})</h2><p class="small muted">Оценки ставят клиенты после выполненного заказа в чате на сайте.</p>
+      ${R.slice(0, 6).map((r) => `<div class="vc-rev"><b>${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</b> <span class="small muted">${esc(r.name)} · ${new Date(r.rated_at).toLocaleDateString('ru-RU')}</span>${r.review ? `<p>${esc(r.review)}</p>` : ''}</div>`).join('')}</div>`; }).catch(() => {});
+  const mine = myOrders().filter((x) => !!x.demo === IS_DEMO && x.provider === p.name);
+  if (mine.length) $('#sent').innerHTML = `<div class="notice">💬 У вас есть переписка с ${esc(p.name)}: ${mine.slice(0, 3).map((x) => `<a href="order.html?id=${x.id}&t=${encodeURIComponent(x.token)}">заявка №${x.id}</a>`).join(', ')}</div>`;
   const f = $('#orderF');
   f.onsubmit = (e) => {
     e.preventDefault();
@@ -109,10 +117,19 @@ async function main() {
     if (p.kind === 'cargo' && !(d.from || d.to)) return toast('Укажите, откуда и куда везём', true);
     if (d.phone && !validPhone(d.phone)) return toast(`Телефон в формате ${REGION.phone.placeholder}`, true);
     const text = requestText({ title: `${KINDS[p.kind].title}${d.what ? ': ' + d.what : ''}`, provider: p, fields: orderPlain(p, d), customer: { name: d.name, phone: d.phone }, url });
+    const lead = { provider_id: p.id, kind: p.kind, source: 'card', customer_name: d.name || '', customer_phone: d.phone || '', message: text, payload: d };
+    if (caps.v5) { // заявка → чат на сайте + уведомление в WhatsApp со ссылкой на чат
+      const btn = $('button:not([type=button])', f); if (btn) btn.disabled = true;
+      $('#sent').innerHTML = '<div class="notice">⏳ Создаём чат по заявке…</div>';
+      startOrder({ to, text, lead, title: `${KINDS[p.kind].title}${d.what ? ': ' + d.what : ''}`, providerName: p.name, demo: IS_DEMO })
+        .then((r) => { location.href = r.chatUrl + '&new=1'; })
+        .catch((er) => { if (btn) btn.disabled = false; $('#sent').innerHTML = ''; toast(er.message, true); });
+      return;
+    }
     const link = sendLink(to, text);
     window.open(link, '_blank', 'noopener'); // открываем сразу — по нажатию, чтобы браузер не заблокировал окно
     $('#sent').innerHTML = `<div class="notice">✅ Открываем ${PRIMARY.label}… Если не открылся — <a class="btn sm wa" id="waAgain" target="_blank" rel="noopener" href="${esc(link)}">${PRIMARY.icon} открыть ещё раз</a></div>`;
-    if (caps.v4) api.createLead({ provider_id: p.id, kind: p.kind, source: 'card', customer_name: d.name || '', customer_phone: d.phone || '', message: text, payload: d })
+    if (caps.v4) api.createLead(lead)
       .then((n) => { $('#sent').insertAdjacentHTML('beforeend', `<p class="small muted">Заявка №${n} сохранена у исполнителя.</p>`); }).catch(() => {});
   };
 }
