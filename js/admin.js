@@ -76,7 +76,7 @@
       call('vz_admin_block', { p_card: id, p_blocked: b.dataset.block === '1' }).then(function () { find(); }, function (er) { V.toast(er.message); });
     } else if (b.dataset.del) {
       if (!confirm('Удалить визитку из облака навсегда? Водитель сможет создать её заново.')) return;
-      call('vz_admin_delete', { p_card: id }).then(function () { V.toast('Удалено'); find(); stats(); }, function (er) { V.toast(er.message); });
+      C.adminPhoto(akey, { card: id, remove: true }).then(function () { return call('vz_admin_delete', { p_card: id }); }).then(function () { V.toast('Удалено'); find(); stats(); }, function (er) { V.toast(er.message); });
     } else if (b.dataset.log) {
       call('vz_admin_log', { p_card: id }).then(function (l) {
         V.sheet('История Про', l.length ? '<ul class="why">' + l.map(function (x) {

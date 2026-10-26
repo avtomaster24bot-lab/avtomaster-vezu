@@ -183,7 +183,7 @@
     else if (t.dataset.p) { period = t.dataset.p; document.getElementById('pstats').innerHTML = statsHtml(); }
     else if (t.id === 'pdel') {
       if (!confirm('Удалить визитку из облака? Короткий адрес, фото и статистика пропадут. Визитка-ссылка на этом телефоне останется.')) return;
-      C.rpc('vz_delete_card', { p_key: C.key() }).then(function () {
+      (card.photo ? C.removePhoto().catch(function () {}) : Promise.resolve()).then(function () { return C.rpc('vz_delete_card', { p_key: C.key() }); }).then(function () {
         card = null; stats = null; C.forget(); B.setShort('');
         var x = B.photo(); if (x) { delete x.up; localStorage.setItem('vezu-photo', JSON.stringify(x)); }
         render(); V.toast('Удалено из облака');

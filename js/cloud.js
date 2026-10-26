@@ -70,6 +70,7 @@
   }
   function uploadPhoto(dataUrl) { return photoCall({ key: key(), image: dataUrl }); }
   function removePhoto() { return photoCall({ key: key(), remove: true }); }
+  function adminPhoto(admin, body) { return photoCall(Object.assign({ admin: admin }, body)).catch(function () { return null; }); }
   function photoUrl(path) { return path ? BASE + '/storage/v1/object/public/vz_photos/' + path : ''; }
 
   // ---- статистика ----
@@ -90,6 +91,6 @@
   function shortUrl(slug) { return siteBase() + slug; }
 
   window.VZC = { enabled: enabled, ready: ready, rpc: rpc, key: key, newKey: newKey, setKey: setKey, forget: forget,
-    uploadPhoto: uploadPhoto, removePhoto: removePhoto, photoUrl: photoUrl, device: device, track: track,
+    uploadPhoto: uploadPhoto, removePhoto: removePhoto, adminPhoto: adminPhoto, photoUrl: photoUrl, device: device, track: track,
     slugCheck: slugCheck, translit: translit, shortUrl: shortUrl, siteBase: siteBase, ls: ls, cfg: CFG };
 })();

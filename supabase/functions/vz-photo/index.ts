@@ -4,6 +4,7 @@
 // и загружает файл с правами service_role (ключ есть только в окружении функции, не в репозитории).
 // POST { key, image: "data:image/webp;base64,..." }  → { photo: "<card id>/p123.webp" }
 // POST { key, remove: true }                          → { photo: null }
+// Админ (ключ админа): { admin, card, remove: true } — удалить фото визитки; { admin, purge: true } — удалить фото без визиток.
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const ALLOWED = (Deno.env.get("VZ_ALLOWED_ORIGINS") ?? "https://avtomaster24bot-lab.github.io").split(",").map((s) => s.trim());
@@ -35,12 +36,40 @@ Deno.serve(async (req) => {
   const h = cors(req.headers.get("origin"));
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: h });
   if (req.method !== "POST") return json({ error: "method" }, 405, h);
-  let body: { key?: string; image?: string; remove?: boolean };
+  let body: { key?: string; image?: string; remove?: boolean; admin?: string; card?: string; purge?: boolean };
   try { body = await req.json(); } catch { return json({ error: "bad_json" }, 400, h); }
+  const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
+
+  if (body.admin !== undefined) {
+    const ak = String(body.admin);
+    if (!/^[A-Za-z0-9_-]{32,64}$/.test(ak)) return json({ error: "bad_key" }, 400, h);
+    const { data: adm } = await db.from("vz_admins").select("key_hash").eq("key_hash", await sha256hex(ak)).maybeSingle();
+    if (!adm) return json({ error: "forbidden" }, 403, h);
+    if (body.purge) {
+      const { data: dirs } = await db.storage.from("vz_photos").list("", { limit: 1000 });
+      const ids = (dirs ?? []).map((d) => d.name).filter((n) => /^[0-9a-f-]{36}$/.test(n));
+      const { data: alive } = ids.length ? await db.from("vz_cards").select("id").in("id", ids) : { data: [] };
+      const keep = new Set((alive ?? []).map((r) => r.id));
+      let removed = 0;
+      for (const id of ids.filter((i) => !keep.has(i))) {
+        const { data: files } = await db.storage.from("vz_photos").list(id);
+        const paths = (files ?? []).map((f) => `${id}/${f.name}`);
+        if (paths.length) { await db.storage.from("vz_photos").remove(paths); removed += paths.length; }
+      }
+      return json({ removed }, 200, h);
+    }
+    if (body.remove && /^[0-9a-f-]{36}$/.test(String(body.card))) {
+      const { data: files } = await db.storage.from("vz_photos").list(String(body.card));
+      const paths = (files ?? []).map((f) => `${body.card}/${f.name}`);
+      if (paths.length) await db.storage.from("vz_photos").remove(paths);
+      await db.from("vz_cards").update({ photo_path: null }).eq("id", body.card);
+      return json({ photo: null, removed: paths.length }, 200, h);
+    }
+    return json({ error: "bad_request" }, 400, h);
+  }
+
   const key = String(body.key ?? "");
   if (!/^[A-Za-z0-9_-]{32,64}$/.test(key)) return json({ error: "bad_key" }, 400, h);
-
-  const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
   const { data: card, error } = await db.from("vz_cards").select("id, pro_until, is_blocked, photo_path")
     .eq("key_hash", await sha256hex(key)).maybeSingle();
   if (error) { console.error("select", error); return json({ error: "db" }, 500, h); }
