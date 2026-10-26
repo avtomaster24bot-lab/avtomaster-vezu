@@ -128,3 +128,29 @@ hr{border:0;border-top:1px solid var(--line);margin:14px 0}
 @media (max-width:600px){.filters{grid-template-columns:1fr 1fr}.filters input{grid-column:1/-1}.kv{grid-template-columns:105px 1fr}.pthumb{flex-basis:68px;height:68px}}
 @media (max-width:440px){.logo span{font-size:14px}.logo img{width:26px;height:26px}.top{gap:5px;padding:8px 10px}.top select{max-width:112px}.chip{max-width:88px;padding:6px 9px}.hero h1{font-size:29px}}
 td b,.price{white-space:nowrap}
+/* ---- обновление 4: визитки, грузоперевозки, WhatsApp-заявки, магазин, тарифы ---- */
+.promo{display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:linear-gradient(135deg,rgba(232,184,75,.16),var(--s1) 70%)}.promo b{display:block;font-size:17px;margin-bottom:4px}.promo small{color:var(--t2)}
+.veh .opt span{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:112px;text-align:center}.veh .opt img{width:96px;height:60px;object-fit:contain}.veh .opt small{font-weight:500;opacity:.8}
+.msgtext{white-space:pre-wrap;font:13px/1.45 Manrope,sans-serif;background:var(--s2);border-radius:12px;padding:10px 12px;margin:8px 0;max-height:240px;overflow:auto;text-align:left}
+.btn.big{padding:15px 20px;font-size:16px;border-radius:14px}.btn.wa.big{background:#25D366;color:#06210f!important}
+.wa-card{border-color:rgba(37,211,102,.35)}.lead pre{margin:8px 0}
+.cardtab{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}.qrbox{background:#fff;border-radius:14px;padding:8px;line-height:0;display:inline-block}.qrbox svg{display:block}.qrbox.big{margin:6px auto}
+.tthumb{width:40px;height:40px;object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:6px}.tthumb.big{width:64px;height:64px}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}.plan{display:flex;flex-direction:column;gap:6px;margin:0}.plan ul{padding-left:18px;margin:4px 0 10px;flex:1}.plan.hot{border-color:var(--p)}.plan h3{margin:4px 0 0}
+.sent .btn.big{margin:8px 0}
+/* визитка card.html */
+.vc{max-width:640px;padding-bottom:40px}
+.vc-hero{position:relative;border-radius:22px;overflow:hidden;min-height:230px;background:#111 center/cover;display:flex;align-items:flex-end;margin-top:4px}
+.vc-hero:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05) 20%,rgba(0,0,0,.88))}
+.vc-hero-in{position:relative;display:flex;gap:14px;align-items:flex-end;padding:18px;color:#fff;width:100%}.vc-hero h1{margin:2px 0 6px;font-size:28px}
+.vc-ava{flex:0 0 64px;height:64px;border-radius:18px;background:var(--p);color:#111;display:grid;place-items:center;font-weight:900;font-size:24px;box-shadow:0 6px 20px rgba(0,0,0,.4)}
+.vc-role{font-size:13px;font-weight:700;color:var(--p2)}
+.vc-slogan{font-size:17px;font-weight:700;margin:14px 2px 4px}
+.vc-main{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0 8px}.vc-main .btn{width:100%}
+.shopbtn{background:linear-gradient(135deg,var(--p),#d79a22);color:#111!important;padding:15px;font-size:16px;border-radius:14px;margin:0 0 8px}
+.vc-acts{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:6px}.vc-acts .btn,.vc-acts button{width:100%;font-size:14px}
+.vc-veh{display:flex;gap:14px;align-items:center}.vc-veh img{width:140px;height:88px;object-fit:contain;background:var(--s2);border-radius:12px}.vc-veh .price small{font-size:13px;color:var(--m)}
+table.svc td:last-child{text-align:right}
+.vc-made{display:block;text-align:center;font-size:13px;color:var(--m)!important;margin:18px 0}
+.qr-modal .card{animation:none}
+@media (max-width:440px){.vc-main{grid-template-columns:1fr}.vc-hero h1{font-size:23px}.vc-veh img{width:100px}}

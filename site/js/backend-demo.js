@@ -2,7 +2,7 @@
 // только в этом браузере (localStorage). Все люди и организации здесь — вымышленные.
 import { SEED } from './seed.js';
 
-const KEY = 'am24-demo-db-v2', UKEY = 'am24-demo-user', PKEY = 'am24-demo-photos';
+const KEY = 'am24-demo-db-v4', UKEY = 'am24-demo-user', PKEY = 'am24-demo-photos';
 const now = () => new Date().toISOString();
 const plus = (min) => new Date(Date.now() + min * 60000).toISOString();
 const ago = (min) => new Date(Date.now() - min * 60000).toISOString();
@@ -11,22 +11,36 @@ const C = 'Талдыкорган';
 function initial() {
   const P = (id, kind, name, extra = {}) => ({ id, kind, owner_id: null, name, city: C, address: '', phone: '+7 700 000 00 ' + String(id).padStart(2, '0'),
     working_hours: '09:00-19:00', specs: [], supplier_type: null, service_type: null, boxes: 1, slot_minutes: 60, delivery: false,
-    rating: 0, reviews_count: 0, is_active: true, created_at: ago(9000), about: '', photos: [], whatsapp: '', verified: false, ...extra });
+    rating: 0, reviews_count: 0, is_active: true, created_at: ago(9000), about: '', photos: [], whatsapp: '', verified: false, card: {}, store_url: '', shop_enabled: false, ...extra });
   const providers = [
     P(1, 'sto', 'Демо-СТО «Мотор»', { owner_id: 'u-master', address: 'ул. Примерная, 1', specs: [1, 2, 7, 8, 9], rating: 4.8, reviews_count: 12, verified: true, whatsapp: '+77000000001',
-      about: 'Ремонт двигателя, ходовой и компьютерная диагностика. 4 подъёмника, гарантия на работы 6 месяцев. Можно подождать в зоне отдыха с Wi‑Fi.', photos: ['assets/img/sto.webp', 'assets/img/master.webp'] }),
+      about: 'Ремонт двигателя, ходовой и компьютерная диагностика. 4 подъёмника, гарантия на работы 6 месяцев. Можно подождать в зоне отдыха с Wi‑Fi.', photos: ['assets/img/sto.webp', 'assets/img/master.webp'],
+      card: { slogan: 'Честный ремонт с гарантией 6 месяцев', services: [{ name: 'Компьютерная диагностика', price: 5000 }, { name: 'Замена масла', price: 4000 }, { name: 'Ремонт ходовой', price: 'от 8000' }, { name: 'Развал-схождение 3D', price: 7000 }], tg: 'demo_motor', payments: ['kaspi', 'cash', 'card'] } }),
     P(2, 'sto', 'Демо-СТО «Ходовая+»', { address: 'ул. Примерная, 15', specs: [2, 5, 11], rating: 4.5, reviews_count: 7, about: 'Подвеска, рулевое, развал-схождение 3D.' }),
     P(3, 'sto', 'Демо-СТО «Автоэлектрик»', { address: 'пр. Демо, 8', specs: [3, 15], rating: 4.2, reviews_count: 3 }),
-    P(4, 'tow', 'Демо-эвакуатор «Быстрый»', { owner_id: 'u-master', rating: 4.9, reviews_count: 20, working_hours: 'Круглосуточно', verified: true, whatsapp: '+77000000004', about: 'Ломаная платформа, город и межгород. Подача 20–40 минут.', photos: ['assets/img/tow.webp'] }),
+    P(4, 'tow', 'Демо-эвакуатор «Быстрый»', { owner_id: 'u-master', rating: 4.9, reviews_count: 20, working_hours: 'Круглосуточно', verified: true, whatsapp: '+77000000004', about: 'Ломаная платформа, город и межгород. Подача 20–40 минут.', photos: ['assets/img/tow.webp'],
+      card: { slogan: 'Подача за 20–40 минут, 24/7', services: [{ name: 'Эвакуация по городу', price: 12000 }, { name: 'Межгород', price: '250 ₸/км' }, { name: 'Спецтехника', price: 'договорная' }], payments: ['kaspi', 'cash'] } }),
     P(5, 'tow', 'Демо-эвакуатор «Сокол»', { rating: 4.4, reviews_count: 5, working_hours: 'Круглосуточно' }),
-    P(6, 'wash', 'Демо-мойка «Блеск»', { owner_id: 'u-master', address: 'ул. Чистая, 3', boxes: 3, slot_minutes: 30, working_hours: '08:00-22:00', rating: 4.7, reviews_count: 15, verified: true, photos: ['assets/img/wash.webp'], about: 'Три бокса, бесконтактная и ручная мойка, химчистка.' }),
+    P(6, 'wash', 'Демо-мойка «Блеск»', { owner_id: 'u-master', address: 'ул. Чистая, 3', boxes: 3, slot_minutes: 30, working_hours: '08:00-22:00', rating: 4.7, reviews_count: 15, verified: true, photos: ['assets/img/wash.webp'], about: 'Три бокса, бесконтактная и ручная мойка, химчистка.', whatsapp: '+77000000006',
+      card: { services: [{ name: 'Кузов', price: 2500 }, { name: 'Комплекс', price: 5000 }, { name: 'Химчистка салона', price: 25000 }], payments: ['kaspi', 'cash'] } }),
     P(7, 'wash', 'Демо-мойка «Аква»', { address: 'ул. Водная, 9', boxes: 2, working_hours: '09:00-21:00', rating: 4.3, reviews_count: 4 }),
-    P(8, 'parts', 'Демо-магазин «Запчасть»', { owner_id: 'u-master', supplier_type: 'shop', delivery: true, rating: 4.6, reviews_count: 9, photos: ['assets/img/parts.webp'] }),
-    P(9, 'parts', 'Демо-авторазбор «Японец»', { supplier_type: 'razborka', rating: 4.1, reviews_count: 6 }),
-    P(10, 'urgent', 'Демо-мастер «Замки 24»', { owner_id: 'u-master', service_type: 'locksmith', working_hours: 'Круглосуточно', rating: 5, reviews_count: 8, photos: ['assets/img/help.webp'] }),
+    P(8, 'parts', 'Демо-магазин «Запчасть»', { owner_id: 'u-master', supplier_type: 'shop', delivery: true, rating: 4.6, reviews_count: 9, photos: ['assets/img/parts.webp'], whatsapp: '+77000000008',
+      address: 'ул. Магазинная, 5', about: 'Масла, фильтры, тормоза, свет и аккумуляторы. Подбор по VIN, доставка по городу.', shop_enabled: true,
+      card: { slogan: 'Подбор по VIN за 5 минут', services: [{ name: 'Подбор по VIN', price: 'бесплатно' }, { name: 'Доставка по городу', price: 1000 }], payments: ['kaspi', 'cash', 'card'], shop_title: 'Запчасть — интернет-магазин', shop_accent: '#E8B84B' } }),
+    P(9, 'parts', 'Демо-авторазбор «Японец»', { supplier_type: 'razborka', rating: 4.1, reviews_count: 6, whatsapp: '+77000000009', store_url: 'https://biznes-shablon.vercel.app/catalog',
+      about: 'Б/у запчасти на японские авто. Свой интернет-магазин на «Учёт + Магазин» — кнопка «Магазин» ведёт туда.' }),
+    P(10, 'urgent', 'Демо-мастер «Замки 24»', { owner_id: 'u-master', service_type: 'locksmith', working_hours: 'Круглосуточно', rating: 5, reviews_count: 8, photos: ['assets/img/help.webp'], whatsapp: '+77000000010',
+      card: { services: [{ name: 'Вскрытие авто', price: 'от 7000' }, { name: 'Изготовление ключа', price: 'от 15000' }] } }),
     P(11, 'urgent', 'Демо-шиномонтаж на выезде', { service_type: 'tire', rating: 4.5, reviews_count: 4 }),
     P(12, 'urgent', 'Демо-электрик на выезде', { service_type: 'electrician', rating: 4.0, reviews_count: 2 }),
     P(13, 'sto', 'Демо-СТО «Алматы Сервис»', { city: 'Алматы', specs: [], rating: 4.6, reviews_count: 30 }),
+    P(14, 'cargo', 'Демо-перевозчик «Газель 24»', { owner_id: 'u-master', working_hours: '08:00-22:00', rating: 4.9, reviews_count: 14, verified: true, whatsapp: '+77000000014',
+      photos: ['assets/img/cargo/v-gazel.webp'], about: 'Газель с тентом, аккуратно перевезём мебель и технику. Есть грузчики.',
+      card: { slogan: 'Переезды и мебель — быстро и бережно', cargo: { vehicle: 'gazel', extras: ['Грузчики', 'Тент', 'Ремни'], price: 6000, unit: 'час' }, zones: 'Весь город и пригороды', services: [{ name: 'Переезд квартиры', price: 'от 15000' }, { name: 'Грузчик', price: '3000/час' }], payments: ['kaspi', 'cash'] } }),
+    P(15, 'cargo', 'Демо-грузовик «Три тонны»', { working_hours: 'Круглосуточно', rating: 4.6, reviews_count: 6, whatsapp: '+77000000015', photos: ['assets/img/cargo/v-truck3.webp'],
+      card: { cargo: { vehicle: 'truck3', extras: ['Тент'], price: 9000, unit: 'час' }, zones: 'Город и межгород', services: [{ name: 'Стройматериалы', price: 'от 12000' }] } }),
+    P(16, 'cargo', 'Демо-каблук «Мелкий груз»', { working_hours: '09:00-20:00', rating: 4.3, reviews_count: 3, whatsapp: '+77000000016', photos: ['assets/img/cargo/v-kabluk.webp'],
+      card: { cargo: { vehicle: 'kabluk', extras: [], price: 4000, unit: 'час' }, zones: 'По городу' } }),
   ];
   const profiles = {
     'u-client': { id: 'u-client', username: 'demo_client', full_name: 'Демо Клиент', phone: '+77001112233', city: C, role: 'client', consent: true },
@@ -59,7 +73,16 @@ function initial() {
   return { seq: 100, profiles, providers, requests, reviews, prices, offers: [], declines: [], messages: [], vehicles: [
     { id: 1, user_id: 'u-client', brand: 'Toyota', model: 'Corolla', year: 2012, plate: '123ABC05', engine_volume: '1.6' }],
     registrations: [{ id: 1, user_id: 'u-other', kind: 'sto', name: 'Демо-заявка: СТО «Новое»', phone: '+77005550000', address: 'ул. Новая, 1', city: C, details: { specs: [1, 2] }, status: 'pending', created_at: ago(60) }],
-    cities: SEED.cities.map((c) => ({ ...c })) };
+    cities: SEED.cities.map((c) => ({ ...c })), products: demoProducts(), leads: [
+      { id: 1, provider_id: 14, kind: 'cargo', source: 'card', customer_name: 'Айгерим', customer_phone: '+77011112233', message: 'Переезд: Шевченко 10 → Абая 55, завтра в 10:00', payload: { what: 'Переезд' }, total: null, status: 'new', created_at: ago(30) },
+      { id: 2, provider_id: 8, kind: 'order', source: 'shop', customer_name: 'Ерлан', customer_phone: '+77012223344', message: 'Масло 5W-30 4 л × 1, Фильтр масляный × 1', payload: { items: [] }, total: 21400, status: 'in_work', created_at: ago(120) }] };
+}
+function demoProducts() {
+  const L = [['Моторное масло 5W-30, 4 л', 'Масла и жидкости', 18900, 12], ['Антифриз G12, 5 л', 'Масла и жидкости', 7900, 8], ['Тормозная жидкость DOT-4', 'Масла и жидкости', 2400, 20],
+    ['Фильтр масляный', 'Фильтры', 2500, 30], ['Фильтр воздушный', 'Фильтры', 3900, 15], ['Фильтр салонный угольный', 'Фильтры', 4500, 2],
+    ['Колодки передние', 'Тормоза', 12900, 6], ['Диск тормозной', 'Тормоза', 16500, 4], ['Лампа H4 +130%', 'Свет', 3500, 25], ['Фара передняя левая', 'Свет', 42000, 1],
+    ['Аккумулятор 60 А·ч', 'Аккумуляторы', 39900, 5], ['Щётки стеклоочистителя, пара', 'Аксессуары', 5900, 10]];
+  return L.map(([name, category, price, stock], i) => ({ id: i + 1, provider_id: 8, sku: 'SKU-' + String(i + 1).padStart(6, '0'), name, category, price, stock, photo: '', description: 'Демо-товар: название, цена и остаток вымышленные.', is_published: true, created_at: ago(1000 - i) }));
 }
 
 let db = null;
@@ -110,7 +133,7 @@ export const demo = {
   async myProviders() { return clone(load().providers.filter((p) => p.owner_id === uid())); },
   async updateProvider(pid, patch) {
     const p = prov(pid); if (!p || (p.owner_id !== uid() && !isAdmin(p.city))) fail('Нет прав');
-    const allowed = ['name', 'address', 'phone', 'working_hours', 'specs', 'boxes', 'slot_minutes', 'delivery', 'supplier_type', 'service_type', 'about', 'photos', 'whatsapp'];
+    const allowed = ['name', 'address', 'phone', 'working_hours', 'specs', 'boxes', 'slot_minutes', 'delivery', 'supplier_type', 'service_type', 'about', 'photos', 'whatsapp', 'card', 'store_url', 'shop_enabled'];
     for (const k of Object.keys(patch)) if (allowed.includes(k) || isAdmin(p.city)) p[k] = patch[k];
     save(); return clone(p);
   },
@@ -119,7 +142,7 @@ export const demo = {
     const m = me() || fail('Войдите');
     if (!m.consent) fail('Нужно согласие на обработку персональных данных (Профиль)');
     if (!m.phone) fail('Укажите телефон в профиле — без него исполнитель не сможет связаться');
-    const ttl = p.type === 'parts' ? 180 : p.type === 'wash' ? null : 60;
+    const ttl = p.type === 'parts' ? 180 : p.type === 'wash' ? null : p.type === 'cargo' ? 120 : 60;
     const r = { id: id(), type: p.type, user_id: m.id, city: p.city || m.city, status: 'new', category_id: p.category_id ? +p.category_id : null,
       subcategory: p.subcategory || null, service_type: p.service_type || null, supplier_type: p.supplier_type || null,
       target_provider_id: p.target_provider_id ? +p.target_provider_id : null, description: p.description || '', vehicle_info: p.vehicle_info || '',
@@ -248,7 +271,7 @@ export const demo = {
   async setProviderVerified(pid, v) { const p = prov(pid); if (!p || !isAdmin(p.city)) fail('Нет прав'); p.verified = !!v; save(); },
 
   // ---- обновление 3: фото, чат, статистика, ответы на отзывы
-  async caps() { return { v3: true }; },
+  async caps() { return { v3: true, v4: true }; },
   async uploadRequestPhoto(blob) { if (!uid()) fail('Войдите'); return putPhoto(`req/${uid()}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`, blob); },
   async photoUrls(paths) { const m = photos(); return (paths || []).map((x) => (/^(assets|https?:|data:)/.test(x) ? x : m[x]) || ''); },
   async uploadProviderPhoto(pid, blob) { const p = prov(pid); if (!p || (p.owner_id !== uid() && !isAdmin(p.city))) fail('Нет прав'); return new Promise((ok, no) => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.onerror = () => no(new Error('Не удалось прочитать фото')); fr.readAsDataURL(blob); }); },
@@ -290,7 +313,45 @@ export const demo = {
   },
 
   async addCity(name) { if (!isAdmin()) fail('Нет прав'); if (!name) fail('Введите название'); load().cities.push({ id: id(), name, region: '', active: true }); save(); },
+
+  // ---- обновление 4 (supabase/04_cards_cargo_shop.sql): визитки, грузоперевозки, WhatsApp-заявки, магазин
+  async createCard(p) {
+    const m = me() || fail('Войдите'); if (!(p.name || '').trim() || !(p.phone || p.whatsapp) || !p.city) fail('Заполните название, телефон и город');
+    if (!KINDS4.includes(p.kind)) fail('Неизвестный тип');
+    if (load().providers.filter((x) => x.owner_id === m.id).length >= 10) fail('Не больше 10 визиток на одного владельца');
+    const x = { id: id(), kind: p.kind, owner_id: m.id, name: p.name.trim().slice(0, 120), city: p.city, address: p.address || '', phone: p.phone || '', whatsapp: p.whatsapp || p.phone || '',
+      working_hours: p.working_hours || '', specs: (p.specs || []).map(Number), supplier_type: p.supplier_type || null, service_type: p.service_type || null, boxes: +p.boxes || 1, slot_minutes: +p.slot_minutes || 60,
+      delivery: !!p.delivery, rating: 0, reviews_count: 0, is_active: true, verified: false, about: (p.about || '').slice(0, 2000), photos: p.photos || [], card: p.card || {}, store_url: '', shop_enabled: p.kind === 'parts', created_at: now() };
+    load().providers.push(x); save(); return x.id;
+  },
+  async createLead(l) {
+    if (!(l.message || '').trim()) fail('Пустая заявка');
+    if (l.provider_id && !prov(l.provider_id)?.is_active) fail('Исполнитель не найден');
+    const x = { id: id(), provider_id: l.provider_id ? +l.provider_id : null, kind: l.kind || 'request', source: l.source || 'card', user_id: uid() || null,
+      customer_name: (l.customer_name || '').slice(0, 120), customer_phone: (l.customer_phone || '').slice(0, 30), message: l.message.slice(0, 4000), payload: l.payload || {},
+      total: l.total ? +l.total : null, status: 'new', created_at: now() };
+    load().leads.push(x); save(); return x.id;
+  },
+  async myLeads(pid) { myProv(pid); return clone(load().leads.filter((x) => x.provider_id === +pid).sort((a, b) => b.id - a.id)); },
+  async dispatchLeads() { if (!isAdmin()) fail('Нет прав'); return clone(load().leads.filter((x) => !x.provider_id).sort((a, b) => b.id - a.id)); },
+  async setLeadStatus(lid, status) {
+    const x = load().leads.find((l) => l.id === +lid) || fail('Заявка не найдена');
+    if (!((x.provider_id && prov(x.provider_id)?.owner_id === uid()) || isAdmin())) fail('Нет прав');
+    if (!['new', 'in_work', 'done', 'cancelled'].includes(status)) fail('Неверный статус'); x.status = status; x.updated_at = now(); save();
+  },
+  async shopProducts(pid) { return clone(load().products.filter((x) => x.provider_id === +pid && x.is_published).sort((a, b) => b.id - a.id)); },
+  async myProducts(pid) { myProv(pid); return clone(load().products.filter((x) => x.provider_id === +pid).sort((a, b) => b.id - a.id)); },
+  async saveProduct(pid, x) {
+    myProv(pid); if (!(x.name || '').trim()) fail('Укажите название'); if (!(+x.price >= 0)) fail('Укажите цену');
+    const d = load();
+    if (x.id) { const o = d.products.find((p) => p.id === +x.id && p.provider_id === +pid) || fail('Товар не найден'); Object.assign(o, { ...x, id: o.id, provider_id: o.provider_id, price: +x.price, stock: x.stock === '' || x.stock == null ? null : +x.stock }); }
+    else { const n = d.products.filter((p) => p.provider_id === +pid).length + 1; d.products.push({ ...x, id: id(), provider_id: +pid, sku: x.sku || 'SKU-' + String(n).padStart(6, '0'), price: +x.price, stock: x.stock === '' || x.stock == null ? null : +x.stock, is_published: x.is_published !== false, created_at: now() }); }
+    save();
+  },
+  async deleteProduct(xid) { const d = load(); const x = d.products.find((p) => p.id === +xid) || fail('Товар не найден'); myProv(x.provider_id); d.products = d.products.filter((p) => p.id !== +xid); save(); },
+  async uploadProductPhoto(pid, blob) { myProv(pid); return new Promise((ok, no) => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.onerror = () => no(new Error('Не удалось прочитать фото')); fr.readAsDataURL(blob); }); },
 };
+const KINDS4 = ['sto', 'tow', 'wash', 'parts', 'urgent', 'cargo'];
 
 const bus = new Set();
 const photos = () => { try { return JSON.parse(localStorage.getItem(PKEY)) || {}; } catch { return {}; } };

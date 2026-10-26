@@ -139,7 +139,9 @@ export const live = {
     if (capsCache) return capsCache;
     const r = await (await from('am_messages')).select('id').limit(1);
     // 42P01 — таблицы ещё нет (миграция не применена); ошибка прав (аноним) значит таблица есть
-    capsCache = { v3: !(r.error && /does not exist|42P01|schema cache/i.test(r.error.message + r.error.code)) };
+    const missing = (x) => !!(x.error && /does not exist|42P01|PGRST205|schema cache/i.test(x.error.message + x.error.code));
+    const r4 = await (await from('am_products')).select('id').limit(1);
+    capsCache = { v3: !missing(r), v4: !missing(r4) };
     return capsCache;
   },
   async uploadRequestPhoto(blob) {
@@ -176,4 +178,27 @@ export const live = {
   async replyReview(id, text) { return rpc('am_reply_review', { p_id: +id, p_text: text || '' }); },
 
   async addCity(name) { return must(await (await from('am_cities')).insert({ name })); },
+
+  // ---- обновление 4 (supabase/04_cards_cargo_shop.sql): визитки, грузоперевозки, WhatsApp-заявки, магазин
+  async createCard(p) { return rpc('am_create_card', { p }); },
+  // заявку/заказ может оставить и гость (без входа) — функция проверяет данные и ограничивает частоту
+  async createLead(l) { return rpc('am_create_lead', { p: l }); },
+  async myLeads(pid) { return must(await (await from('am_leads')).select('*').eq('provider_id', +pid).order('id', { ascending: false }).limit(300)); },
+  async dispatchLeads() { return must(await (await from('am_leads')).select('*').is('provider_id', null).order('id', { ascending: false }).limit(300)); },
+  async setLeadStatus(id, status) { return rpc('am_set_lead_status', { p_id: +id, p_status: status }); },
+  async shopProducts(pid) { return must(await (await from('am_products')).select('*').eq('provider_id', +pid).eq('is_published', true).order('id', { ascending: false }).limit(1000)); },
+  async myProducts(pid) { return must(await (await from('am_products')).select('*').eq('provider_id', +pid).order('id', { ascending: false }).limit(1000)); },
+  async saveProduct(pid, x) {
+    const row = { provider_id: +pid, name: x.name, category: x.category || '', price: +x.price, stock: x.stock === '' || x.stock == null ? null : +x.stock,
+      photo: x.photo || '', description: x.description || '', is_published: x.is_published !== false };
+    if (x.sku) row.sku = x.sku;
+    if (x.id) return must(await (await from('am_products')).update(row).eq('id', +x.id));
+    return must(await (await from('am_products')).insert(row));
+  },
+  async deleteProduct(id) { return must(await (await from('am_products')).delete().eq('id', +id)); },
+  async uploadProductPhoto(pid, blob) {
+    const s = await client(); const path = `shop/${+pid}/${Date.now()}-${Math.random().toString(36).slice(2, 6)}.jpg`;
+    must(await s.storage.from('am-public').upload(path, blob, { contentType: 'image/jpeg', upsert: false }));
+    return s.storage.from('am-public').getPublicUrl(path).data.publicUrl;
+  },
 };

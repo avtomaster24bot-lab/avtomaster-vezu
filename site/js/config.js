@@ -6,7 +6,7 @@
 // (всё кликается, данные хранятся только в этом браузере).
 export const CONFIG = {
   SITE_NAME: 'АвтоМастер24',
-  SITE_TAGLINE: 'СТО, эвакуатор, мойка, запчасти и выездные мастера — в одном месте',
+  SITE_TAGLINE: 'СТО, эвакуатор, мойка, запчасти, выездные мастера и грузоперевозки — в одном месте',
 
   // Supabase (тот же проект, что у VeloMarket). anon-ключ публичный, защита — RLS в базе.
   SUPABASE_URL: 'https://wzhwnffdylhkmapijkrn.supabase.co',
@@ -22,6 +22,14 @@ export const CONFIG = {
   TELEGRAM_BOT: 'TochkaSborki_A24_bot',
 
   DEFAULT_CITY: 'Талдыкорган',
+
+  // Регион: KZ (сейчас), RU, US — валюта, телефоны, карты, оплата (js/region.js). Перенос по странам — docs/ARCHITECTURE.md
+  REGION: 'KZ',
+  // Канал, куда уходят заявки и заказы владельцу: whatsapp (сейчас), telegram, sms (js/messaging.js)
+  MESSENGER: 'whatsapp',
+  // WhatsApp диспетчера: сюда уходит заявка, если клиент не выбрал исполнителя (номер ВЕЗУ из dogruz/js/common.js)
+  DISPATCH_WHATSAPP: '77714105797',
+
   FORCE_DEMO: false,          // true — всегда демо-режим
   REFRESH_SECONDS: 20,        // как часто обновлять ленту заявок у исполнителя
 };

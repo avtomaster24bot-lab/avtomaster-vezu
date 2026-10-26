@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Магазин — АвтоМастер24</title>
+<meta name="description" content="Интернет-магазин автозапчастей на АвтоМастер24: каталог, корзина, заказ в WhatsApp.">
+<meta name="theme-color" content="#0b0b0b">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/shop.css">
+</head>
+<body>
+<div id="demoBar" class="demobar" hidden></div>
+<header class="sh-top"><div class="sh-wrap sh-row">
+  <a class="sh-brand" id="brand" href="#">МАГАЗИН<span>.</span></a>
+  <nav class="sh-cats" id="topCats"></nav>
+  <form class="sh-search" id="searchF" role="search"><input name="q" id="q" type="search" placeholder="Поиск товаров…" aria-label="Поиск товаров"></form>
+  <a class="sh-back" id="backCard" href="#">🪪 Визитка</a>
+  <button class="sh-cartbtn" id="cartBtn" aria-label="Корзина">🛒<b id="cartN" hidden>0</b></button>
+</div></header>
+<main class="sh-wrap" id="shop"><p class="sh-muted">Загрузка…</p></main>
+<aside class="sh-drawer" id="drawer" hidden aria-label="Корзина"><div class="sh-drawer-in" id="cart"></div></aside>
+<div class="sh-toast" id="toast" role="status" aria-live="polite" hidden></div>
+<footer class="sh-foot"><div class="sh-wrap" id="foot"></div></footer>
+<script type="module" src="js/shop.js"></script>
+</body>
+</html>

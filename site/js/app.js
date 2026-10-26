@@ -1,30 +1,34 @@
 import { CONFIG } from './config.js';
-import { api, IS_DEMO } from './api.js';
-import { KINDS, URGENT, SUPPLIER, TOW_VEHICLES, WHEELS, WASH_SERVICES, CAR_TYPES, PARTS_URGENCY, PARTS_ORIG, PARTS_DELIVERY, STATUS, effStatus } from './consts.js';
+import { api, IS_DEMO, FORCED_DEMO, leaveDemo } from './api.js';
+import { KINDS, URGENT, SUPPLIER, TOW_VEHICLES, WHEELS, WASH_SERVICES, CAR_TYPES, PARTS_URGENCY, PARTS_ORIG, PARTS_DELIVERY, STATUS, effStatus,
+  CARD_ROLE, CARGO_SERVICES, CARGO_VEHICLES, CARGO_WHEN, CARGO_EXTRAS, LEAD_STATUS } from './consts.js';
+import { REGION, money as rMoney, mapSearch, mapPoint, fmtPhone, validPhone } from './region.js';
+import { PRIMARY, sendLink, requestText, ownerContact, dispatcherPhone } from './messaging.js';
+import { qrSvg, qrPng, download, cardUrl, shopUrl, hasShop, isExternalShop, share as shareLink } from './cardkit.js';
 
 // ------------------------------------------------------------ утилиты
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const money = (n) => n == null ? '—' : Number(n).toLocaleString('ru-RU') + ' ₸';
+const money = (n) => rMoney(n);
 const dt = (s) => s ? new Date(s).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—';
 const hm = (s) => new Date(s).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
 const stars = (r) => `<span class="stars" aria-label="Рейтинг ${Number(r || 0).toFixed(1)} из 5">${'★'.repeat(Math.round(r || 0))}${'☆'.repeat(5 - Math.round(r || 0))}</span>`;
 const badge = (st) => { const [t, c] = STATUS[st] || [st, 'grey']; return `<span class="badge ${c}">${esc(t)}</span>`; };
 const digits = (p) => String(p || '').replace(/[^\d+]/g, '');
 const tel = (p) => p ? `<a class="btn sm" href="tel:${esc(digits(p))}">📞 ${esc(p)}</a>` : '';
-const wa = (p, text = '') => p ? `<a class="btn sm wa" target="_blank" rel="noopener" href="https://wa.me/${esc(digits(p).replace(/^\+/, '').replace(/^8/, '7'))}${text ? '?text=' + encodeURIComponent(text) : ''}">💬 WhatsApp</a>` : '';
+const wa = (p, text = '', label = `${PRIMARY.icon} ${PRIMARY.label}`, cls = 'btn sm wa') => p && sendLink(p, text) ? `<a class="${cls}" target="_blank" rel="noopener" href="${esc(sendLink(p, text))}">${label}</a>` : '';
 const tip = (t) => `<button type="button" class="tip" aria-label="Подсказка: ${esc(t)}" data-tip="${esc(t)}">?</button>`;
 const opts = (name, list, sel, type = 'radio') => `<div class="opts">${list.map(([v, t]) => `<label class="opt"><input type="${type}" name="${name}" value="${esc(v)}" ${(Array.isArray(sel) ? sel.includes(v) : sel === v) ? 'checked' : ''}><span>${esc(t)}</span></label>`).join('')}</div>`;
 const pairs = (arr) => arr.map((x) => [x, x]);
-const mapUrl = (city, address) => `https://2gis.kz/search/${encodeURIComponent([city, address].filter(Boolean).join(', '))}`;
+const mapUrl = (city, address) => mapSearch(city, address);
 function toast(msg, err = false) { const t = $('#toast'); t.textContent = msg; t.className = 'toast' + (err ? ' err' : ''); t.hidden = false; clearTimeout(t._h); t._h = setTimeout(() => { t.hidden = true; }, 3500); }
 const formData = (f) => { const o = {}; for (const [k, v] of new FormData(f)) { if (v instanceof File) continue; o[k] = o[k] !== undefined ? [].concat(o[k], v) : v; } return o; };
 async function act(btn, fn, okMsg) {
   if (btn) btn.disabled = true;
   try { await fn(); if (okMsg) toast(okMsg); await render(); } catch (e) { toast(e.message || String(e), true); } finally { if (btn) btn.disabled = false; }
 }
-const IMG = { sto: 'assets/img/sto.webp', tow: 'assets/img/tow.webp', wash: 'assets/img/wash.webp', parts: 'assets/img/parts.webp', urgent: 'assets/img/help.webp' };
+const IMG = { sto: 'assets/img/sto.webp', tow: 'assets/img/tow.webp', wash: 'assets/img/wash.webp', parts: 'assets/img/parts.webp', urgent: 'assets/img/help.webp', cargo: 'assets/img/cargo.webp' };
 
 // «Открыто сейчас» по строке вида 09:00-19:00 / Круглосуточно
 function openNow(wh) {
@@ -107,10 +111,11 @@ function chrome(route) {
   if (IS_DEMO) {
     bar.hidden = false;
     bar.innerHTML = `<b>ДЕМО</b><span>данные только в этом браузере, люди и организации вымышленные. Войти как:</span>
-      <button data-demo="client">Клиент</button><button data-demo="master">Исполнитель</button><button data-demo="admin">Админ</button><button data-reset>Сбросить</button>`;
+      <button data-demo="client">Клиент</button><button data-demo="master">Исполнитель</button><button data-demo="admin">Админ</button><button data-reset>Сбросить</button>${FORCED_DEMO ? '<button data-leave>Выйти из демо</button>' : ''}`;
     $$('[data-demo]', bar).forEach((b) => b.onclick = async () => { await api.loginDemo(b.dataset.demo); await refreshMe(); toast('Вы вошли: ' + S.me.full_name);
       location.hash = b.dataset.demo === 'master' ? '#/cabinet' : b.dataset.demo === 'admin' ? '#/admin' : '#/'; render(); });
     $('[data-reset]', bar).onclick = async () => { await api.resetDemo(); await refreshMe(); toast('Демо-данные сброшены'); render(); };
+    const lv = $('[data-leave]', bar); if (lv) lv.onclick = () => { leaveDemo(); location.href = location.pathname + '#/'; location.reload(); };
   } else bar.hidden = true;
   const items = [['', '🏠', 'Главная'], ['requests', '📋', 'Заявки'], ['catalog', '🔎', 'Мастера'],
     S.myProv.length ? ['cabinet', '🛠', 'Кабинет'] : ['garage', '🚗', 'Гараж'], isAdmin() ? ['admin', '🛡', 'Админ'] : ['profile', '👤', 'Профиль']];
@@ -118,7 +123,7 @@ function chrome(route) {
 }
 
 // ------------------------------------------------------------ роутер
-const routes = { '': home, catalog, provider, new: newRequest, requests, request, chat, garage, prices, profile, login, business, cabinet, admin };
+const routes = { '': home, catalog, provider, new: newRequest, requests, request, chat, garage, prices, profile, login, business, cabinet, admin, tariffs };
 const skeleton = () => `<div class="sk-wrap" aria-busy="true" aria-label="Загрузка"><div class="sk sk-h"></div><div class="sk sk-c"></div><div class="sk sk-c"></div><div class="sk sk-c short"></div></div>`;
 let renderSeq = 0;
 async function render() {
@@ -150,6 +155,7 @@ const KW = [
   ['urgent', 'tire', 'колес прокол шина спустил балон шиномонтаж'],
   ['urgent', 'electrician', 'аккумулятор акб прикурить сел разряд'],
   ['urgent', 'delivery', 'перегон перегнать доставить машину'],
+  ['cargo', null, 'груз перевез переезд газел грузчик вывоз мусор стройматериал мебел перевоз'],
 ];
 const stem = (w) => w.length > 5 ? w.slice(0, w.length - 2) : w;
 function suggest(text) {
@@ -180,6 +186,8 @@ async function home() {
   <h2>Что случилось?</h2>
   <div class="grid photo-grid">${Object.entries(KINDS).map(([k, x]) => `<a class="tile ph-tile" href="#/new/${k}"><img src="${IMG[k]}" alt="" loading="lazy"><span><b>${x.icon} ${x.title}</b><small>${x.desc}</small></span></a>`).join('')}
     <a class="tile ph-tile alt" href="#/catalog/sto"><span><b>📒 Все мастера</b><small>Рейтинги, отзывы, фото, часы работы</small></span></a></div>
+  <div class="card promo"><div class="grow"><b>🪪 Бесплатная визитка для вашего бизнеса</b><small>СТО, эвакуатор, мойка, магазин запчастей, выездной мастер или грузоперевозчик: своя страница и QR-код, кнопки «Позвонить» и ${PRIMARY.label}. Заявки и заказы приходят вам в ${PRIMARY.label} и видны в кабинете. Магазину — витрина с товарами.</small></div>
+    <div class="row"><a class="btn p" href="#/business">Создать визитку</a><a class="btn" href="card.html?id=14${IS_DEMO ? '' : '&demo=1'}">Пример визитки${IS_DEMO ? '' : ' (демо)'}</a><a class="btn" href="#/tariffs">Тарифы</a></div></div>
   ${favList.length ? `<h2>♥ Избранные</h2><div class="hscroll">${favList.map((p) => `<a class="mini" href="#/provider/${p.id}"><b>${KINDS[p.kind].icon} ${esc(p.name)}</b><small>★ ${Number(p.rating || 0).toFixed(1)} · ${esc(p.working_hours || '')}</small></a>`).join('')}</div>` : ''}
   <h2>Почему удобно</h2>
   <div class="grid feats">
@@ -190,7 +198,8 @@ async function home() {
   </div>
   <h2>Для своих</h2>
   <div class="grid">
-    <a class="tile" href="#/business"><div class="i">💼</div><b>Для бизнеса</b><small>Подключить СТО, мойку, эвакуатор, магазин</small></a>
+    <a class="tile" href="#/business"><div class="i">🪪</div><b>Для бизнеса</b><small>Визитка с QR: СТО, мойка, эвакуатор, магазин, грузоперевозки</small></a>
+    <a class="tile" href="#/tariffs"><div class="i">💳</div><b>Тарифы</b><small>Визитка бесплатно, Про, магазин, печать</small></a>
     <a class="tile" href="#/garage"><div class="i">🚗</div><b>Мой гараж</b><small>Авто и регламент ТО</small></a>
     ${S.myProv.length ? '<a class="tile" href="#/cabinet"><div class="i">🛠</div><b>Кабинет исполнителя</b><small>Входящие заявки</small></a>' : ''}
     ${isAdmin() ? '<a class="tile" href="#/admin"><div class="i">🛡</div><b>Админ-панель</b><small>Модерация и статистика</small></a>' : ''}
@@ -213,7 +222,9 @@ const favBtn = (p) => `<button class="fav ${isFav(p.id) ? 'on' : ''}" data-fav="
 const provMeta = (p) => `${esc(p.city)}${p.address ? ' · ' + esc(p.address) : ''}${p.working_hours ? ' · 🕘 ' + esc(p.working_hours) : ''}`;
 const provSpec = (p) => `${p.kind === 'sto' && p.specs?.length ? `<div class="small">${p.specs.map((c) => esc(catName(c))).filter(Boolean).join(' · ')}</div>` : ''}
   ${p.kind === 'urgent' && p.service_type ? `<div class="small">${URGENT[p.service_type]}</div>` : ''}
-  ${p.kind === 'parts' && p.supplier_type ? `<div class="small">${SUPPLIER[p.supplier_type]}${p.delivery ? ' · 🚚 доставка' : ''}</div>` : ''}`;
+  ${p.kind === 'parts' && p.supplier_type ? `<div class="small">${SUPPLIER[p.supplier_type]}${p.delivery ? ' · 🚚 доставка' : ''}${hasShop(p) ? ' · 🛍 интернет-магазин' : ''}</div>` : ''}
+  ${p.kind === 'cargo' && p.card?.cargo ? `<div class="small">${esc(cargoVeh(p.card.cargo.vehicle)?.name || '')} ${esc(cargoVeh(p.card.cargo.vehicle)?.cap || '')}${p.card.cargo.extras?.length ? ' · ' + esc(p.card.cargo.extras.join(', ')) : ''}${p.card.cargo.price ? ' · от ' + money(p.card.cargo.price) + '/' + esc(p.card.cargo.unit || 'час') : ''}</div>` : ''}`;
+const cargoVeh = (id) => CARGO_VEHICLES.find((v) => v.id === id);
 const provCard = (p, extra = '', from = null) => `<div class="card pcard">
   <a class="pthumb" href="#/provider/${p.id}" aria-hidden="true" tabindex="-1">${p.photos?.length ? `<img src="${esc(p.photos[0])}" alt="" loading="lazy">` : `<span>${KINDS[p.kind].icon}</span>`}</a>
   ${favBtn(p)}<div class="pbody"><div><b><a href="#/provider/${p.id}">${esc(p.name)}</a></b> ${verifiedBadge(p)}</div>
@@ -266,9 +277,10 @@ async function provider(id) {
     <div class="row" style="margin:10px 0">${stars(p.rating)} <b>${Number(p.rating || 0).toFixed(1)}</b> <span class="muted small">${p.reviews_count || 0} отзывов</span></div>
     <div class="stats">${st.completed != null ? `<div><b>${st.completed}</b><small>выполнено заявок</small></div>` : ''}${st.response_min != null ? `<div><b>~${Math.max(1, st.response_min)} мин</b><small>обычно отвечает ${tip('Медиана времени от заявки до принятия по последним заявкам')}</small></div>` : ''}${st.price_from ? `<div><b>от ${money(st.price_from)}</b><small>по прайсу</small></div>` : ''}</div>
     ${p.about ? `<p>${esc(p.about)}</p>` : ''}
-    <dl class="kv">${p.address ? `<dt>Адрес</dt><dd>${esc(p.address)} · <a href="${mapUrl(p.city, p.address)}" target="_blank" rel="noopener">на карте 2ГИС</a></dd>` : ''}<dt>Город</dt><dd>${esc(p.city)}</dd>${p.working_hours ? `<dt>Часы</dt><dd>${esc(p.working_hours)}</dd>` : ''}</dl>
+    <dl class="kv">${p.address ? `<dt>Адрес</dt><dd>${esc(p.address)} · <a href="${mapUrl(p.city, p.address)}" target="_blank" rel="noopener">на карте ${REGION.maps.name}</a></dd>` : ''}<dt>Город</dt><dd>${esc(p.city)}</dd>${p.working_hours ? `<dt>Часы</dt><dd>${esc(p.working_hours)}</dd>` : ''}</dl>
     ${provSpec(p)}
-    <div class="row" style="margin-top:12px"><a class="btn p" href="#/new/${p.kind}?to=${p.id}">📝 Оставить заявку</a>${tel(p.phone)}${wa(p.whatsapp, 'Здравствуйте! Нашёл вас на АвтоМастер24.')}
+    <div class="row" style="margin-top:12px"><a class="btn p" href="#/new/${p.kind}?to=${p.id}">📝 Оставить заявку</a>${tel(p.phone)}${wa(ownerContact(p), `Здравствуйте! Нашёл вас на ${CONFIG.SITE_NAME}.`)}
+     ${S.caps.v4 ? `<a class="btn sm" href="card.html?id=${p.id}">🪪 Визитка и QR</a>` : ''}${S.caps.v4 && hasShop(p) ? `<a class="btn sm p" href="${esc(shopUrl(p))}" ${isExternalShop(p) ? 'target="_blank" rel="noopener"' : ''}>🛍 Магазин</a>` : ''}
      <button class="btn sm" id="share">🔗 Поделиться</button></div></div>
    ${pr.length ? `<div class="card"><h3>Прайс</h3><table><tr><th>Услуга</th><th>Авто</th><th>Цена</th><th></th></tr>${pr.map((x) => `<tr><td>${esc(x.service)}</td><td>${esc([x.brand, x.model].filter(Boolean).join(' ') || 'Все')}</td><td><b>${money(x.price)}</b></td><td><a class="btn sm" href="#/new/sto?to=${p.id}&sub=${encodeURIComponent(x.service)}">Записаться</a></td></tr>`).join('')}</table></div>` : ''}
    <div class="card"><h3>Отзывы</h3>
@@ -288,15 +300,16 @@ const dayOpts = () => [...Array(7)].map((_, i) => { const d = new Date(); d.setD
 async function newRequest(kind = 'sto', q) {
   if (!KINDS[kind]) kind = 'sto';
   const tabs = `<div class="tabs">${Object.entries(KINDS).map(([k, x]) => `<a href="#/new/${k}${q.to ? '' : ''}" class="${k === kind ? 'on' : ''}">${x.icon} ${x.short}</a>`).join('')}</div>`;
-  if (!S.me) return `<h1>Новая заявка</h1>${tabs}${needLogin('создания заявки')}`;
-  const warn = !S.me.phone || !S.me.consent ? `<div class="notice warn">Перед первой заявкой заполните <a href="#/profile">профиль</a>: телефон и согласие на обработку данных. Телефон увидит только тот, кто возьмёт заявку.</div>` : '';
-  const [provs, cars, prev] = await Promise.all([api.listProviders({ kind, city: S.city }), api.vehicles(), q.repeat ? api.myRequests().then((l) => l.find((r) => r.id === +q.repeat)) : null]);
+  const guest = !S.me;
+  const warn = guest ? `<div class="notice">📲 Можно без входа: заявка уйдёт исполнителю в ${PRIMARY.label} готовым сообщением${S.caps.v4 ? ' и сохранится у него в кабинете' : ''}. <a href="#/login">Войдите</a>, чтобы видеть статус, чат и историю заявок.</div>`
+    : !S.me.phone || !S.me.consent ? `<div class="notice warn">Перед первой заявкой заполните <a href="#/profile">профиль</a>: телефон и согласие на обработку данных. Телефон увидит только тот, кто возьмёт заявку.</div>` : '';
+  const [provs, cars, prev] = await Promise.all([api.listProviders({ kind, city: S.city }), guest ? [] : api.vehicles(), q.repeat && !guest ? api.myRequests().then((l) => l.find((r) => r.id === +q.repeat)) : null]);
   const R = prev || {}; const D = R.details || {};
   const car = `<label>Автомобиль ${tip('Выберите машину из гаража или впишите марку и год — так мастер сразу поймёт, о чём речь')}</label>${cars.length ? `<select name="car"><option value="">— ввести вручную —</option>${cars.map((c) => `<option>${esc(`${c.brand} ${c.model} ${c.year || ''}`.trim())}</option>`).join('')}</select>` : ''}
     <input name="vehicle_info" value="${esc(R.vehicle_info || '')}" placeholder="Марка, модель, год (например Toyota Camry 2015)">`;
   const to = q.to || R.target_provider_id || '';
-  const pick = (label, required) => `<label>${label} ${tip(required ? 'Выберите мойку — она предложит цену и точное время' : '«Всем в городе» — заявку увидят все подходящие мастера, первый откликнувшийся возьмёт её. Можно выбрать конкретного.')}</label><select name="target_provider_id" ${required ? 'required' : ''}>${required ? '' : '<option value="">📢 Отправить всем в городе</option>'}${provs.map((p) => `<option value="${p.id}" ${+to === p.id ? 'selected' : ''}>${esc(p.name)} · ★${Number(p.rating).toFixed(1)}${p.verified ? ' · ✔' : ''}</option>`).join('')}</select>`;
-  const photo = S.caps.v3 ? `<label>Фото (до 5) ${tip('Фото поломки, вмятины, ошибки на приборной панели или нужной детали — мастер точнее оценит работу и цену')}</label>
+  const pick = (label, required) => `<label>${label} ${tip(guest ? `Выберите, кому написать в ${PRIMARY.label}. «Диспетчер» сам подберёт исполнителя.` : required ? 'Выберите мойку — она предложит цену и точное время' : '«Всем в городе» — заявку увидят все подходящие мастера, первый откликнувшийся возьмёт её. Можно выбрать конкретного.')}</label><select name="target_provider_id" ${required ? 'required' : ''}>${required ? '' : guest ? (dispatcherPhone() ? `<option value="">📢 Диспетчер ${esc(CONFIG.SITE_NAME)} — подберёт исполнителя</option>` : '') : '<option value="">📢 Отправить всем в городе</option>'}${provs.map((p) => `<option value="${p.id}" ${+to === p.id ? 'selected' : ''}>${esc(p.name)} · ★${Number(p.rating).toFixed(1)}${p.verified ? ' · ✔' : ''}</option>`).join('')}</select>`;
+  const photo = S.caps.v3 && !guest ? `<label>Фото (до 5) ${tip('Фото поломки, вмятины, ошибки на приборной панели или нужной детали — мастер точнее оценит работу и цену')}</label>
     <label class="drop"><input type="file" id="ph" accept="image/*" multiple hidden><span>📷 Добавить фото</span></label><div class="photos prev" id="phPrev"></div>` : '';
   const when = (title) => `<label>${title} ${tip('Выберите день и время — мастер подтвердит или предложит другое в чате')}</label>${opts('day', [['', '⚡ Как можно скорее'], ...dayOpts()], '')}<div class="slots" id="slots"></div>`;
   const desc = q.desc || (q.sub && !S.ref.subcategories.some((s) => s.name === q.sub) ? 'Интересует: ' + q.sub : '') || R.description || '';
@@ -321,6 +334,17 @@ async function newRequest(kind = 'sto', q) {
       ${car}<label>Срочность</label>${opts('urgency', pairs(PARTS_URGENCY), D.urgency || PARTS_URGENCY[1])}<label>Оригинал или аналог</label>${opts('original', pairs(PARTS_ORIG), D.original || PARTS_ORIG[2])}
       <label>Получение</label>${opts('delivery', pairs(PARTS_DELIVERY), D.delivery || PARTS_DELIVERY[0])}<label>Бюджет (необязательно), ₸</label><input name="budget" type="number" min="0" step="500" value="${esc(D.budget || '')}">${photo}
       <p class="small muted">🔒 Поставщики пришлют цены анонимно, вы выберете лучшее — тогда обе стороны увидят контакты. Заявка активна 3 часа.</p>`;
+  } else if (kind === 'cargo') {
+    body = `<label>Что везём?</label>${opts('what', pairs(CARGO_SERVICES), D.what || q.what || CARGO_SERVICES[0])}
+      <label>Машина ${tip('Каблук — коробки и мелкий груз, Газель — переезд 1–2 комнат, удлинённая — мебель и длинномер, грузовик — стройматериалы')}</label>
+      <div class="opts veh">${[['', '🤝 Подберите сами', '', ''], ...CARGO_VEHICLES.map((x) => [x.id, x.name, x.cap, x.img])].map(([v, t, c, img]) => `<label class="opt"><input type="radio" name="cargo_vehicle" value="${v}" ${(D.cargo_vehicle || '') === v ? 'checked' : ''}><span>${img ? `<img src="${img}" alt="" loading="lazy">` : ''}${esc(t)}${c ? `<small>${esc(c)}</small>` : ''}</span></label>`).join('')}</div>
+      <label>Откуда</label><div class="row"><input name="location" class="grow" required placeholder="Адрес погрузки" value="${esc(D.location || '')}"><button type="button" id="geo">📍 Я здесь</button></div>
+      <input type="hidden" name="lat"><input type="hidden" name="lon">
+      <label>Куда</label><input name="to" required placeholder="Адрес выгрузки или город" value="${esc(D.to || '')}">
+      <label>Когда</label>${opts('when', pairs(CARGO_WHEN), D.when || CARGO_WHEN[1])}
+      <label>Дополнительно</label>${opts('extras', pairs(CARGO_EXTRAS), [].concat(D.extras || []), 'checkbox')}
+      <label>Ваша цена (необязательно), ${REGION.symbol}</label><input name="budget" type="number" min="0" step="500" value="${esc(D.budget || '')}">
+      ${pick('Кому отправить')}<label>Что за груз</label><textarea name="description" rows="2" placeholder="Например: диван, холодильник и 10 коробок, 3 этаж без лифта">${esc(desc)}</textarea>${photo}`;
   } else {
     body = `<label>Что нужно?</label>${opts('service_type', Object.entries(URGENT), q.type || R.service_type || 'locksmith')}
       <label>Где вы?</label><div class="row"><input name="location" class="grow" required placeholder="Адрес или ориентир" value="${esc(D.location || '')}"><button type="button" id="geo">📍 Моё место</button></div>
@@ -328,7 +352,8 @@ async function newRequest(kind = 'sto', q) {
   }
   return `<h1>${KINDS[kind].icon} ${KINDS[kind].title}</h1>${tabs}${warn}${prev ? '<div class="notice">🔁 Заполнили по прошлой заявке — проверьте и отправьте.</div>' : ''}
     <form id="reqForm" class="card" data-kind="${kind}"><div class="small muted">Город: <b>${esc(S.city)}</b> (меняется вверху)</div>${body}
-    <button class="p block" style="margin-top:16px">Отправить заявку</button><p class="small muted center" style="margin:8px 0 0">Бесплатно. Телефон увидит только тот, кто возьмёт заявку.</p></form>`;
+    ${guest ? `<div class="row"><div class="grow"><label>Ваше имя</label><input name="g_name" autocomplete="name" maxlength="80"></div><div class="grow"><label>Телефон (необязательно)</label><input name="g_phone" type="tel" autocomplete="tel" placeholder="${esc(REGION.phone.placeholder)}"></div></div>` : ''}
+    <button class="p block" style="margin-top:16px">${guest ? `${PRIMARY.icon} Отправить в ${PRIMARY.label}` : 'Отправить заявку'}</button><p class="small muted center" style="margin:8px 0 0">${guest ? `Откроется ${PRIMARY.label} с готовым сообщением — останется нажать «Отправить».` : `Бесплатно. Телефон увидит только тот, кто возьмёт заявку. Заявку можно продублировать в ${PRIMARY.label}.`}</p></form>`;
 }
 newRequest.after = (v, kind) => {
   const f = $('#reqForm', v); if (!f) return;
@@ -358,27 +383,59 @@ newRequest.after = (v, kind) => {
   };
   if (slots) { if (f.target_provider_id) f.target_provider_id.addEventListener('change', drawSlots); $$('[name=day]', f).forEach((r) => r.addEventListener('change', drawSlots)); drawSlots(); }
   f.onsubmit = async (e) => { e.preventDefault(); const d = formData(f); const btn = $('button.p', f);
-    const details = {}; for (const k of ['vehicle', 'wheels', 'location', 'lat', 'lon', 'car_type', 'urgency', 'original', 'delivery', 'budget']) if (d[k]) details[k] = d[k];
+    const details = {}; for (const k of ['vehicle', 'wheels', 'location', 'lat', 'lon', 'car_type', 'urgency', 'original', 'delivery', 'budget', 'what', 'to', 'when', 'cargo_vehicle', 'extras']) if (d[k] && (!Array.isArray(d[k]) || d[k].length)) details[k] = d[k];
     const p = { type: kind, city: S.city, category_id: d.category_id || null, subcategory: d.subcategory || null, service_type: d.service_type || null,
       supplier_type: d.supplier_type || null, target_provider_id: d.target_provider_id || null, description: d.description || '', vehicle_info: d.vehicle_info || '', details, desired_time: d.desired_time || null };
     if (kind === 'wash' && !p.desired_time) return toast('Выберите время', true);
+    if (!S.me || (kind === 'cargo' && !S.caps.v4)) return sendGuest(v, btn, kind, p, d);
     btn.disabled = true;
     try {
       if (files.length) { details.photos = []; for (const [i, b] of files.entries()) { btn.textContent = `Загружаем фото ${i + 1} из ${files.length}…`; details.photos.push(await api.uploadRequestPhoto(b)); } }
       btn.textContent = 'Отправляем…';
-      const id = await api.createRequest(p); toast('Заявка отправлена! Исполнители уже видят её.'); location.hash = '#/request/' + id;
+      const id = await api.createRequest(p); toast('Заявка отправлена! Исполнители уже видят её.'); location.hash = '#/request/' + id + '?sent=1';
     } catch (er) { toast(er.message, true); btn.disabled = false; btn.textContent = 'Отправить заявку'; }
   };
 };
 
+// заявка без входа: сохраняем у исполнителя (WhatsApp-заявки в кабинете) и открываем WhatsApp с готовым текстом
+async function sendGuest(v, btn, kind, p, d) {
+  if (d.g_phone && !validPhone(d.g_phone)) return toast(`Телефон в формате ${REGION.phone.placeholder}`, true);
+  btn.disabled = true;
+  try {
+    const prov = p.target_provider_id ? await api.getProvider(p.target_provider_id) : null;
+    const to = prov ? ownerContact(prov) : dispatcherPhone();
+    if (!to) throw new Error(`У исполнителя не указан ${PRIMARY.label} — выберите другого или позвоните ему`);
+    const text = requestText({ title: reqTitleText(p), provider: prov, fields: reqPlain(p), customer: { name: d.g_name || S.me?.full_name, phone: d.g_phone || S.me?.phone } });
+    let leadId = null;
+    if (S.caps.v4) leadId = await api.createLead({ provider_id: prov?.id || null, kind, source: 'app', customer_name: d.g_name || S.me?.full_name || '', customer_phone: d.g_phone || S.me?.phone || '', message: text, payload: p });
+    v.innerHTML = sentCard({ to, text, prov, leadId });
+    $('#copyTxt', v).onclick = () => { navigator.clipboard?.writeText(text); toast('Текст скопирован'); };
+    try { window.open(sendLink(to, text), '_blank', 'noopener'); } catch { /* блокировщик окон — есть кнопка */ }
+  } catch (e) { toast(e.message, true); btn.disabled = false; }
+}
+const sentCard = ({ to, text, prov, leadId }) => `<div class="card center sent"><div class="big-i">✅</div><h2>Заявка готова</h2>
+  <p>Нажмите кнопку — откроется ${PRIMARY.label} ${prov ? `<b>${esc(prov.name)}</b>` : 'диспетчера'} с готовым сообщением, останется нажать «Отправить».</p>
+  ${wa(to, text, `${PRIMARY.icon} Открыть ${PRIMARY.label}`, 'btn wa big')}
+  ${leadId ? `<p class="small muted">Заявка №${leadId} сохранена — исполнитель видит её в кабинете.</p>` : ''}
+  <details class="small"><summary>Текст сообщения</summary><pre class="msgtext">${esc(text)}</pre><button class="sm" id="copyTxt">Скопировать текст</button></details>
+  <div class="row" style="justify-content:center;margin-top:12px">${prov ? `<a class="btn" href="card.html?id=${prov.id}">🪪 Визитка исполнителя</a>` : ''}<a class="btn" href="#/">На главную</a><a class="btn" href="#/login">Войти и отслеживать</a></div></div>`;
+const reqTitleText = (r) => r.type === 'cargo' ? `Грузоперевозка: ${r.details?.what || ''}` : r.type === 'sto' ? `СТО: ${catName(r.category_id) || 'ремонт'}` : r.type === 'urgent' ? (URGENT[r.service_type] || 'Выездная помощь') : r.type === 'wash' ? `Мойка: ${r.service_type || ''}` : KINDS[r.type].title;
+const reqPlain = (r) => { const d = r.details || {};
+  return [['Город', r.city], ['Уточнение', r.subcategory], ['Авто', r.vehicle_info], ['Машина', d.cargo_vehicle && (cargoVeh(d.cargo_vehicle)?.name + ' ' + (cargoVeh(d.cargo_vehicle)?.cap || ''))],
+    [r.type === 'cargo' ? 'Откуда' : 'Место', d.location], ['Куда', d.to], ['Точка на карте', d.lat ? mapPoint(d.lat, d.lon) : null], ['Когда', d.when],
+    ['Дополнительно', d.extras && [].concat(d.extras)], ['Транспорт', d.vehicle], ['Колёса', d.wheels], ['Кузов', d.car_type], ['Где искать', r.supplier_type && SUPPLIER[r.supplier_type]],
+    ['Срочность', d.urgency], ['Оригинал/аналог', d.original], ['Получение', d.delivery], [r.type === 'cargo' ? 'Цена клиента' : 'Бюджет', d.budget && money(d.budget)],
+    ['Желаемое время', r.desired_time && dt(r.desired_time)], ['Описание', r.description]]; };
+
 // ------------------------------------------------------------ мои заявки
-const reqTitle = (r) => `${KINDS[r.type].icon} ${r.type === 'sto' ? esc(catName(r.category_id) || 'СТО') : r.type === 'urgent' ? esc(URGENT[r.service_type] || 'Выездная помощь') : r.type === 'wash' ? esc(r.service_type || 'Мойка') : KINDS[r.type].title}`;
+const reqTitle = (r) => r.type === 'cargo' ? `🚚 ${esc(r.details?.what || 'Грузоперевозка')}` : `${KINDS[r.type].icon} ${r.type === 'sto' ? esc(catName(r.category_id) || 'СТО') : r.type === 'urgent' ? esc(URGENT[r.service_type] || 'Выездная помощь') : r.type === 'wash' ? esc(r.service_type || 'Мойка') : KINDS[r.type].title}`;
 const reqInfo = (r) => {
   const d = r.details || {};
   const rows = [['Номер', `<span class="mono">#${r.id}</span>`], ['Создана', dt(r.created_at)], ['Город', esc(r.city)],
     r.subcategory && ['Уточнение', esc(r.subcategory)], r.vehicle_info && ['Авто', esc(r.vehicle_info)], r.description && ['Описание', esc(r.description)],
     d.vehicle && ['Транспорт', esc(d.vehicle)], d.wheels && ['Колёса', esc(d.wheels)],
-    d.location && ['Место', esc(d.location) + (d.lat ? ` · <a target="_blank" rel="noopener" href="https://2gis.kz/geo/${esc(d.lon)},${esc(d.lat)}">📍 на карте</a>` : '')],
+    d.location && [r.type === 'cargo' ? 'Откуда' : 'Место', esc(d.location) + (d.lat ? ` · <a target="_blank" rel="noopener" href="${esc(mapPoint(d.lat, d.lon))}">📍 на карте</a>` : '')],
+    d.what && ['Груз', esc(d.what)], d.to && ['Куда', esc(d.to)], d.when && ['Когда', esc(d.when)], d.cargo_vehicle && ['Машина', esc(cargoVeh(d.cargo_vehicle)?.name || d.cargo_vehicle)], d.extras && ['Дополнительно', esc([].concat(d.extras).join(', '))],
     d.car_type && ['Кузов', esc(d.car_type)], r.desired_time && ['Желаемое время', dt(r.desired_time)], r.assigned_time && ['Назначено', dt(r.assigned_time)],
     r.supplier_type && ['Где искать', SUPPLIER[r.supplier_type]], d.urgency && ['Срочность', esc(d.urgency)], d.original && ['Оригинал/аналог', esc(d.original)],
     d.delivery && ['Получение', esc(d.delivery)], d.budget && ['Бюджет', money(d.budget)], r.price && ['Цена мойки', money(r.price)], r.final_amount && ['Сумма', money(r.final_amount)],
@@ -390,6 +447,7 @@ const FLOW = {
   sto: [['new', 'Заявка отправлена'], ['active', 'Мастер взял заявку'], ['completed', 'Работа выполнена']],
   tow: [['new', 'Заявка отправлена'], ['active', 'Эвакуатор едет'], ['completed', 'Доставлено']],
   urgent: [['new', 'Заявка отправлена'], ['active', 'Мастер выехал'], ['completed', 'Готово']],
+  cargo: [['new', 'Заявка отправлена'], ['active', 'Перевозчик взял заявку'], ['completed', 'Доставлено']],
   parts: [['new', 'Заявка отправлена'], ['offers', 'Есть предложения'], ['active', 'Поставщик выбран'], ['delivered', 'Передано'], ['completed', 'Получено']],
   wash: [['new', 'Заявка отправлена'], ['price_offered', 'Цена и время'], ['client_approved', 'Запись подтверждена'], ['in_progress', 'Моют'], ['waiting_client', 'Готово'], ['completed', 'Забрали']],
 };
@@ -410,7 +468,7 @@ async function requests(_, q) {
     <div class="small muted">#${r.id} · ${dt(r.created_at)}${r.vehicle_info ? ' · ' + esc(r.vehicle_info) : ''}${r.details?.photos?.length ? ' · 📷 ' + r.details.photos.length : ''}</div><div class="small">${esc((r.description || r.subcategory || '').slice(0, 120))}</div></a>`).join('')
     : empty('📋', tab === 'a' ? 'Активных заявок нет.' : 'История пуста.', '<a class="btn p" href="#/new/sto">Создать заявку</a>')}`;
 }
-async function request(id) {
+async function request(id, q = {}) {
   if (!S.me) return needLogin();
   const r = (await api.myRequests()).find((x) => x.id === +id); if (!r) return empty('🤷', 'Заявка не найдена', '<a class="btn" href="#/requests">Мои заявки</a>');
   const st = effStatus(r); autoRefresh();
@@ -422,10 +480,18 @@ async function request(id) {
       <button class="p" data-offer="${o.id}">Выбрать</button></div>`).join('') : '<p class="muted"><span class="pulse"></span> Ждём предложения… Страница обновляется сама.</p>'}</div>`;
   } else if (['new'].includes(st)) {
     block = `<div class="card"><p><span class="pulse"></span> Заявку видят исполнители. Как только кто-то примет — здесь появятся его контакты и чат.</p></div>`;
-    if (['tow', 'sto', 'urgent'].includes(r.type) && Date.now() - new Date(r.created_at) > 5 * 60000) {
+    if (['tow', 'sto', 'urgent', 'cargo'].includes(r.type) && Date.now() - new Date(r.created_at) > 5 * 60000) {
       const all = await api.listProviders({ kind: r.type, city: r.city });
       block += `<div class="card"><h3>Пока никто не ответил — позвоните напрямую</h3>${all.map((p) => `<div class="row between small" style="padding:4px 0"><a href="#/provider/${p.id}">${esc(p.name)}</a>${tel(p.phone)}</div>`).join('') || '<p class="muted">Нет исполнителей в городе</p>'}</div>`;
     }
+  }
+  let waBlock = '';
+  if (!['completed', 'cancelled', 'expired'].includes(st)) {
+    const tid = r.accepted_by || r.target_provider_id;
+    const list = tid ? [prov || await api.getProvider(tid).catch(() => null)].filter(Boolean) : (await api.listProviders({ kind: r.type, city: r.city })).filter((p) => ownerContact(p)).slice(0, 8);
+    const txt = (p) => requestText({ title: reqTitleText(r), provider: p, fields: reqPlain(r), customer: { name: S.me.full_name, phone: S.me.phone }, id: r.id });
+    const btns2 = list.filter((p) => ownerContact(p)).map((p) => wa(ownerContact(p), txt(p), `${PRIMARY.icon} ${esc(p.name)}`, 'btn wa')).join('') + (!tid && dispatcherPhone() ? wa(dispatcherPhone(), txt(null), '📢 Диспетчер', 'btn') : '');
+    if (btns2) waBlock = `<div class="card wa-card"><h3>📲 ${q.sent ? `Заявка сохранена — отправьте в ${PRIMARY.label}` : `Написать в ${PRIMARY.label}`}</h3><p class="small muted">${tid ? 'Исполнитель получит готовое сообщение с номером заявки.' : 'Заявку уже видят подходящие исполнители города. Чтобы ответили быстрее — отправьте её напрямую:'}</p><div class="row">${btns2}</div></div>`;
   }
   const chatOk = S.caps.v3 && r.accepted_by && !['cancelled'].includes(st) && !(r.type === 'parts' && ['new', 'offers'].includes(st));
   if (prov && !['new', 'offers'].includes(st)) block += `<h2>Исполнитель</h2>${provCard(prov, `${tel(prov.phone)}${wa(prov.whatsapp, `Здравствуйте! По заявке #${r.id} на АвтоМастер24.`)}${chatOk ? `<a class="btn p sm" href="#/chat/${r.id}">💬 Написать в чат</a>` : ''}`)}`;
@@ -433,7 +499,7 @@ async function request(id) {
   if (r.type === 'wash' && st === 'price_offered') btns.push(`<div class="notice">Мойка предлагает: <b>${money(r.price)}</b>, время <b>${dt(r.assigned_time)}</b></div><button class="ok" data-a="washApprove">✅ Подтвердить запись</button>`);
   if (r.type === 'wash' && st === 'waiting_client') btns.push('<div class="notice">🚗 Машина готова — можно забирать!</div><button class="ok" data-a="clientConfirm">Забрал машину</button>');
   if (r.type === 'parts' && st === 'delivered') btns.push('<button class="ok" data-a="clientConfirm">📦 Получил запчасть</button>');
-  if (['tow', 'sto', 'urgent'].includes(r.type) && st === 'active') btns.push('<button class="ok" data-a="clientConfirm">✅ Работа выполнена</button>');
+  if (['tow', 'sto', 'urgent', 'cargo'].includes(r.type) && st === 'active') btns.push('<button class="ok" data-a="clientConfirm">✅ Работа выполнена</button>');
   if (!['completed', 'cancelled', 'expired'].includes(st)) btns.push('<button class="danger" data-a="cancelRequest">Отменить заявку</button>');
   else btns.push(`<a class="btn" href="#/new/${r.type}?repeat=${r.id}">🔁 Повторить заявку</a>`);
   let review = '';
@@ -443,7 +509,7 @@ async function request(id) {
       : `<form class="card" id="revForm"><h3>Оцените исполнителя</h3><div class="rate" role="radiogroup" aria-label="Оценка">${[5, 4, 3, 2, 1].map((n) => `<input type="radio" name="rating" id="rt${n}" value="${n}" ${n === 5 ? 'checked' : ''}><label for="rt${n}" title="${n}">★</label>`).join('')}</div>
         <label>Отзыв (необязательно) ${tip('Отзыв с текстом публикуется после проверки модератором. Оценка без текста — сразу.')}</label><textarea name="comment" rows="2" placeholder="Что понравилось, что нет"></textarea><button class="p" style="margin-top:10px">Отправить оценку</button></form>`;
   }
-  return `<a href="#/requests" class="small">← Мои заявки</a><div class="card"><div class="row between"><h2>${reqTitle(r)}</h2>${badge(st)}</div>${timeline(r)}${reqInfo(r)}</div>${block}
+  return `<a href="#/requests" class="small">← Мои заявки</a><div class="card"><div class="row between"><h2>${reqTitle(r)}</h2>${badge(st)}</div>${timeline(r)}${reqInfo(r)}</div>${waBlock}${block}
     ${btns.length ? `<div class="card row">${btns.join('')}</div>` : ''}${review}`;
 }
 request.after = (v, id) => {
@@ -549,7 +615,7 @@ async function profile() {
     <button class="p" style="margin-top:12px">Сохранить</button></form>
     ${regs.length ? `<div class="card"><h3>Мои заявки на подключение бизнеса</h3>${regs.map((g) => `<div class="row between small"><span>${KINDS[g.kind].icon} ${esc(g.name)}</span>${badge(g.status)}</div>${g.reason ? `<div class="small muted">${esc(g.reason)}</div>` : ''}`).join('')}</div>` : ''}
     <div class="card row">${S.myProv.length ? '<a class="btn" href="#/cabinet">🛠 Кабинет исполнителя</a>' : '<a class="btn" href="#/business">💼 Подключить бизнес</a>'}${isAdmin() ? '<a class="btn" href="#/admin">🛡 Админ</a>' : ''}<a class="btn" href="#/garage">🚗 Гараж</a>
-    <button class="btn" data-install hidden>📲 Установить приложение</button><button class="danger" id="delData">Удалить мои данные</button><button class="ghost" id="logout">Выйти</button></div>`;
+    ${IS_DEMO ? '' : '<a class="btn" href="?demo=1#/">🧪 Посмотреть демо</a>'}<button class="btn" data-install hidden>📲 Установить приложение</button><button class="danger" id="delData">Удалить мои данные</button><button class="ghost" id="logout">Выйти</button></div>`;
 }
 profile.after = (v) => {
   const f = $('#prf', v); if (!f) return login.after(v);
@@ -560,31 +626,54 @@ profile.after = (v) => {
 };
 
 // ------------------------------------------------------------ подключение бизнеса
-async function business() {
-  const intro = `<h1>💼 Для бизнеса</h1><div class="card"><p>Подключите СТО, мойку, эвакуатор, магазин запчастей или выездного мастера. После проверки администратором у вас появится <b>Кабинет исполнителя</b>: входящие заявки города, принятие, прайс, рейтинг.</p></div>`;
-  if (!S.me) return intro + needLogin('подключения бизнеса');
-  return `${intro}<form class="card" id="bf"><label>Тип</label>${opts('kind', Object.entries(KINDS).map(([k, x]) => [k, x.icon + ' ' + x.short]), 'sto')}
-    <label>Название</label><input name="name" required maxlength="120"><label>Телефон для клиентов</label><input name="phone" type="tel" required value="${esc(S.me.phone || '')}">
+async function business(_, q = {}) {
+  const v4 = S.caps.v4;
+  const intro = v4 ? `<h1>🪪 Визитка для бизнеса</h1><div class="card"><p>СТО, эвакуатор, мойка, магазин запчастей, выездной мастер или <b>грузоперевозчик</b> — создайте бесплатную визитку за минуту:</p>
+    <ul class="small"><li>своя страница и <b>QR-код</b> для визиток, наклеек и машины;</li><li>кнопки «Позвонить» и <b>${PRIMARY.label}</b>, услуги и цены, адрес на карте, фото;</li><li>все заявки и заказы приходят вам в ${PRIMARY.label} и видны в <b>кабинете</b> со статусами;</li><li>магазину — <b>витрина с товарами</b> и заказом в ${PRIMARY.label} (или ссылка на ваш сайт «Учёт + Магазин»);</li><li>вы в каталоге города и получаете заявки «всем в городе».</li></ul>
+    <p class="small muted">Визитка привязана к вашему входу через Telegram — менять её можете только вы. Отметку «✔ Проверен» ставит администратор. <a href="#/tariffs">Тарифы</a></p></div>`
+    : `<h1>💼 Для бизнеса</h1><div class="card"><p>Подключите СТО, мойку, эвакуатор, магазин запчастей или выездного мастера. После проверки администратором у вас появится <b>Кабинет исполнителя</b>: входящие заявки города, принятие, прайс, рейтинг.</p></div>`;
+  if (!S.me) return intro + needLogin(v4 ? 'создания визитки' : 'подключения бизнеса');
+  const kinds = Object.entries(KINDS).filter(([k]) => v4 || k !== 'cargo');
+  return `${intro}<form class="card" id="bf"><label>Кто вы</label>${opts('kind', kinds.map(([k, x]) => [k, x.icon + ' ' + x.short]), KINDS[q.kind] && (q.kind !== 'cargo' || v4) ? q.kind : 'sto')}
+    <label>Название ${tip('Как вас знают клиенты: «СТО Мотор», «Газель Ерлан», «Эвакуатор 24»')}</label><input name="name" required maxlength="120"><div class="row"><div class="grow"><label>Телефон для клиентов</label><input name="phone" type="tel" required value="${esc(S.me.phone || '')}" placeholder="${esc(REGION.phone.placeholder)}"></div>
+    ${v4 ? `<div class="grow"><label>${PRIMARY.label} для заявок ${tip('Сюда приходят заявки и заказы. Если пусто — используется телефон')}</label><input name="whatsapp" type="tel" placeholder="${esc(REGION.phone.placeholder)}"></div>` : ''}</div>
     <label>Город</label><select name="city">${S.ref.cities.filter((c) => c.active).map((c) => `<option ${c.name === S.city ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>
     <label>Адрес</label><input name="address"><label>Часы работы</label><input name="working_hours" placeholder="09:00-19:00">
     <div data-k="sto"><label>Направления СТО</label>${opts('specs', S.ref.categories.map((c) => [String(c.id), c.name]), [], 'checkbox')}</div>
     <div data-k="parts" hidden><label>Тип</label>${opts('supplier_type', Object.entries(SUPPLIER), 'shop')}<label class="check"><input type="checkbox" name="delivery"> <span>Есть доставка</span></label></div>
     <div data-k="urgent" hidden><label>Специализация</label>${opts('service_type', Object.entries(URGENT), 'locksmith')}</div>
     <div data-k="wash" hidden><div class="row"><div class="grow"><label>Боксов</label><input name="boxes" type="number" min="1" value="1"></div><div class="grow"><label>Минут на машину</label><input name="slot_minutes" type="number" min="15" step="15" value="60"></div></div></div>
-    <button class="p" style="margin-top:14px">Отправить на проверку</button></form>`;
+    <div data-k="cargo" hidden><label>Машина</label>${opts('cargo_vehicle', CARGO_VEHICLES.map((x) => [x.id, `${x.name} · ${x.cap}`]), 'gazel')}<label>Есть</label>${opts('extras', pairs(CARGO_EXTRAS), [], 'checkbox')}
+      <div class="row"><div class="grow"><label>Цена от, ${REGION.symbol}</label><input name="cargo_price" type="number" min="0" step="500"></div><div class="grow"><label>За</label><select name="cargo_unit"><option>час</option><option>рейс</option></select></div></div><label>Районы</label><input name="zones" placeholder="Весь город и пригороды"></div>
+    ${v4 ? `<label>О вас (необязательно)</label><textarea name="about" rows="2" maxlength="2000" placeholder="Коротко: что делаете лучше всего, гарантия, опыт"></textarea>` : ''}
+    <button class="p" style="margin-top:14px">${v4 ? '🪪 Создать визитку' : 'Отправить на проверку'}</button></form>`;
 }
 business.after = (v) => {
   const f = $('#bf', v); if (!f) return;
   const sync = () => { const k = f.querySelector('[name=kind]:checked').value; $$('[data-k]', f).forEach((d) => { d.hidden = d.dataset.k !== k; }); };
-  $$('[name=kind]', f).forEach((r) => r.onchange = sync);
+  $$('[name=kind]', f).forEach((r) => r.onchange = sync); sync();
   f.onsubmit = (e) => { e.preventDefault(); const d = formData(f);
     const details = { working_hours: d.working_hours || '' };
     if (d.kind === 'sto') details.specs = [].concat(d.specs || []).map(Number);
     if (d.kind === 'parts') { details.supplier_type = d.supplier_type; details.delivery = !!d.delivery; }
     if (d.kind === 'urgent') details.service_type = d.service_type;
     if (d.kind === 'wash') { details.boxes = +d.boxes || 1; details.slot_minutes = +d.slot_minutes || 60; }
+    if (!validPhone(d.phone) || (d.whatsapp && !validPhone(d.whatsapp))) return toast(`Телефон в формате ${REGION.phone.placeholder}`, true);
+    if (S.caps.v4) {
+      const card = d.kind === 'cargo' ? { cargo: { vehicle: d.cargo_vehicle, extras: [].concat(d.extras || []), price: d.cargo_price ? +d.cargo_price : null, unit: d.cargo_unit || 'час' }, zones: d.zones || '' } : {};
+      return act($('button.p', f), async () => { const id = await api.createCard({ kind: d.kind, name: d.name, phone: d.phone, whatsapp: d.whatsapp || d.phone, city: d.city, address: d.address, about: d.about || '', ...details, card });
+        await refreshMe(); location.hash = `#/cabinet?p=${id}&t=card`; }, 'Визитка создана! Отправьте ссылку или QR клиентам.');
+    }
     act($('button.p', f), async () => { await api.registerBusiness({ kind: d.kind, name: d.name, phone: d.phone, city: d.city, address: d.address, details }); location.hash = '#/profile'; }, 'Заявка отправлена. Администратор проверит её.'); };
 };
+
+// ------------------------------------------------------------ WhatsApp-заявки (визитка, магазин, сайт)
+const leadBadge = (st) => { const [t, c] = LEAD_STATUS[st] || [st, 'grey']; return `<span class="badge ${c}">${esc(t)}</span>`; };
+const leadCard = (x) => `<div class="card lead"><div class="row between"><b>${x.kind === 'order' ? '🛍 Заказ' : x.kind === 'cargo' ? '🚚 Перевозка' : `${KINDS[x.kind]?.icon || '📝'} Заявка`} №${x.id}</b>${leadBadge(x.status)}</div>
+  <div class="small muted">${dt(x.created_at)} · ${{ card: 'с визитки', shop: 'из магазина', app: 'с сайта' }[x.source] || esc(x.source)}${x.total ? ' · <b>' + money(x.total) + '</b>' : ''}</div>
+  <pre class="msgtext">${esc(x.message)}</pre>
+  ${x.customer_name || x.customer_phone ? `<div class="row small"><b>👤 ${esc(x.customer_name || 'Клиент')}</b>${x.customer_phone ? `${tel(fmtPhone(x.customer_phone))}${wa(x.customer_phone, `Здравствуйте${x.customer_name ? ', ' + x.customer_name : ''}! По вашей заявке №${x.id}:`)}` : '<span class="muted">телефон — в переписке ' + PRIMARY.label + '</span>'}</div>` : ''}
+  <div class="row" style="margin-top:8px">${{ new: [['in_work', '✅ Взять в работу', 'ok'], ['cancelled', 'Отменить', 'ghost']], in_work: [['done', '🏁 Выполнено', 'ok'], ['cancelled', 'Отменить', 'ghost']] }[x.status]?.map(([s2, t, c]) => `<button class="sm ${c}" data-lead="${x.id}:${s2}">${t}</button>`).join('') || `<button class="sm ghost" data-lead="${x.id}:in_work">↩️ Вернуть в работу</button>`}</div></div>`;
 
 // ------------------------------------------------------------ кабинет исполнителя
 async function cabinet(_, q) {
@@ -595,7 +684,7 @@ async function cabinet(_, q) {
   const tab = q.t || 'feed';
   const head = `<h1>🛠 Кабинет</h1><div class="tabs">${S.myProv.map((x) => `<a href="#/cabinet?p=${x.id}&t=${tab}" class="${x.id === p.id ? 'on' : ''}">${KINDS[x.kind].icon} ${esc(x.name)}</a>`).join('')}</div>
     ${p.is_active ? '' : '<div class="notice warn">Организация отключена администратором — новые заявки не приходят.</div>'}
-    <div class="tabs">${[['feed', '📥 Заявки'], ...(p.kind === 'sto' ? [['prices', '💰 Прайс']] : []), ['reviews', '⭐ Отзывы'], ['org', '🏢 Профиль'], ['link', '🔗 Ссылка']].map(([t, n]) => `<a href="#/cabinet?p=${p.id}&t=${t}" class="${t === tab ? 'on' : ''}">${n}</a>`).join('')}</div>`;
+    <div class="tabs">${[['feed', '📥 Заявки'], ...(S.caps.v4 ? [['leads', `📲 ${PRIMARY.label}`], ['card', '🪪 Визитка']] : []), ...(S.caps.v4 && p.kind === 'parts' ? [['shop', '🛍 Магазин']] : []), ...(p.kind === 'sto' ? [['prices', '💰 Прайс']] : []), ['reviews', '⭐ Отзывы'], ['org', '🏢 Профиль'], ...(S.caps.v4 ? [] : [['link', '🔗 Ссылка']])].map(([t, n]) => `<a href="#/cabinet?p=${p.id}&t=${t}" class="${t === tab ? 'on' : ''}">${n}</a>`).join('')}</div>`;
   if (tab === 'prices') {
     const pr = await api.providerPrices(p.id);
     return `${head}<div class="card"><h3>Мой прайс</h3>${pr.length ? `<table><tr><th>Услуга</th><th>Авто</th><th>Цена</th><th></th></tr>${pr.map((x) => `<tr><td>${esc(x.service)}</td><td>${esc([x.brand, x.model].filter(Boolean).join(' ') || 'Все')}${x.year_from ? ` ${x.year_from}–${x.year_to || ''}` : ''}</td><td>${money(x.price)}</td><td><button class="danger" data-dp="${x.id}">✕</button></td></tr>`).join('')}</table>` : '<p class="muted">Прайс пуст. Клиенты находят вас в «Узнать цены» по этим строкам.</p>'}</div>
@@ -624,6 +713,50 @@ async function cabinet(_, q) {
         <div class="photos">${(p.photos || []).map((u, i) => `<span class="ph"><img src="${esc(u)}" alt="Фото ${i + 1}"><button type="button" class="rm" data-delph="${i}" aria-label="Удалить фото">✕</button></span>`).join('')}</div>
         <label class="drop"><input type="file" id="orgPh" accept="image/*" multiple hidden><span>📷 Добавить фото</span></label></div>` : ''}`;
   }
+  if (tab === 'leads' && S.caps.v4) {
+    const L = await api.myLeads(p.id); autoRefresh();
+    const f = q.f || 'open';
+    const flt = (k) => L.filter((x) => k === 'all' || (k === 'open' ? ['new', 'in_work'].includes(x.status) : x.status === k));
+    return `${head}<p class="small muted">Здесь заявки и заказы, которые клиенты отправили вам в ${PRIMARY.label} с визитки, магазина и сайта. Отмечайте статус — так ничего не потеряется. Заявки «всем в городе» — во вкладке «Заявки».</p>
+      <div class="fchips">${[['open', 'Открытые'], ['new', 'Новые'], ['in_work', 'В работе'], ['done', 'Выполнены'], ['cancelled', 'Отменены'], ['all', 'Все']].map(([k, t]) => `<a class="fchip ${f === k ? 'on' : ''}" href="#/cabinet?p=${p.id}&t=leads&f=${k}">${t} (${flt(k).length})</a>`).join('')}</div>
+      ${flt(f).map((x) => leadCard(x)).join('') || empty('📲', 'Пока пусто. Поделитесь визиткой — заявки появятся здесь.', `<a class="btn p" href="#/cabinet?p=${p.id}&t=card">🪪 Моя визитка и QR</a>`)}`;
+  }
+  if (tab === 'card' && S.caps.v4) {
+    const url = cardUrl(p.id), c = p.card || {}, cg = c.cargo || {};
+    const qr = await qrSvg(url, { size: 180, label: 'QR-код визитки' }).catch(() => '');
+    return `${head}<div class="card cardtab"><div class="qrbox">${qr}</div><div class="grow"><h3>🪪 Ваша визитка</h3><p class="small">Отправляйте ссылку клиентам, печатайте QR на визитках и наклейке на машину. По ссылке видно контакты, услуги и цены, а заявка уходит вам в ${PRIMARY.label} в одно касание.</p>
+      <input readonly value="${esc(url)}" id="myLink" aria-label="Ссылка на визитку"><div class="row" style="margin-top:8px"><a class="btn p" href="card.html?id=${p.id}" target="_blank" rel="noopener">Открыть визитку</a><button id="copyLink">Скопировать</button><button id="qrDl">⬇️ QR для печати</button>
+      <a class="btn wa" href="https://wa.me/?text=${encodeURIComponent(`${p.name} — моя визитка: ${url}`)}" target="_blank" rel="noopener">💬 Отправить</a><a class="btn" href="https://t.me/share/url?url=${encodeURIComponent(url)}" target="_blank" rel="noopener">✈️ Telegram</a></div></div></div>
+      <form class="card" id="cardForm"><h3>Что показать на визитке</h3>
+      <label>Слоган</label><input name="slogan" maxlength="80" value="${esc(c.slogan || '')}" placeholder="Например: Честный ремонт с гарантией">
+      <label>Услуги и цены ${tip('Каждая строка — «Услуга — цена». Цена может быть числом или текстом: «от 5000», «договорная»')}</label><textarea name="services" rows="5" placeholder="Замена масла — 4000&#10;Диагностика — 5000">${esc((c.services || []).map((x) => `${x.name}${x.price != null && x.price !== '' ? ' — ' + x.price : ''}`).join('\n'))}</textarea>
+      ${p.kind === 'cargo' ? `<label>Машина</label>${opts('cargo_vehicle', CARGO_VEHICLES.map((x) => [x.id, `${x.name} · ${x.cap}`]), cg.vehicle || 'gazel')}<label>Есть</label>${opts('extras', pairs(CARGO_EXTRAS), cg.extras || [], 'checkbox')}
+        <div class="row"><div class="grow"><label>Цена от, ${REGION.symbol}</label><input name="cargo_price" type="number" min="0" step="500" value="${esc(cg.price || '')}"></div><div class="grow"><label>За</label><select name="cargo_unit">${['час', 'рейс'].map((u) => `<option ${cg.unit === u ? 'selected' : ''}>${u}</option>`).join('')}</select></div></div>
+        <label>Районы</label><input name="zones" value="${esc(c.zones || '')}" placeholder="Весь город и пригороды">` : ''}
+      <label>Оплата</label>${opts('payments', REGION.payments, c.payments || [], 'checkbox')}
+      <div class="row"><div class="grow"><label>Telegram (username)</label><input name="tg" value="${esc(c.tg || '')}" placeholder="username"></div><div class="grow"><label>Instagram</label><input name="ig" value="${esc(c.ig || '')}" placeholder="username"></div></div>
+      <p class="small muted">Название, телефон, ${PRIMARY.label}, адрес, часы работы, фото и «О нас» — во вкладке <a href="#/cabinet?p=${p.id}&t=org">«Профиль»</a>.</p><button class="p">Сохранить визитку</button></form>`;
+  }
+  if (tab === 'shop' && S.caps.v4) {
+    const items = await api.myProducts(p.id), c = p.card || {};
+    const ed = q.e ? items.find((x) => x.id === +q.e) : null;
+    const cats = [...new Set(items.map((x) => x.category).filter(Boolean))];
+    return `${head}<form class="card" id="shopSet"><h3>🛍 Интернет-магазин</h3><p class="small">На визитке появится кнопка <b>«Магазин»</b>: покупатель смотрит товары, кладёт в корзину и отправляет заказ вам в ${PRIMARY.label}. Заказ сохраняется во вкладке «${PRIMARY.label}». Витрина привязана к этой организации — товары меняете только вы.</p>
+      <label class="check"><input type="checkbox" name="shop_enabled" ${p.shop_enabled ? 'checked' : ''}> <span>Показывать витрину с товарами</span></label>
+      <div class="row"><div class="grow"><label>Название витрины</label><input name="shop_title" value="${esc(c.shop_title || p.name)}"></div><div style="width:120px"><label>Цвет</label><input name="shop_accent" type="color" value="${esc(c.shop_accent || '#E8B84B')}"></div></div>
+      <label>Или ссылка на ваш сайт «Учёт + Магазин» ${tip('Если у вас уже есть сайт на платформе «Учёт + Магазин» (как biznes-shablon.vercel.app) — вставьте адрес, и кнопка «Магазин» поведёт туда. Пусто — витрина здесь.')}</label><input name="store_url" type="url" placeholder="https://ваш-магазин.example.kz" value="${esc(p.store_url || '')}">
+      <div class="row" style="margin-top:10px"><button class="p">Сохранить</button><a class="btn" href="${esc(shopUrl(p))}" target="_blank" rel="noopener">Открыть магазин</a></div></form>
+      <div class="card"><h3>Товары (${items.length})</h3>${items.length ? `<table><tr><th>Товар</th><th>Раздел</th><th>Цена</th><th>Остаток</th><th></th></tr>${items.map((x) => `<tr><td>${x.photo ? `<img class="tthumb" src="${esc(x.photo)}" alt="">` : ''}<b>${esc(x.name)}</b><div class="small muted mono">${esc(x.sku || '')}${x.is_published ? '' : ' · скрыт'}</div></td><td>${esc(x.category || '—')}</td><td>${money(x.price)}</td><td>${x.stock ?? '∞'}</td>
+        <td class="row"><a class="btn sm" href="#/cabinet?p=${p.id}&t=shop&e=${x.id}">✏️</a><button class="sm danger" data-dprod="${x.id}" aria-label="Удалить">✕</button></td></tr>`).join('')}</table>` : '<p class="muted">Товаров пока нет — добавьте первый ниже.</p>'}</div>
+      <form class="card" id="prodForm"><h3>${ed ? 'Изменить товар' : 'Добавить товар'}</h3><input type="hidden" name="id" value="${ed?.id || ''}"><input type="hidden" name="photo" value="${esc(ed?.photo || '')}">
+      <label>Название</label><input name="name" required maxlength="160" value="${esc(ed?.name || '')}">
+      <div class="row"><div class="grow"><label>Раздел</label><input name="category" list="pcats" value="${esc(ed?.category || '')}" placeholder="Масла, Фильтры…"><datalist id="pcats">${cats.map((x) => `<option>${esc(x)}</option>`).join('')}</datalist></div>
+      <div class="grow"><label>Цена, ${REGION.symbol}</label><input name="price" type="number" min="0" required value="${ed?.price ?? ''}"></div><div class="grow"><label>Остаток ${tip('Пусто — не показывать остаток')}</label><input name="stock" type="number" min="0" value="${ed?.stock ?? ''}"></div></div>
+      <label>Описание</label><textarea name="description" rows="2" maxlength="2000">${esc(ed?.description || '')}</textarea>
+      <label>Фото</label><div class="row"><span id="prodPrev">${ed?.photo ? `<img class="tthumb big" src="${esc(ed.photo)}" alt="">` : ''}</span><label class="drop grow"><input type="file" id="prodPh" accept="image/*" hidden><span>📷 Выбрать фото</span></label></div>
+      <label class="check"><input type="checkbox" name="is_published" ${!ed || ed.is_published ? 'checked' : ''}> <span>Показывать на витрине</span></label>
+      <div class="row" style="margin-top:10px"><button class="p">${ed ? 'Сохранить' : 'Добавить товар'}</button>${ed ? `<a class="btn" href="#/cabinet?p=${p.id}&t=shop">Отмена</a>` : ''}</div></form>`;
+  }
   if (tab === 'link') {
     const url = `${siteUrl()}#/provider/${p.id}`;
     return `${head}<div class="card"><h3>Ваша визитка</h3><p>Отправляйте клиентам — по ссылке они видят ваши контакты, рейтинг и сразу оставляют заявку именно вам.</p><input readonly value="${esc(url)}" id="myLink"><div class="row" style="margin-top:10px"><button class="p" id="copyLink">Скопировать</button><a class="btn" href="https://t.me/share/url?url=${encodeURIComponent(url)}" target="_blank" rel="noopener">Поделиться в Telegram</a><a class="btn" href="https://wa.me/?text=${encodeURIComponent(url)}" target="_blank" rel="noopener">WhatsApp</a></div></div>`;
@@ -636,7 +769,7 @@ async function cabinet(_, q) {
   const card = (r) => {
     const st = effStatus(r), mine = r.accepted_by === p.id, off = myOffers.find((o) => o.request_id === r.id);
     let a = '';
-    if (!mine && ['tow', 'sto', 'urgent'].includes(r.type) && st === 'new') a = `<button class="ok" data-acc="${r.id}">✅ Принять</button><button class="ghost" data-dec="${r.id}">Отклонить</button>`;
+    if (!mine && ['tow', 'sto', 'urgent', 'cargo'].includes(r.type) && st === 'new') a = `<button class="ok" data-acc="${r.id}">✅ Принять</button><button class="ghost" data-dec="${r.id}">Отклонить</button>`;
     if (r.type === 'parts' && ['new', 'offers'].includes(st) && !mine) a = `<form class="row grow" data-offer-form="${r.id}"><input name="price" type="number" min="1" placeholder="Цена, ₸" required value="${off ? off.price : ''}" style="max-width:130px"><input name="comment" class="grow" placeholder="Оригинал/аналог, наличие" value="${esc(off?.comment || '')}"><button class="p">${off ? 'Изменить' : 'Предложить'}</button></form>${off ? '<span class="small muted">Ваше предложение отправлено, клиент выбирает</span>' : ''}<button class="ghost" data-dec="${r.id}">Скрыть</button>`;
     if (r.type === 'wash' && ['new', 'price_offered'].includes(r.status)) {
       const t = (r.assigned_time || r.desired_time || new Date().toISOString());
@@ -680,13 +813,44 @@ cabinet.after = (v, _, q) => {
     if ($('[name=specs]', of)) patch.specs = [].concat(d.specs || []).map(Number); if (d.boxes) { patch.boxes = +d.boxes; patch.slot_minutes = +d.slot_minutes; } if ($('[name=delivery]', of)) patch.delivery = !!d.delivery;
     act($('button', of), () => api.updateProvider(pid, patch), 'Сохранено'); };
   const cl = $('#copyLink', v); if (cl) cl.onclick = () => { navigator.clipboard?.writeText($('#myLink', v).value); toast('Ссылка скопирована'); };
+  $$('[data-lead]', v).forEach((b) => b.onclick = () => { const [id, st] = b.dataset.lead.split(':'); act(b, () => api.setLeadStatus(+id, st), 'Статус обновлён'); });
+  const qd = $('#qrDl', v); if (qd) qd.onclick = async () => { try { download(`vizitka-${pid}.png`, await qrPng(cardUrl(pid), { title: cur.name, sub: CARD_ROLE[cur.kind] + ' · ' + cardUrl(pid).replace(/^https?:\/\//, '') })); } catch (e) { toast(e.message, true); } };
+  const cf = $('#cardForm', v); if (cf) cf.onsubmit = (e) => { e.preventDefault(); const d = formData(cf);
+    const services = String(d.services || '').split('\n').map((l) => l.trim()).filter(Boolean).slice(0, 40).map((l) => { const m = /^(.*?)\s*[—–-]\s*([^—–-]+)$/.exec(l); return m ? { name: m[1].trim(), price: /^\d+$/.test(m[2].trim()) ? +m[2].trim() : m[2].trim() } : { name: l, price: '' }; });
+    const card = { ...(cur.card || {}), slogan: d.slogan || '', services, payments: [].concat(d.payments || []), tg: (d.tg || '').replace(/^@/, ''), ig: (d.ig || '').replace(/^@/, '') };
+    if (cur.kind === 'cargo') Object.assign(card, { cargo: { vehicle: d.cargo_vehicle, extras: [].concat(d.extras || []), price: d.cargo_price ? +d.cargo_price : null, unit: d.cargo_unit || 'час' }, zones: d.zones || '' });
+    act($('button.p', cf), () => api.updateProvider(pid, { card }), 'Визитка сохранена'); };
+  const ss = $('#shopSet', v); if (ss) ss.onsubmit = (e) => { e.preventDefault(); const d = formData(ss);
+    if (d.store_url && !/^https:\/\//.test(d.store_url)) return toast('Ссылка на магазин должна начинаться с https://', true);
+    act($('button.p', ss), () => api.updateProvider(pid, { shop_enabled: !!d.shop_enabled, store_url: d.store_url || '', card: { ...(cur.card || {}), shop_title: d.shop_title || '', shop_accent: d.shop_accent || '' } }), 'Магазин сохранён'); };
+  const pf2 = $('#prodForm', v); if (pf2) {
+    const ph = $('#prodPh', v); if (ph) ph.onchange = async () => { const file = ph.files[0]; if (!file) return; try { toast('Загружаем фото…'); const u = await api.uploadProductPhoto(pid, await compress(file, 900, 0.8)); pf2.photo.value = u; $('#prodPrev', v).innerHTML = `<img class="tthumb big" src="${esc(u)}" alt="">`; toast('Фото загружено'); } catch (er) { toast(er.message, true); } };
+    pf2.onsubmit = (e) => { e.preventDefault(); const d = formData(pf2);
+      act($('button.p', pf2), async () => { await api.saveProduct(pid, { id: d.id ? +d.id : null, name: d.name, category: d.category, price: +d.price, stock: d.stock, description: d.description, photo: d.photo, is_published: !!d.is_published }); location.hash = `#/cabinet?p=${pid}&t=shop`; }, d.id ? 'Товар сохранён' : 'Товар добавлен'); };
+  }
+  $$('[data-dprod]', v).forEach((b) => b.onclick = () => { if (confirm('Удалить товар?')) act(b, () => api.deleteProduct(+b.dataset.dprod), 'Удалено'); });
 };
 
+// ------------------------------------------------------------ тарифы (перенесено из ВЕЗУ tarify.html)
+async function tariffs() {
+  const plan = (t, price, items, cta, hot = '') => `<div class="card plan ${hot ? 'hot' : ''}">${hot ? `<span class="eyebrow">${hot}</span>` : ''}<h3>${t}</h3><div class="price">${price}</div><ul class="small">${items.map((x) => `<li>${x}</li>`).join('')}</ul>${cta}</div>`;
+  const ask = (text) => dispatcherPhone() ? wa(dispatcherPhone(), text, `${PRIMARY.icon} Написать`, 'btn block') : '';
+  return `<h1>💳 Тарифы</h1><p class="muted">Для автовладельцев и клиентов — всё бесплатно. Для бизнеса — бесплатная визитка навсегда, платно то, что экономит время.</p>
+  <div class="plans">${plan('Визитка', '0 ' + REGION.symbol + ' навсегда', ['Своя страница и QR-код', `Кнопки «Позвонить» и ${PRIMARY.label}`, `Заявки в ${PRIMARY.label} + кабинет со статусами`, 'Место в каталоге города', 'Заявки «всем в городе»'], '<a class="btn p block" href="#/business">Создать визитку</a>')}
+    ${plan('Про', money(1500) + ' в месяц', ['Первые 7 дней бесплатно', 'Короткий адрес визитки', 'Выше в каталоге', 'Статистика: просмотры, звонки, WhatsApp', `Без надписи «Сделано на ${esc(CONFIG.SITE_NAME)}»`], ask('Здравствуйте! Хочу подключить «Про» для визитки.'), '7 дней бесплатно')}
+    ${plan('Магазин', 'витрина — 0 ' + REGION.symbol, ['Витрина товаров прямо в визитке', `Корзина и заказ в ${PRIMARY.label}`, 'Полный магазин «Учёт + Магазин»: склад, налоги 910, Kaspi — по <a href="https://biznes-shablon.vercel.app/prezentaciya#3" target="_blank" rel="noopener">презентации</a>'], `<a class="btn block" href="shop.html?id=8${IS_DEMO ? '' : '&demo=1'}">Пример магазина${IS_DEMO ? '' : ' (демо)'}</a>`)}
+    ${plan('Печать', 'по запросу', ['Пачка визиток с QR', 'Наклейка с QR на машину', 'Под цвет вашей визитки'], ask('Здравствуйте! Хочу заказать печать визиток и наклейку с QR.'))}</div>
+  <h2>🚚 Ориентир цен на грузоперевозки</h2><div class="card"><table><tr><th>Машина</th><th>Груз</th><th>Час, от</th></tr>${CARGO_VEHICLES.map((x) => `<tr><td><img class="tthumb" src="${x.img}" alt=""> ${esc(x.name)}</td><td>${esc(x.cap)}</td><td><b>${money(x.hour)}</b></td></tr>`).join('')}</table>
+  <p class="small muted">Ориентировочно, по городу. Точную цену называет перевозчик. <a href="#/new/cargo">Заказать перевозку →</a></p></div>`;
+}
+
 // ------------------------------------------------------------ админ
+const adminTabs = (tab) => `<div class="tabs">${[['stats', '📊 Статистика'], ['regs', '🗂 Регистрации'], ['reqs', '📋 Заявки'], ...(S.caps.v4 ? [['disp', '📢 Диспетчер']] : []), ['reviews', '⭐ Отзывы'], ['provs', '🏢 Исполнители'], ['cities', '🏙 Города']].map(([t, n]) => `<a href="#/admin?t=${t}" class="${t === tab ? 'on' : ''}">${n}</a>`).join('')}</div>`;
 async function admin(_, q) {
   if (!isAdmin()) return `<h1>Админ-панель</h1>${S.me ? '<div class="card">Нет доступа. Админа назначают в базе (см. README).</div>' : needLogin('админ-панели')}`;
   const tab = q.t || 'stats';
-  const head = `<h1>🛡 Админ-панель</h1><div class="tabs">${[['stats', '📊 Статистика'], ['regs', '🗂 Регистрации'], ['reqs', '📋 Заявки'], ['reviews', '⭐ Отзывы'], ['provs', '🏢 Исполнители'], ['cities', '🏙 Города']].map(([t, n]) => `<a href="#/admin?t=${t}" class="${t === tab ? 'on' : ''}">${n}</a>`).join('')}</div>`;
+  if (tab === 'disp' && S.caps.v4) { const L = await api.dispatchLeads(); autoRefresh(); return `<h1>🛡 Админ-панель</h1>${adminTabs(tab)}<p class="small muted">Заявки без выбранного исполнителя — их прислали диспетчеру в ${PRIMARY.label}.</p>${L.map(leadCard).join('') || empty('📢', 'Пока пусто')}`; }
+  const head = `<h1>🛡 Админ-панель</h1>${adminTabs(tab)}`;
   if (tab === 'stats') { const s = await api.adminStats();
     const L = { users: 'Пользователей', providers: 'Исполнителей', requests: 'Заявок всего', active: 'Активных заявок', completed: 'Выполнено', turnover: 'Оборот по выполненным', pending_regs: 'Ждут одобрения', pending_reviews: 'Отзывы на модерации' };
     return head + `<div class="grid">${Object.entries(L).map(([k, n]) => `<div class="tile"><small>${n}</small><b class="price">${k === 'turnover' ? money(s[k]) : s[k]}</b></div>`).join('')}</div>`; }
@@ -709,6 +873,7 @@ admin.after = (v) => {
   $$('[data-no]', v).forEach((b) => b.onclick = () => { const r = prompt('Причина отказа'); if (r !== null) act(b, () => api.reviewRegistration(+b.dataset.no, false, r), 'Отклонено'); });
   $$('[data-pub]', v).forEach((b) => b.onclick = () => act(b, () => api.moderateReview(+b.dataset.pub, true), 'Опубликовано'));
   $$('[data-rej]', v).forEach((b) => b.onclick = () => act(b, () => api.moderateReview(+b.dataset.rej, false), 'Удалено'));
+  $$('[data-lead]', v).forEach((b) => b.onclick = () => { const [id, st] = b.dataset.lead.split(':'); act(b, () => api.setLeadStatus(+id, st), 'Статус обновлён'); });
   $$('[data-pa]', v).forEach((b) => b.onclick = () => { const [id, on] = b.dataset.pa.split(':'); act(b, () => api.setProviderActive(+id, on === '1'), 'Готово'); });
   $$('[data-pv]', v).forEach((b) => b.onclick = () => { const [id, on] = b.dataset.pv.split(':'); act(b, () => api.setProviderVerified(+id, on === '1'), on === '1' ? 'Отмечен как проверенный' : 'Отметка снята'); });
   $$('[data-ca]', v).forEach((b) => b.onclick = () => { const [id, on] = b.dataset.ca.split(':'); act(b, async () => { await api.setCityActive(+id, on === '1'); S.ref = await api.ref(); }, 'Готово'); });
