@@ -8,6 +8,22 @@
 <meta name="theme-color" content="#06061a">
 <meta property="og:title" content="Создать визитку водителя — ВЕЗУ">
 <meta property="og:description" content="Бесплатная цифровая визитка для водителя грузотакси: ссылка, QR-код, кнопка WhatsApp, печать визиток и наклейки на машину.">
+<meta property="og:url" content="https://avtomaster24bot-lab.github.io/dogruz/new.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ВЕЗУ">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:image" content="https://avtomaster24bot-lab.github.io/dogruz/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="ВЕЗУ — грузоперевозки до 3 тонн и визитки водителей">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://avtomaster24bot-lab.github.io/dogruz/og.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ВЕЗУ">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="css/style.css">
 </head>
@@ -30,6 +46,9 @@
   <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
   <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-print" viewBox="0 0 24 24"><path d="M7 9V3h10v6M7 17H4v-7a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v7h-3M7 14h10v7H7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+  <symbol id="i-tg" viewBox="0 0 24 24"><path fill="currentColor" d="M21.4 4.1 2.9 11.3c-1.2.5-1.2 1.2-.2 1.5l4.7 1.5 1.8 5.6c.2.6.1.9.8.9.5 0 .7-.2 1-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.5-1.4zM8.6 14l9.9-6.3c.5-.3.9-.1.5.2l-8.5 7.7-.3 3.6z"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></symbol>
+  <symbol id="i-install" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v7M9 11l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
 </svg>
 
 <header class="top">
@@ -43,43 +62,66 @@
   <div class="steps">
     <span class="badge"><i></i>Бесплатно · без регистрации</span>
     <h1 style="margin-top:14px">Визитка водителя <span class="grad-text">за 1 минуту</span></h1>
-    <p class="muted" style="margin-top:8px">Заполните поля — получите ссылку, QR-код и готовые визитки для печати.</p>
+    <p class="muted" style="margin-top:8px">Обязательны только имя и WhatsApp. Остальное — по желанию.</p>
 
     <form id="f" class="f" novalidate autocomplete="on">
       <section class="step glass f">
         <h2>Кто вы</h2>
         <label class="fld"><span>Имя *</span><input class="inp" name="n" maxlength="40" placeholder="Например: Ерлан" autocomplete="name" required></label>
         <label class="fld"><span>Номер WhatsApp *</span><input class="inp" name="p" type="tel" inputmode="tel" placeholder="+7 7__ ___ __ __" autocomplete="tel" required></label>
-        <label class="fld"><span>Город</span><input class="inp" name="t" list="cities" maxlength="40" placeholder="Алматы"></label>
+        <div class="row2">
+          <label class="fld"><span>Город</span><input class="inp" name="t" list="cities" maxlength="40" placeholder="Алматы"></label>
+          <label class="fld"><span>Telegram</span><input class="inp" name="tg" maxlength="40" placeholder="@username" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+        </div>
       </section>
 
       <section class="step glass f">
         <h2>Машина</h2>
         <label class="fld"><span>Марка / тип</span><input class="inp" name="c" list="cars" maxlength="40" placeholder="Газель"></label>
         <div class="fld"><span>Грузоподъёмность</span><div class="qchips" id="cap"></div></div>
+        <div class="fld"><span>Есть с собой</span><div class="qchips" id="ex"></div></div>
       </section>
 
       <section class="step glass f">
-        <h2>Что возите</h2>
+        <h2>Что и где возите</h2>
         <div class="svc-pick qchips" id="svc"></div>
+        <label class="fld"><span>Районы / направления</span><input class="inp" name="z" maxlength="60" placeholder="Весь город, пригород, межгород"></label>
       </section>
 
       <section class="step glass f">
-        <h2>Детали (по желанию)</h2>
+        <h2>Цена, время, оплата</h2>
+        <div class="row2">
+          <label class="fld"><span>Цена от</span><input class="inp" name="pr" inputmode="numeric" placeholder="8 000"><b class="suffix">₸</b></label>
+          <div class="fld"><span>За</span><div class="qchips seg" id="pu"><button type="button" class="qchip" data-v="0">поездку</button><button type="button" class="qchip" data-v="1">час</button></div></div>
+        </div>
+        <div class="fld"><span>Часы работы</span>
+          <div class="hours">
+            <select class="inp" name="hs" aria-label="С"></select><span class="muted">—</span><select class="inp" name="he" aria-label="До"></select>
+            <button type="button" class="qchip" id="h24">24/7</button>
+          </div>
+        </div>
+        <div class="fld"><span>Оплата</span><div class="qchips" id="pay"></div></div>
+      </section>
+
+      <section class="step glass f">
+        <h2>Оформление</h2>
+        <div class="fld"><span>Цвет визитки</span><div class="themes" id="themes"></div></div>
         <label class="fld"><span>Ссылка на фото (https://…)</span><input class="inp" name="i" type="url" inputmode="url" placeholder="https://…/photo.jpg"></label>
-        <label class="fld"><span>Коротко о себе <em class="counter" id="cnt">0/80</em></span><textarea class="inp" name="m" maxlength="80" rows="2" placeholder="Аккуратно, без опозданий. Есть ремни и тележка."></textarea></label>
+        <label class="fld"><span>Коротко о себе <em class="counter" id="cnt">0/80</em></span><textarea class="inp" name="m" maxlength="80" rows="2" placeholder="Аккуратно, без опозданий."></textarea></label>
       </section>
     </form>
-
   </div>
 
   <aside class="preview">
     <p class="lbl">Так увидит клиент</p>
-    <div id="pv"></div>
-    <div class="actions" aria-hidden="true" style="pointer-events:none">
-      <span class="btn btn-wa"><svg><use href="#i-wa"/></svg>Написать в WhatsApp</span>
-      <span class="btn btn-glass"><svg><use href="#i-phone"/></svg>Позвонить</span>
-      <span class="btn btn-glass"><svg><use href="#i-user"/></svg>В контакты</span>
+    <div id="pvwrap" class="th-0">
+      <div id="pv"></div>
+      <div class="actions" aria-hidden="true" style="pointer-events:none">
+        <span class="btn btn-wa"><svg><use href="#i-wa"/></svg>Написать в WhatsApp</span>
+        <span class="btn btn-glass"><svg><use href="#i-phone"/></svg>Позвонить</span>
+        <span class="btn btn-glass"><svg><use href="#i-user"/></svg>В контакты</span>
+        <span class="btn btn-tg" id="pvtg" hidden><svg><use href="#i-tg"/></svg>Telegram</span>
+      </div>
     </div>
 
     <section class="result glass glow" id="result">
@@ -102,6 +144,7 @@
           <button class="btn btn-glass btn-sm" type="button" id="pcards" style="flex:1"><svg><use href="#i-print"/></svg>Визитки (A4, 10 шт.)</button>
           <button class="btn btn-glass btn-sm" type="button" id="psticker" style="flex:1"><svg><use href="#i-print"/></svg>Наклейка на авто</button>
         </div>
+        <button class="btn btn-glass btn-sm btn-block" type="button" id="install" hidden style="margin-top:8px"><svg><use href="#i-install"/></svg>Установить конструктор на телефон</button>
       </div>
     </section>
   </aside>
@@ -113,6 +156,7 @@
 <div id="print-area"></div>
 
 <script src="js/vendor/qrcode.js"></script>
+<script src="js/vendor/inflate.js"></script>
 <script src="js/common.js"></script>
 <script src="js/new.js"></script>
 </body>

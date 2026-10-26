@@ -8,6 +8,22 @@
 <meta name="theme-color" content="#06061a">
 <meta property="og:title" content="Визитка водителя — ВЕЗУ">
 <meta property="og:description" content="Грузоперевозки до 3 тонн. Напишите водителю в WhatsApp, позвоните или сохраните контакт.">
+<meta property="og:url" content="https://avtomaster24bot-lab.github.io/dogruz/card.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ВЕЗУ">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:image" content="https://avtomaster24bot-lab.github.io/dogruz/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="ВЕЗУ — грузоперевозки до 3 тонн и визитки водителей">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://avtomaster24bot-lab.github.io/dogruz/og.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ВЕЗУ">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="css/style.css">
 </head>
@@ -30,12 +46,17 @@
   <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
   <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-print" viewBox="0 0 24 24"><path d="M7 9V3h10v6M7 17H4v-7a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v7h-3M7 14h10v7H7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+  <symbol id="i-tg" viewBox="0 0 24 24"><path fill="currentColor" d="M21.4 4.1 2.9 11.3c-1.2.5-1.2 1.2-.2 1.5l4.7 1.5 1.8 5.6c.2.6.1.9.8.9.5 0 .7-.2 1-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.5-1.4zM8.6 14l9.9-6.3c.5-.3.9-.1.5.2l-8.5 7.7-.3 3.6z"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></symbol>
+  <symbol id="i-install" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v7M9 11l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
 </svg>
 
 <header class="top">
   <div class="wrap narrow">
-    <a class="logo" href="./" aria-label="ВЕЗУ — на главную"><svg><use href="#logo"/></svg><span>везу<small>визитка водителя</small></span></a>
-    <a class="btn btn-glass btn-sm" href="new.html">Создать свою</a>
+    <a class="logo" href="./" aria-label="ВЕЗУ"><svg><use href="#logo"/></svg><span>везу<small data-i18n="sub_card">визитка водителя</small></span></a>
+    <div class="lang" role="group" aria-label="Язык / Тіл">
+      <button type="button" data-lang="ru" aria-pressed="true">Рус</button><button type="button" data-lang="kk" aria-pressed="false">Қаз</button>
+    </div>
   </div>
 </header>
 
@@ -43,50 +64,56 @@
   <div id="hero"></div>
 
   <div class="actions">
-    <a class="btn btn-wa btn-lg" id="wa" href="#" target="_blank" rel="noopener"><svg><use href="#i-wa"/></svg>Написать в WhatsApp</a>
-    <a class="btn btn-glass" id="call" href="#"><svg><use href="#i-phone"/></svg>Позвонить</a>
-    <button class="btn btn-glass" id="vcf" type="button"><svg><use href="#i-user"/></svg>В контакты</button>
+    <a class="btn btn-wa btn-lg" id="wa" href="#" target="_blank" rel="noopener"><svg><use href="#i-wa"/></svg><span data-i18n="wa">Написать в WhatsApp</span></a>
+    <a class="btn btn-glass" id="call" href="#"><svg><use href="#i-phone"/></svg><span data-i18n="call">Позвонить</span></a>
+    <button class="btn btn-glass" id="vcf" type="button"><svg><use href="#i-user"/></svg><span data-i18n="contact">В контакты</span></button>
+    <a class="btn btn-tg" id="tg" href="#" target="_blank" rel="noopener" hidden><svg><use href="#i-tg"/></svg><span data-i18n="tg">Telegram</span></a>
   </div>
 
   <form class="panel glass f" id="order" novalidate>
-    <div><h2>Быстрый заказ</h2><p class="sub">Заполните — сообщение уйдёт водителю в WhatsApp.</p></div>
+    <div><h2 data-i18n="order">Быстрый заказ</h2><p class="sub" data-i18n="order_sub">Заполните — сообщение уйдёт водителю в WhatsApp.</p></div>
     <div class="qchips" aria-label="Что везём">
-      <button type="button" class="qchip" data-fill="what">Переезд</button>
-      <button type="button" class="qchip" data-fill="what">Стройматериалы</button>
-      <button type="button" class="qchip" data-fill="what">Мебель</button>
-      <button type="button" class="qchip" data-fill="what">Вывоз мусора</button>
+      <button type="button" class="qchip" data-fill="what" data-v="Переезд" data-i18n="q_move">Переезд</button>
+      <button type="button" class="qchip" data-fill="what" data-v="Стройматериалы" data-i18n="q_build">Стройматериалы</button>
+      <button type="button" class="qchip" data-fill="what" data-v="Мебель" data-i18n="q_furn">Мебель</button>
+      <button type="button" class="qchip" data-fill="what" data-v="Вывоз мусора" data-i18n="q_trash">Вывоз мусора</button>
     </div>
-    <label class="fld"><span class="sr">Что везём</span><input class="inp" name="what" placeholder="Что везём?" maxlength="120"></label>
+    <label class="fld"><span class="sr" data-i18n="what">Что везём?</span><input class="inp" name="what" placeholder="Что везём?" data-i18n-ph="what" maxlength="120"></label>
     <div class="route">
       <i class="dot d1"></i><i class="dot d2"></i>
-      <label class="fld"><span class="sr">Откуда</span><input class="inp" name="from" placeholder="Откуда" maxlength="120"></label>
-      <label class="fld"><span class="sr">Куда</span><input class="inp" name="to" placeholder="Куда" maxlength="120"></label>
+      <label class="fld"><span class="sr" data-i18n="from">Откуда</span><input class="inp" name="from" placeholder="Откуда" data-i18n-ph="from" maxlength="120"></label>
+      <label class="fld"><span class="sr" data-i18n="to">Куда</span><input class="inp" name="to" placeholder="Куда" data-i18n-ph="to" maxlength="120"></label>
     </div>
     <div class="row2">
       <label class="fld"><span class="sr">Когда</span>
-        <select class="inp" name="when"><option>Сейчас</option><option>Сегодня</option><option>Завтра</option><option>На этой неделе</option><option value="">Договоримся</option></select>
+        <select class="inp" name="when"><option value="Сейчас" data-i18n="when_now">Сейчас</option><option value="Сегодня" data-i18n="when_today">Сегодня</option><option value="Завтра" data-i18n="when_tomorrow">Завтра</option><option value="На этой неделе" data-i18n="when_week">На этой неделе</option><option value="" data-i18n="when_any">Договоримся</option></select>
       </label>
-      <label class="fld"><span class="sr">Ваша цена</span><input class="inp" name="price" inputmode="numeric" placeholder="Ваша цена"><b class="suffix">₸</b></label>
+      <label class="fld"><span class="sr" data-i18n="price">Ваша цена</span><input class="inp" name="price" inputmode="numeric" placeholder="Ваша цена" data-i18n-ph="price"><b class="suffix">₸</b></label>
     </div>
-    <button class="btn btn-wa btn-block" type="submit"><svg><use href="#i-wa"/></svg>Отправить заказ</button>
+    <button class="btn btn-wa btn-block" type="submit"><svg><use href="#i-wa"/></svg><span data-i18n="send">Отправить заказ</span></button>
   </form>
 
   <section class="panel glass">
-    <h2>QR этой визитки</h2>
-    <p class="sub">Покажите клиенту — он наведёт камеру и откроет визитку.</p>
+    <h2 data-i18n="qr_t">QR этой визитки</h2>
+    <p class="sub" data-i18n="qr_s">Покажите клиенту — он наведёт камеру и откроет визитку.</p>
     <div class="qrbox">
       <div class="qr" id="qr"></div>
       <div class="btns">
-        <button class="btn btn-grad btn-block" id="share" type="button"><svg><use href="#i-share"/></svg>Поделиться</button>
-        <button class="btn btn-glass btn-block" id="copy" type="button"><svg><use href="#i-link"/></svg>Копировать</button>
+        <button class="btn btn-grad btn-block" id="share" type="button"><svg><use href="#i-share"/></svg><span data-i18n="share">Поделиться</span></button>
+        <button class="btn btn-glass btn-block" id="copy" type="button"><svg><use href="#i-link"/></svg><span data-i18n="copy">Копировать</span></button>
       </div>
     </div>
   </section>
 
-  <a class="made" href="new.html">Вы водитель? <b>Создайте такую визитку бесплатно →</b></a>
+  <div class="card-foot">
+    <button class="btn btn-glass btn-sm" id="install" type="button" hidden><svg><use href="#i-install"/></svg><span data-i18n="install">Установить на телефон</span></button>
+    <a class="btn btn-glass btn-sm" id="edit" href="new.html"><svg><use href="#i-edit"/></svg><span data-i18n="edit">Редактировать визитку</span></a>
+  </div>
+  <a class="made" href="new.html" data-i18n="made">Вы водитель? <b>Создайте такую визитку бесплатно →</b></a>
 </main>
 
 <script src="js/vendor/qrcode.js"></script>
+<script src="js/vendor/inflate.js"></script>
 <script src="js/common.js"></script>
 <script src="js/card.js"></script>
 </body>
