@@ -15,7 +15,7 @@
 
   var hello = 'Здравствуйте, ' + d.n.split(' ')[0] + '! Нашёл(ла) вашу визитку. Нужна перевозка.';
   var wa = document.getElementById('wa'), call = document.getElementById('call');
-  wa.href = V.waLink(d.p, hello);
+  V.bindWaLink(wa, d.p, hello);
   call.href = 'tel:+' + d.p;
   if (!d.p) { wa.setAttribute('disabled', ''); call.setAttribute('disabled', ''); }
 

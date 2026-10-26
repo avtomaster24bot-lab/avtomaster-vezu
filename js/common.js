@@ -62,6 +62,78 @@
     var p = normPhone(phone);
     return 'https://wa.me/' + p + (text ? '?text=' + encodeURIComponent(text) : '');
   }
+
+  // ---- WhatsApp: открываем приложение напрямую на мобильных (в т.ч. из Telegram/Instagram) ----
+  var UA = navigator.userAgent || '';
+  var IS_ANDROID = /Android/i.test(UA);
+  var IS_IOS = /iPhone|iPad|iPod/i.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var IS_MOBILE = IS_ANDROID || IS_IOS;
+  function inAppBrowser() {
+    return !!(window.TelegramWebviewProxy || window.TelegramWebview || window.TelegramWebviewProxyProto ||
+      /Telegram|FBAN|FBAV|FB_IAB|FBIOS|Instagram|Line\/|MicroMessenger|VKClient|OKApp|; wv\)/i.test(UA));
+  }
+  function waQuery(phone, text) {
+    var p = normPhone(phone), q = [];
+    if (p) q.push('phone=' + p);
+    if (text) q.push('text=' + encodeURIComponent(text));
+    return q.join('&');
+  }
+  function waApp(phone, text) { return 'whatsapp://send?' + waQuery(phone, text); }
+  function waApi(phone, text) { return 'https://api.whatsapp.com/send?' + waQuery(phone, text); }
+  function waIntent(phone, text) {
+    return 'intent://send?' + waQuery(phone, text) + '#Intent;scheme=whatsapp;S.browser_fallback_url=' + encodeURIComponent(waApi(phone, text)) + ';end';
+  }
+  // Ссылка для href кнопки: на телефоне — сразу приложение, на компьютере — wa.me
+  function waHref(phone, text) {
+    if (IS_ANDROID) return waIntent(phone, text);
+    if (IS_IOS) return waApp(phone, text);
+    return waLink(phone, text);
+  }
+  function nav(u) { VEZU._nav(u); }
+  var waTimer = null;
+  // Вызывать только из обработчика нажатия (жест пользователя)
+  function openWA(phone, text) {
+    if (!IS_MOBILE) { window.open(waLink(phone, text), '_blank', 'noopener'); return; }
+    hideWaHint();
+    var left = false, mark = function () { left = true; };
+    document.addEventListener('visibilitychange', function h() { if (document.hidden) mark(); document.removeEventListener('visibilitychange', h); });
+    window.addEventListener('pagehide', mark, { once: true });
+    window.addEventListener('blur', mark, { once: true });
+    nav(waHref(phone, text));
+    clearTimeout(waTimer);
+    waTimer = setTimeout(function () {
+      if (left || document.hidden) return;
+      if (inAppBrowser() || IS_ANDROID) showWaHint(phone, text);
+      else nav(waApi(phone, text));
+    }, IS_ANDROID ? 1800 : 2000);
+  }
+  function hideWaHint() { var h = document.querySelector('.wa-hint'); if (h) h.remove(); }
+  function showWaHint(phone, text) {
+    hideWaHint();
+    var p = normPhone(phone);
+    var h = document.createElement('div'); h.className = 'wa-hint'; h.setAttribute('role', 'dialog'); h.setAttribute('aria-label', 'WhatsApp не открылся');
+    h.innerHTML = '<button type="button" class="wa-x" aria-label="Закрыть">×</button>' +
+      (inAppBrowser()
+        ? '<p><b>Если WhatsApp не открылся</b> — нажмите <b>⋮</b> (или «…») вверху и выберите «Открыть в браузере».</p>'
+        : '<p><b>Если WhatsApp не открылся</b> — нажмите «Открыть WhatsApp» ещё раз или скопируйте номер.</p>') +
+      '<div class="wa-hint-btns">' +
+      '<a class="btn btn-wa btn-sm" data-act="retry" href="' + esc(waApp(phone, text)) + '">Открыть WhatsApp</a>' +
+      (p ? '<button type="button" class="btn btn-glass btn-sm" data-act="copy">Скопировать номер</button>' : '') +
+      '<a class="btn btn-glass btn-sm" data-act="web" href="' + esc(waApi(phone, text)) + '">Через сайт WhatsApp</a>' +
+      '</div>';
+    document.body.appendChild(h);
+    h.querySelector('.wa-x').addEventListener('click', hideWaHint);
+    var cp = h.querySelector('[data-act=copy]');
+    if (cp) cp.addEventListener('click', function () { copy('+' + p, 'Номер скопирован: ' + fmtPhone(p)); });
+    h.querySelector('[data-act=retry]').addEventListener('click', function (e) { e.preventDefault(); nav(waApp(phone, text)); });
+  }
+  // Привязать <a> к WhatsApp: рабочий href + открытие приложения по нажатию
+  function bindWaLink(a, phone, text) {
+    a.href = waHref(phone, text);
+    if (IS_MOBILE) a.removeAttribute('target');
+    a.addEventListener('click', function (e) { if (IS_MOBILE) { e.preventDefault(); openWA(phone, text); } });
+  }
+
   function fmtPrice(v) {
     var n = String(v || '').replace(/\D/g, '');
     return n ? Number(n).toLocaleString('ru-RU').replace(/\u00a0/g, ' ') + ' ₸' : '';
@@ -230,8 +302,8 @@
     t.textContent = msg; t.classList.add('show');
     clearTimeout(t._h); t._h = setTimeout(function () { t.classList.remove('show'); }, 2200);
   }
-  function copy(text) {
-    var done = function () { toast('Ссылка скопирована'); };
+  function copy(text, okMsg) {
+    var done = function () { toast(okMsg || 'Ссылка скопирована'); };
     if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text); done(); });
     fallbackCopy(text); done();
   }
@@ -265,15 +337,15 @@
       var o = {}; ['from', 'to', 'what', 'when', 'price'].forEach(function (k) { var i = form.querySelector('[name=' + k + ']'); o[k] = i ? i.value.trim() : ''; });
       if (form._geo && o.from) o.geo = form._geo;
       if (!o.from && !o.to && !o.what) { toast('Укажите хотя бы, что и куда везём'); (form.querySelector('[name=what]') || form.querySelector('input')).focus(); return; }
-      var href = waLink(getPhone(), orderText(o, getName && getName()));
-      window.open(href, '_blank', 'noopener');
+      openWA(getPhone(), orderText(o, getName && getName()));
     });
   }
 
-  window.VEZU = {
+  var VEZU = window.VEZU = {
     SITE_PHONE: SITE_PHONE, SERVICES: SERVICES, CAPACITY: CAPACITY, DEMO: DEMO,
     esc: esc, encodeCard: encodeCard, decodeCard: decodeCard, cardUrl: cardUrl, clean: clean,
-    normPhone: normPhone, fmtPhone: fmtPhone, waLink: waLink, gisLink: gisLink, gmapsLink: gmapsLink, fmtPrice: fmtPrice, orderText: orderText,
+    normPhone: normPhone, fmtPhone: fmtPhone, waLink: waLink, waApp: waApp, waApi: waApi, waIntent: waIntent, waHref: waHref, openWA: openWA, bindWaLink: bindWaLink, inAppBrowser: inAppBrowser,
+    IS_MOBILE: IS_MOBILE, IS_ANDROID: IS_ANDROID, IS_IOS: IS_IOS, _nav: function (u) { location.href = u; }, gisLink: gisLink, gmapsLink: gmapsLink, fmtPrice: fmtPrice, orderText: orderText,
     services: services, initials: initials, metaLine: metaLine, cardHero: cardHero,
     qrSvg: qrSvg, qrPng: qrPng, vcf: vcf, download: download, fileName: fileName,
     toast: toast, copy: copy, share: share, bindOrderForm: bindOrderForm
