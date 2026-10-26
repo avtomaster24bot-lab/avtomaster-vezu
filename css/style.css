@@ -415,7 +415,7 @@ details.more>.f{padding:4px 14px 16px}
 .step[hidden]{display:none}
 #result .linkrow .inp{font-size:12px}
 .pv-details{margin-top:0}
-@media (max-width:879px){ #build:not([data-step="3"]) .preview{display:none} #build[data-step="3"] .preview{order:-1} .build{display:flex;flex-direction:column} }
+@media (max-width:879px){ #build:not([data-step="3"]) .preview{display:none} .build{display:flex;flex-direction:column} }
 .pc-ph{float:right;width:12mm;height:12mm;border-radius:50%;object-fit:cover;margin-left:2mm}
 
 /* tarify */
