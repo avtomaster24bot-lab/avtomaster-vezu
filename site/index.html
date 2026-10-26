@@ -1,27 +1,45 @@
 <!doctype html>
-<html lang="ru">
+<html lang="ru" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>АвтоМастер24 — СТО, эвакуатор, мойка, запчасти</title>
-<meta name="description" content="АвтоМастер24: заявка на СТО, эвакуатор, автомойку, запчасти и выездную помощь. Для клиентов и для исполнителей.">
+<title>АвтоМастер24 — СТО, эвакуатор, мойка, запчасти в Казахстане</title>
+<meta name="description" content="Одна заявка — и мастера вашего города откликаются сами: СТО, эвакуатор, автомойка, запчасти, выездная помощь. Фото, чат, рейтинги и отзывы. Бесплатно для автовладельцев.">
 <meta name="theme-color" content="#0F0F0F">
+<link rel="canonical" href="https://avtomaster24bot-lab.github.io/avtomaster24-web/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="АвтоМастер24">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:title" content="АвтоМастер24 — помощь с машиной за пару минут">
+<meta property="og:description" content="СТО, эвакуатор, мойка, запчасти и выездные мастера. Оставьте заявку — исполнители откликнутся сами.">
+<meta property="og:url" content="https://avtomaster24bot-lab.github.io/avtomaster24-web/">
+<meta property="og:image" content="https://avtomaster24bot-lab.github.io/avtomaster24-web/assets/og.jpg">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="АвтоМастер24">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@400;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<script>try{var t=localStorage.getItem('am24-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.dataset.theme=t}catch(e){}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"АвтоМастер24","url":"https://avtomaster24bot-lab.github.io/avtomaster24-web/","applicationCategory":"LifestyleApplication","operatingSystem":"Web","inLanguage":"ru","areaServed":"KZ","offers":{"@type":"Offer","price":"0","priceCurrency":"KZT"},"description":"Заявки в СТО, эвакуатор, автомойку, магазины запчастей и выездным мастерам."}</script>
 <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
 </head>
 <body>
+<a class="skip" href="#view">К содержимому</a>
 <header class="top">
-  <a href="#/" class="logo"><img src="assets/favicon.svg" alt=""><span>АВТОМАСТЕР<b>24</b></span></a>
+  <a href="#/" class="logo" aria-label="АвтоМастер24 — на главную"><img src="assets/favicon.svg" alt=""><span>АВТОМАСТЕР<b>24</b></span></a>
   <select id="citySel" aria-label="Город"></select>
+  <button id="themeBtn" class="iconbtn" type="button" aria-label="Сменить тему">☀️</button>
   <a href="#/profile" id="meChip" class="chip">Войти</a>
 </header>
 <div id="demoBar" class="demobar" hidden></div>
-<main id="view"><div class="loading">Загрузка…</div></main>
-<nav class="bottom" id="nav"></nav>
-<div id="toast" class="toast" hidden></div>
+<main id="view" tabindex="-1"><div class="sk-wrap" aria-busy="true"><div class="sk sk-h"></div><div class="sk sk-c"></div><div class="sk sk-c"></div></div></main>
+<nav class="bottom" id="nav" aria-label="Основное меню"></nav>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 <script type="module" src="js/app.js"></script>
 <noscript>Для работы сайта включите JavaScript.</noscript>
 </body>

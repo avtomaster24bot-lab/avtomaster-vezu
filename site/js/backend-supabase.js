@@ -2,7 +2,7 @@
 import { CONFIG } from './config.js';
 import { stems } from './backend-demo.js';
 
-let sb = null;
+let sb = null, capsCache = null;
 async function client() {
   if (sb) return sb;
   const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
@@ -70,7 +70,11 @@ export const live = {
     if (kind) q = q.eq('kind', kind); if (city) q = q.eq('city', city); return must(await q);
   },
   async getProvider(id) { return must(await (await from('am_providers')).select('*').eq('id', id).single()); },
-  async providerReviews(id) { return must(await (await from('am_reviews')).select('id,rating,comment,is_published,created_at,request_id').eq('provider_id', id).order('created_at', { ascending: false }).limit(50)); },
+  async providerReviews(id) {
+    const q = async (cols) => (await from('am_reviews')).select(cols).eq('provider_id', id).order('created_at', { ascending: false }).limit(50);
+    const r = await q('id,rating,comment,is_published,created_at,request_id,provider_id,reply,reply_at');
+    return r.error ? must(await q('id,rating,comment,is_published,created_at,request_id,provider_id')) : r.data;
+  },
   async myProviders() {
     const s = await client(); const { data } = await s.auth.getUser(); if (!data.user) return [];
     return must(await (await from('am_providers')).select('*').eq('owner_id', data.user.id).order('id'));
@@ -128,5 +132,48 @@ export const live = {
   async adminProviders() { return must(await (await from('am_providers')).select('*').order('id')); },
   async setProviderActive(id, active) { return must(await (await from('am_providers')).update({ is_active: !!active }).eq('id', id)); },
   async setCityActive(id, active) { return must(await (await from('am_cities')).update({ active: !!active }).eq('id', id)); },
+  async setProviderVerified(id, v) { return must(await (await from('am_providers')).update({ verified: !!v }).eq('id', id)); },
+
+  // ---- обновление 3 (supabase/03_features.sql): фото, чат, статистика, ответы на отзывы
+  async caps() {
+    if (capsCache) return capsCache;
+    const r = await (await from('am_messages')).select('id').limit(1);
+    // 42P01 — таблицы ещё нет (миграция не применена); ошибка прав (аноним) значит таблица есть
+    capsCache = { v3: !(r.error && /does not exist|42P01|schema cache/i.test(r.error.message + r.error.code)) };
+    return capsCache;
+  },
+  async uploadRequestPhoto(blob) {
+    const s = await client(); const { data } = await s.auth.getUser(); if (!data.user) throw new Error('Войдите');
+    const path = `req/${data.user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+    must(await s.storage.from('am-photos').upload(path, blob, { contentType: 'image/jpeg', upsert: false }));
+    return path;
+  },
+  async photoUrls(paths) {
+    const list = (paths || []).filter((x) => !/^(assets|https?:|data:)/.test(x));
+    let signed = [];
+    if (list.length) { const r = await (await client()).storage.from('am-photos').createSignedUrls(list, 3600); signed = r.data || []; }
+    return (paths || []).map((x) => /^(assets|https?:|data:)/.test(x) ? x : (signed.find((y) => y.path === x)?.signedUrl || ''));
+  },
+  async uploadProviderPhoto(pid, blob) {
+    const s = await client(); const path = `prov/${+pid}/${Date.now()}-${Math.random().toString(36).slice(2, 6)}.jpg`;
+    must(await s.storage.from('am-public').upload(path, blob, { contentType: 'image/jpeg', upsert: false }));
+    return s.storage.from('am-public').getPublicUrl(path).data.publicUrl;
+  },
+  async providerStats(id) { try { return await rpc('am_provider_stats', { p_id: +id }); } catch { return {}; } },
+  async pricesFrom(ids) {
+    if (!ids.length) return {};
+    const r = must(await (await from('am_prices')).select('provider_id,price').in('provider_id', ids).limit(2000));
+    const out = {}; for (const x of r) out[x.provider_id] = Math.min(out[x.provider_id] ?? Infinity, x.price); return out;
+  },
+  async getRequest(id) { const r = must(await (await from('am_requests')).select('*').eq('id', id).maybeSingle()); if (!r) throw new Error('Заявка не найдена'); return r; },
+  async messages(id) { return must(await (await from('am_messages')).select('*').eq('request_id', id).order('id').limit(500)); },
+  async sendMessage(id, body) { return rpc('am_send_message', { p_id: +id, p_body: body }); },
+  subscribeMessages(id, cb) {
+    let ch = null, off = false;
+    client().then((s) => { if (off) return; ch = s.channel('am-msg-' + id).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'am_messages', filter: `request_id=eq.${+id}` }, (e) => cb(e.new)).subscribe(); });
+    return () => { off = true; if (ch) sb.removeChannel(ch); };
+  },
+  async replyReview(id, text) { return rpc('am_reply_review', { p_id: +id, p_text: text || '' }); },
+
   async addCity(name) { return must(await (await from('am_cities')).insert({ name })); },
 };

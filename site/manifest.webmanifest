@@ -1,0 +1,23 @@
+{
+  "name": "АвтоМастер24 — СТО, эвакуатор, мойка, запчасти",
+  "short_name": "АвтоМастер24",
+  "description": "Заявка в СТО, эвакуатор, мойку, магазины запчастей и выездным мастерам вашего города.",
+  "lang": "ru",
+  "start_url": "./#/",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0F0F0F",
+  "theme_color": "#0F0F0F",
+  "categories": ["auto", "lifestyle", "business"],
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "assets/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Новая заявка в СТО", "url": "./#/new/sto" },
+    { "name": "Эвакуатор", "url": "./#/new/tow" },
+    { "name": "Мои заявки", "url": "./#/requests" }
+  ]
+}

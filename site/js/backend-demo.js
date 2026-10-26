@@ -2,7 +2,7 @@
 // только в этом браузере (localStorage). Все люди и организации здесь — вымышленные.
 import { SEED } from './seed.js';
 
-const KEY = 'am24-demo-db-v1', UKEY = 'am24-demo-user';
+const KEY = 'am24-demo-db-v2', UKEY = 'am24-demo-user', PKEY = 'am24-demo-photos';
 const now = () => new Date().toISOString();
 const plus = (min) => new Date(Date.now() + min * 60000).toISOString();
 const ago = (min) => new Date(Date.now() - min * 60000).toISOString();
@@ -11,18 +11,19 @@ const C = 'Талдыкорган';
 function initial() {
   const P = (id, kind, name, extra = {}) => ({ id, kind, owner_id: null, name, city: C, address: '', phone: '+7 700 000 00 ' + String(id).padStart(2, '0'),
     working_hours: '09:00-19:00', specs: [], supplier_type: null, service_type: null, boxes: 1, slot_minutes: 60, delivery: false,
-    rating: 0, reviews_count: 0, is_active: true, created_at: ago(9000), ...extra });
+    rating: 0, reviews_count: 0, is_active: true, created_at: ago(9000), about: '', photos: [], whatsapp: '', verified: false, ...extra });
   const providers = [
-    P(1, 'sto', 'Демо-СТО «Мотор»', { owner_id: 'u-master', address: 'ул. Примерная, 1', specs: [1, 2, 7, 8, 9], rating: 4.8, reviews_count: 12 }),
-    P(2, 'sto', 'Демо-СТО «Ходовая+»', { address: 'ул. Примерная, 15', specs: [2, 5, 11], rating: 4.5, reviews_count: 7 }),
+    P(1, 'sto', 'Демо-СТО «Мотор»', { owner_id: 'u-master', address: 'ул. Примерная, 1', specs: [1, 2, 7, 8, 9], rating: 4.8, reviews_count: 12, verified: true, whatsapp: '+77000000001',
+      about: 'Ремонт двигателя, ходовой и компьютерная диагностика. 4 подъёмника, гарантия на работы 6 месяцев. Можно подождать в зоне отдыха с Wi‑Fi.', photos: ['assets/img/sto.webp', 'assets/img/master.webp'] }),
+    P(2, 'sto', 'Демо-СТО «Ходовая+»', { address: 'ул. Примерная, 15', specs: [2, 5, 11], rating: 4.5, reviews_count: 7, about: 'Подвеска, рулевое, развал-схождение 3D.' }),
     P(3, 'sto', 'Демо-СТО «Автоэлектрик»', { address: 'пр. Демо, 8', specs: [3, 15], rating: 4.2, reviews_count: 3 }),
-    P(4, 'tow', 'Демо-эвакуатор «Быстрый»', { owner_id: 'u-master', rating: 4.9, reviews_count: 20, working_hours: 'Круглосуточно' }),
+    P(4, 'tow', 'Демо-эвакуатор «Быстрый»', { owner_id: 'u-master', rating: 4.9, reviews_count: 20, working_hours: 'Круглосуточно', verified: true, whatsapp: '+77000000004', about: 'Ломаная платформа, город и межгород. Подача 20–40 минут.', photos: ['assets/img/tow.webp'] }),
     P(5, 'tow', 'Демо-эвакуатор «Сокол»', { rating: 4.4, reviews_count: 5, working_hours: 'Круглосуточно' }),
-    P(6, 'wash', 'Демо-мойка «Блеск»', { owner_id: 'u-master', address: 'ул. Чистая, 3', boxes: 3, slot_minutes: 30, working_hours: '08:00-22:00', rating: 4.7, reviews_count: 15 }),
+    P(6, 'wash', 'Демо-мойка «Блеск»', { owner_id: 'u-master', address: 'ул. Чистая, 3', boxes: 3, slot_minutes: 30, working_hours: '08:00-22:00', rating: 4.7, reviews_count: 15, verified: true, photos: ['assets/img/wash.webp'], about: 'Три бокса, бесконтактная и ручная мойка, химчистка.' }),
     P(7, 'wash', 'Демо-мойка «Аква»', { address: 'ул. Водная, 9', boxes: 2, working_hours: '09:00-21:00', rating: 4.3, reviews_count: 4 }),
-    P(8, 'parts', 'Демо-магазин «Запчасть»', { owner_id: 'u-master', supplier_type: 'shop', delivery: true, rating: 4.6, reviews_count: 9 }),
+    P(8, 'parts', 'Демо-магазин «Запчасть»', { owner_id: 'u-master', supplier_type: 'shop', delivery: true, rating: 4.6, reviews_count: 9, photos: ['assets/img/parts.webp'] }),
     P(9, 'parts', 'Демо-авторазбор «Японец»', { supplier_type: 'razborka', rating: 4.1, reviews_count: 6 }),
-    P(10, 'urgent', 'Демо-мастер «Замки 24»', { owner_id: 'u-master', service_type: 'locksmith', working_hours: 'Круглосуточно', rating: 5, reviews_count: 8 }),
+    P(10, 'urgent', 'Демо-мастер «Замки 24»', { owner_id: 'u-master', service_type: 'locksmith', working_hours: 'Круглосуточно', rating: 5, reviews_count: 8, photos: ['assets/img/help.webp'] }),
     P(11, 'urgent', 'Демо-шиномонтаж на выезде', { service_type: 'tire', rating: 4.5, reviews_count: 4 }),
     P(12, 'urgent', 'Демо-электрик на выезде', { service_type: 'electrician', rating: 4.0, reviews_count: 2 }),
     P(13, 'sto', 'Демо-СТО «Алматы Сервис»', { city: 'Алматы', specs: [], rating: 4.6, reviews_count: 30 }),
@@ -42,10 +43,10 @@ function initial() {
     R(3, 'parts', { supplier_type: 'shop', description: 'Фара передняя левая', vehicle_info: 'Kia Rio 2017', expires_at: plus(170), details: { urgency: 'В течение недели', original: 'Неважно', delivery: 'Заберу сам' } }),
     R(4, 'wash', { target_provider_id: 6, service_type: 'Комплексная мойка', details: { car_type: 'Внедорожник' }, desired_time: plus(180), expires_at: null }),
     R(5, 'sto', { user_id: 'u-client', category_id: 7, subcategory: 'Компьютерная диагностика', description: 'Горит Check Engine', vehicle_info: 'Toyota Corolla 2012',
-      status: 'completed', accepted_by: 2, final_amount: 5000, created_at: ago(4000), updated_at: ago(3900), expires_at: ago(3940) }),
+      status: 'completed', accepted_by: 2, accepted_at: ago(3992), final_amount: 5000, created_at: ago(4000), updated_at: ago(3900), expires_at: ago(3940) }),
   ];
   const reviews = [
-    { id: 1, user_id: 'u-other', provider_id: 1, request_id: null, rating: 5, comment: 'Быстро нашли причину стука, цена как договаривались.', is_published: true, created_at: ago(20000) },
+    { id: 1, user_id: 'u-other', provider_id: 1, request_id: null, rating: 5, comment: 'Быстро нашли причину стука, цена как договаривались.', is_published: true, created_at: ago(20000), reply: 'Спасибо! Ждём на плановое ТО.', reply_at: ago(19000) },
     { id: 2, user_id: 'u-other', provider_id: 4, request_id: null, rating: 5, comment: 'Приехал за 25 минут.', is_published: true, created_at: ago(15000) },
     { id: 3, user_id: 'u-other', provider_id: 2, request_id: null, rating: 4, comment: 'Хорошо, но пришлось подождать.', is_published: false, created_at: ago(100) },
   ];
@@ -55,7 +56,7 @@ function initial() {
     prices.push({ id: pid++, provider_id: 1, service: svc, brand: '', model: '', price: pr, notes: '', year_from: null, year_to: null });
     prices.push({ id: pid++, provider_id: 2, service: svc, brand: '', model: '', price: Math.round(pr * 1.15 / 100) * 100, notes: '', year_from: null, year_to: null });
   }
-  return { seq: 100, profiles, providers, requests, reviews, prices, offers: [], declines: [], vehicles: [
+  return { seq: 100, profiles, providers, requests, reviews, prices, offers: [], declines: [], messages: [], vehicles: [
     { id: 1, user_id: 'u-client', brand: 'Toyota', model: 'Corolla', year: 2012, plate: '123ABC05', engine_volume: '1.6' }],
     registrations: [{ id: 1, user_id: 'u-other', kind: 'sto', name: 'Демо-заявка: СТО «Новое»', phone: '+77005550000', address: 'ул. Новая, 1', city: C, details: { specs: [1, 2] }, status: 'pending', created_at: ago(60) }],
     cities: SEED.cities.map((c) => ({ ...c })) };
@@ -80,10 +81,10 @@ function matches(r, p) {
     && (r.type !== 'parts' || !r.supplier_type || r.supplier_type === p.supplier_type)
     && (r.type !== 'sto' || !r.category_id || !p.specs.length || p.specs.includes(r.category_id) || r.target_provider_id === p.id);
 }
-const touch = (r, patch) => { Object.assign(r, patch, { updated_at: now() }); save(); };
+const touch = (r, patch) => { const was = r.accepted_by; Object.assign(r, patch, { updated_at: now() }); if (!was && r.accepted_by && !r.accepted_at) r.accepted_at = now(); save(); };
 const recalc = (pid) => { const rs = load().reviews.filter((x) => x.provider_id === pid); const p = prov(pid);
   p.reviews_count = rs.length; p.rating = rs.length ? Math.round(rs.reduce((s, x) => s + x.rating, 0) / rs.length * 100) / 100 : 0; };
-export const stems = (q) => (q || '').toLowerCase().split(/[^a-zа-яё0-9]+/i).filter((w) => w.length > 1).map((w) => w.length > 5 ? w.slice(0, w.length - 2) : w);
+export const stems = (q) => (q || '').toLowerCase().split(/[^a-zа-яё0-9]+/i).filter((w) => w.length > 1).map((w) => w.length > 4 ? w.slice(0, Math.max(4, w.length - 2)) : w);
 const clone = (x) => JSON.parse(JSON.stringify(x));
 
 export const demo = {
@@ -92,7 +93,7 @@ export const demo = {
   async session() { return me() ? clone(me()) : null; },
   async loginDemo(role) { localStorage.setItem(UKEY, { client: 'u-client', master: 'u-master', admin: 'u-admin' }[role]); },
   async logout() { localStorage.removeItem(UKEY); },
-  async resetDemo() { localStorage.removeItem(KEY); db = null; load(); },
+  async resetDemo() { localStorage.removeItem(KEY); localStorage.removeItem(PKEY); db = null; load(); },
   async updateProfile({ full_name, phone, city, consent }) {
     const m = me() || fail('Войдите');
     const digits = (phone || '').replace(/\D/g, '');
@@ -109,7 +110,7 @@ export const demo = {
   async myProviders() { return clone(load().providers.filter((p) => p.owner_id === uid())); },
   async updateProvider(pid, patch) {
     const p = prov(pid); if (!p || (p.owner_id !== uid() && !isAdmin(p.city))) fail('Нет прав');
-    const allowed = ['name', 'address', 'phone', 'working_hours', 'specs', 'boxes', 'slot_minutes', 'delivery', 'supplier_type', 'service_type'];
+    const allowed = ['name', 'address', 'phone', 'working_hours', 'specs', 'boxes', 'slot_minutes', 'delivery', 'supplier_type', 'service_type', 'about', 'photos', 'whatsapp'];
     for (const k of Object.keys(patch)) if (allowed.includes(k) || isAdmin(p.city)) p[k] = patch[k];
     save(); return clone(p);
   },
@@ -244,8 +245,68 @@ export const demo = {
   async adminProviders() { if (!isAdmin()) fail('Нет прав'); return clone(load().providers.filter((p) => isAdmin(p.city))); },
   async setProviderActive(pid, active) { const p = prov(pid); if (!p || !isAdmin(p.city)) fail('Нет прав'); p.is_active = !!active; save(); },
   async setCityActive(cid, active) { if (!isAdmin()) fail('Нет прав'); const c = load().cities.find((x) => x.id === +cid); c.active = !!active; save(); },
+  async setProviderVerified(pid, v) { const p = prov(pid); if (!p || !isAdmin(p.city)) fail('Нет прав'); p.verified = !!v; save(); },
+
+  // ---- обновление 3: фото, чат, статистика, ответы на отзывы
+  async caps() { return { v3: true }; },
+  async uploadRequestPhoto(blob) { if (!uid()) fail('Войдите'); return putPhoto(`req/${uid()}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`, blob); },
+  async photoUrls(paths) { const m = photos(); return (paths || []).map((x) => (/^(assets|https?:|data:)/.test(x) ? x : m[x]) || ''); },
+  async uploadProviderPhoto(pid, blob) { const p = prov(pid); if (!p || (p.owner_id !== uid() && !isAdmin(p.city))) fail('Нет прав'); return new Promise((ok, no) => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.onerror = () => no(new Error('Не удалось прочитать фото')); fr.readAsDataURL(blob); }); },
+  async providerStats(pid) {
+    const rs = load().requests.filter((r) => r.accepted_by === +pid);
+    const ts = rs.filter((r) => r.accepted_at).map((r) => (new Date(r.accepted_at) - new Date(r.created_at)) / 60000).sort((a, b) => a - b);
+    const pr = load().prices.filter((x) => x.provider_id === +pid).map((x) => x.price);
+    return { completed: rs.filter((r) => r.status === 'completed').length + (+pid === 1 ? 37 : +pid === 4 ? 52 : +pid === 6 ? 120 : 0),
+      response_min: ts.length ? Math.round(ts[Math.floor(ts.length / 2)]) : (+pid === 1 ? 6 : +pid === 4 ? 3 : null), price_from: pr.length ? Math.min(...pr) : null };
+  },
+  async pricesFrom(ids) { const out = {}; for (const x of load().prices) if (x.provider_id && ids.includes(x.provider_id)) out[x.provider_id] = Math.min(out[x.provider_id] ?? Infinity, x.price); return out; },
+  async getRequest(rid) {
+    const r = req(rid); const p = prov(r.accepted_by);
+    if (!(r.user_id === uid() || (p && p.owner_id === uid()) || (r.target_provider_id && prov(r.target_provider_id)?.owner_id === uid()) || isAdmin(r.city)
+      || load().providers.some((pp) => pp.owner_id === uid() && matches(r, pp)))) fail('Заявка не найдена');
+    return clone(r);
+  },
+  async messages(rid) { chatRole(rid); return clone(load().messages.filter((m) => m.request_id === +rid)); },
+  async sendMessage(rid, body) {
+    const role = chatRole(rid); const r = req(rid);
+    if (role === 'admin') fail('Чат доступен клиенту и исполнителю, который взял заявку');
+    if (r.status === 'cancelled') fail('Чат по этой заявке закрыт');
+    if (!(body || '').trim()) fail('Пустое сообщение');
+    const m = { id: id(), request_id: r.id, sender_id: uid(), from_provider: role === 'provider', body: body.trim().slice(0, 2000), created_at: now() };
+    load().messages.push(m); save(); bus.forEach((f) => f(m));
+    // в демо чужой исполнитель/клиент отвечает сам
+    const other = role === 'client' ? prov(r.accepted_by)?.owner_id !== 'u-master' : r.user_id !== 'u-client';
+    if (other && load().messages.filter((x) => x.request_id === r.id).length < 8) setTimeout(() => {
+      const a = { id: id(), request_id: r.id, sender_id: null, from_provider: role === 'client', created_at: now(),
+        body: role === 'client' ? 'Понял вас 👍 Если удобно, пришлите фото — так быстрее оценим работу.' : 'Хорошо, спасибо! Жду.' };
+      load().messages.push(a); save(); bus.forEach((f) => f(a)); }, 2500);
+    return clone(m);
+  },
+  subscribeMessages(rid, cb) { const f = (m) => { if (m.request_id === +rid) cb(m); }; bus.add(f); return () => bus.delete(f); },
+  async replyReview(rvid, text) {
+    const x = load().reviews.find((r) => r.id === +rvid) || fail('Отзыв не найден');
+    if (!(prov(x.provider_id)?.owner_id === uid() || isAdmin())) fail('Нет прав');
+    x.reply = (text || '').trim().slice(0, 1000) || null; x.reply_at = now(); save();
+  },
+
   async addCity(name) { if (!isAdmin()) fail('Нет прав'); if (!name) fail('Введите название'); load().cities.push({ id: id(), name, region: '', active: true }); save(); },
 };
+
+const bus = new Set();
+const photos = () => { try { return JSON.parse(localStorage.getItem(PKEY)) || {}; } catch { return {}; } };
+function putPhoto(path, blob) {
+  return new Promise((ok, no) => { const fr = new FileReader(); fr.onerror = () => no(new Error('Не удалось прочитать фото'));
+    fr.onload = () => { const m = photos(); m[path] = fr.result;
+      try { localStorage.setItem(PKEY, JSON.stringify(m)); ok(path); } catch { no(new Error('В демо-режиме место для фото закончилось — нажмите «Сбросить демо»')); } };
+    fr.readAsDataURL(blob); });
+}
+function chatRole(rid) {
+  const r = req(rid); const p = prov(r.accepted_by);
+  if (r.user_id === uid()) return 'client';
+  if (p && p.owner_id === uid()) return 'provider';
+  if (isAdmin(r.city)) return 'admin';
+  fail('Чат недоступен');
+}
 
 // Имитация исполнителей в демо: чужие организации «откликаются» сами
 function demoAutoReply(rid) {
@@ -259,4 +320,7 @@ function demoAutoReply(rid) {
   } else if (r.type === 'wash') {
     touch(r, { status: 'price_offered', accepted_by: p.id, price: 6000, assigned_time: r.desired_time || plus(120) });
   } else touch(r, { status: 'active', accepted_by: p.id });
+  if (r.type !== 'parts') load().messages.push({ id: id(), request_id: r.id, sender_id: null, from_provider: true, created_at: now(),
+    body: r.type === 'parts' ? 'Здравствуйте! Есть в наличии, можем отложить.' : r.type === 'wash' ? 'Здравствуйте! Предложили вам время — подтвердите, пожалуйста.' : 'Здравствуйте! Заявку принял, могу уточнить детали здесь в чате.' });
+  save(); bus.forEach((f) => f({ request_id: r.id }));
 }
