@@ -70,11 +70,79 @@
   function orderText(o, toName) {
     var lines = [toName ? 'Здравствуйте, ' + String(toName).split(' ')[0] + '! Нужна перевозка.' : 'Здравствуйте! Нужна грузоперевозка.'];
     if (o.from) lines.push('Откуда: ' + o.from);
+    if (o.geo) {
+      lines.push('Точка на карте (2ГИС): ' + gisLink(o.geo));
+      lines.push('Google Maps: ' + gmapsLink(o.geo));
+    }
     if (o.to) lines.push('Куда: ' + o.to);
     if (o.what) lines.push('Что везём: ' + o.what);
     if (o.when) lines.push('Когда: ' + o.when);
     if (o.price) lines.push('Моя цена: ' + fmtPrice(o.price));
     return lines.join('\n');
+  }
+
+  function gisLink(g) { return 'https://2gis.kz/geo/' + g.lon.toFixed(6) + ',' + g.lat.toFixed(6); }
+  function gmapsLink(g) { return 'https://maps.google.com/?q=' + g.lat.toFixed(6) + ',' + g.lon.toFixed(6); }
+
+  // Геолокация: «Где я» → координаты → короткий адрес (Nominatim)
+  var GEO_ERR = {
+    1: 'Доступ к геопозиции запрещён. Разрешите его: нажмите на значок слева от адреса сайта (замок или «ⓘ») → «Разрешения» → «Геоданные» → «Разрешить» и снова нажмите «Где я». На iPhone: Настройки → Конфиденциальность → Службы геолокации → включите их и разрешите для Safari/браузера.',
+    2: 'Не удалось определить, где вы. Включите геолокацию (GPS) на телефоне и попробуйте ещё раз — или впишите адрес вручную.',
+    3: 'Телефон слишком долго искал вас. Попробуйте ещё раз (лучше у окна или на улице) — или впишите адрес вручную.',
+    0: 'Этот браузер не умеет определять местоположение. Впишите адрес вручную.'
+  };
+  function shortAddress(j) {
+    var a = (j && j.address) || {};
+    var street = a.road || a.pedestrian || a.footway || a.residential || '';
+    var place = street ? street + (a.house_number ? ', ' + a.house_number : '') : (a.neighbourhood || a.suburb || a.quarter || a.hamlet || a.village || '');
+    var city = a.city || a.town || a.village || a.county || a.state || '';
+    var r = [place, city !== place ? city : ''].filter(Boolean).join(', ');
+    if (!r && j && j.display_name) r = j.display_name.split(',').slice(0, 3).join(',').trim();
+    return r;
+  }
+  function reverseGeocode(lat, lon) {
+    var ctl = window.AbortController ? new AbortController() : null;
+    var t = setTimeout(function () { if (ctl) ctl.abort(); }, 7000);
+    return fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=ru&zoom=18&addressdetails=1&lat=' + lat + '&lon=' + lon, ctl ? { signal: ctl.signal } : {})
+      .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+      .then(function (j) { clearTimeout(t); return shortAddress(j); });
+  }
+  var PIN = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="9.5" r="2.6" fill="currentColor"/></svg>';
+  function bindGeo(form) {
+    var from = form.querySelector('[name=from]'); if (!from) return;
+    var label = from.closest('label');
+    label.classList.add('has-geo');
+    var btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'geo-btn'; btn.setAttribute('aria-label', 'Определить, где я');
+    btn.innerHTML = PIN + '<span>Где я</span>';
+    label.appendChild(btn);
+    var msg = document.createElement('div'); msg.className = 'geo-msg'; msg.setAttribute('aria-live', 'polite'); msg.hidden = true;
+    var route = form.querySelector('.route') || label;
+    route.parentNode.insertBefore(msg, route.nextSibling);
+    function show(html, err) { msg.innerHTML = html; msg.hidden = !html; msg.classList.toggle('geo-err', !!err); }
+    function showMap() {
+      var g = form._geo;
+      show(g ? '<span>📍 Точка сохранена — водитель получит ссылку на карту.</span> <a href="' + esc(gisLink(g)) + '" target="_blank" rel="noopener">На карте</a>' : '');
+    }
+    from.addEventListener('input', function () {
+      if (form._geo && !from.value.trim()) { form._geo = null; show(''); }
+    });
+    btn.addEventListener('click', function () {
+      if (!navigator.geolocation) { show(esc(GEO_ERR[0]), true); return; }
+      btn.classList.add('busy'); btn.disabled = true; btn.querySelector('span').textContent = 'Ищу…';
+      show('');
+      var done = function () { btn.classList.remove('busy'); btn.disabled = false; btn.querySelector('span').textContent = 'Где я'; };
+      navigator.geolocation.getCurrentPosition(function (pos) {
+        var g = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+        var coords = g.lat.toFixed(5) + ', ' + g.lon.toFixed(5);
+        reverseGeocode(g.lat, g.lon).then(function (addr) { return addr || coords; }, function () { return coords; }).then(function (addr) {
+          from.value = addr; form._geo = g; done(); showMap();
+          from.dispatchEvent(new Event('change'));
+        });
+      }, function (e) {
+        done(); show(esc(GEO_ERR[e && e.code] || GEO_ERR[2]), true);
+      }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 });
+    });
   }
 
   function services(d) {
@@ -178,6 +246,7 @@
 
   // Мини-форма заказа: собирает поля и открывает WhatsApp
   function bindOrderForm(form, getPhone, getName) {
+    bindGeo(form);
     form.querySelectorAll('[data-fill]').forEach(function (b) {
       b.addEventListener('click', function () {
         var inp = form.querySelector('[name="' + b.dataset.fill + '"]');
@@ -194,6 +263,7 @@
     form.addEventListener('submit', function (ev) {
       ev.preventDefault();
       var o = {}; ['from', 'to', 'what', 'when', 'price'].forEach(function (k) { var i = form.querySelector('[name=' + k + ']'); o[k] = i ? i.value.trim() : ''; });
+      if (form._geo && o.from) o.geo = form._geo;
       if (!o.from && !o.to && !o.what) { toast('Укажите хотя бы, что и куда везём'); (form.querySelector('[name=what]') || form.querySelector('input')).focus(); return; }
       var href = waLink(getPhone(), orderText(o, getName && getName()));
       window.open(href, '_blank', 'noopener');
@@ -203,7 +273,7 @@
   window.VEZU = {
     SITE_PHONE: SITE_PHONE, SERVICES: SERVICES, CAPACITY: CAPACITY, DEMO: DEMO,
     esc: esc, encodeCard: encodeCard, decodeCard: decodeCard, cardUrl: cardUrl, clean: clean,
-    normPhone: normPhone, fmtPhone: fmtPhone, waLink: waLink, fmtPrice: fmtPrice, orderText: orderText,
+    normPhone: normPhone, fmtPhone: fmtPhone, waLink: waLink, gisLink: gisLink, gmapsLink: gmapsLink, fmtPrice: fmtPrice, orderText: orderText,
     services: services, initials: initials, metaLine: metaLine, cardHero: cardHero,
     qrSvg: qrSvg, qrPng: qrPng, vcf: vcf, download: download, fileName: fileName,
     toast: toast, copy: copy, share: share, bindOrderForm: bindOrderForm

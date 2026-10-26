@@ -202,3 +202,14 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
 .st .p{font-size:38pt;font-weight:900;letter-spacing:-.01em}
 .st .n{font-size:16pt;color:#555;font-weight:600}
 .qrbox>*{min-width:0}.qrbox .btn{padding:0 12px}.res-grid>*{min-width:0}.res-btns .btn{padding:0 12px}
+
+/* geo */
+.has-geo .inp{padding-right:112px}
+.geo-btn{position:absolute;right:7px;top:50%;transform:translateY(-50%);height:40px;display:inline-flex;align-items:center;gap:6px;padding:0 12px 0 10px;border-radius:12px;border:1px solid rgba(79,209,255,.45);background:rgba(79,209,255,.12);color:#bdf0ff;font-size:14px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .2s}
+.geo-btn:hover{background:rgba(79,209,255,.22)}
+.geo-btn svg{width:18px;height:18px;color:var(--c)}
+.geo-btn.busy svg{animation:geo-pulse .9s ease-in-out infinite}
+@keyframes geo-pulse{50%{transform:scale(.7);opacity:.5}}
+.geo-msg{font-size:13px;line-height:1.45;color:var(--muted);padding:10px 14px;border-radius:14px;background:rgba(79,209,255,.08);border:1px solid rgba(79,209,255,.2)}
+.geo-msg a{color:#bdf0ff;font-weight:700;white-space:nowrap}
+.geo-msg.geo-err{color:#ffd2dc;background:rgba(255,107,139,.1);border-color:rgba(255,107,139,.35)}
