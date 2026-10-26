@@ -19,11 +19,15 @@
   V.applyTheme(document.documentElement, d.th);
   var url = V.cardUrl(d);
   document.title = d.n + (d.c ? ' · ' + d.c : '') + ' — грузоперевозки | ВЕЗУ';
-  var hero = document.getElementById('hero');
-  function renderHero() { hero.innerHTML = V.cardHero(d); }
-  renderHero();
-  // статус «работает / не работает» обновляется раз в минуту
-  if (d.hs != null) setInterval(renderHero, 60000);
+  var hero = document.getElementById('hero'), det = document.getElementById('details');
+  function render() {
+    hero.innerHTML = V.cardHero(d);
+    var html = V.cardDetails(d);
+    det.innerHTML = html ? '<h2>' + V.esc(V.t('details')) + '</h2>' + html : '';
+    det.hidden = !html;
+  }
+  render();
+  if (d.hs != null) setInterval(function () { hero.innerHTML = V.cardHero(d); }, 60000);
 
   var hello = 'Здравствуйте, ' + d.n.split(' ')[0] + '! Нашёл(ла) вашу визитку. Нужна перевозка.';
   var wa = document.getElementById('wa'), call = document.getElementById('call'), tg = document.getElementById('tg');
@@ -37,18 +41,21 @@
   document.getElementById('vcf').addEventListener('click', function () {
     V.download(V.fileName(d.n) + '.vcf', V.vcf(d, url), 'text/vcard;charset=utf-8');
   });
-  var qr = document.getElementById('qr');
-  qr.innerHTML = V.qrSvg(url);
-  V.cardUrlAsync(d).then(function (u) { if (u !== url) { url = u; qr.innerHTML = V.qrSvg(url); } V.cardManifest(d, url); });
-
+  V.cardUrlAsync(d).then(function (u) { url = u; V.cardManifest(d, url); });
+  function showQR() {
+    var s = V.sheet(V.t('qr_t'), '<p class="muted">' + V.esc(V.t('qr_s')) + '</p><div class="qr qr-big" id="qrsheet">' + V.qrSvg(url) + '</div>' +
+      '<button type="button" class="btn btn-glass btn-block" id="qrcopy"><svg><use href="#i-link"/></svg>' + V.esc(V.t('copy')) + '</button>', 'sheet-qr');
+    s.el.querySelector('#qrcopy').addEventListener('click', function () { V.copy(url); });
+  }
+  document.getElementById('qrbtn').addEventListener('click', showQR);
   document.getElementById('share').addEventListener('click', function () {
     V.share(document.title, 'Грузоперевозки: ' + d.n + (d.c ? ' (' + d.c + ')' : '') + '. Пишите в WhatsApp:', url);
   });
-  document.getElementById('copy').addEventListener('click', function () { V.copy(url); });
   V.editUrl(d).then(function (u) { document.getElementById('edit').href = u; });
   V.bindInstall(document.getElementById('install'));
+  document.getElementById('made').href = 'new.html';
 
   langBtns.forEach(function (b) {
-    b.addEventListener('click', function () { V.setLang(b.dataset.lang, true); markLang(); renderHero(); qr.innerHTML = V.qrSvg(url); });
+    b.addEventListener('click', function () { V.setLang(b.dataset.lang, true); markLang(); render(); });
   });
 })();

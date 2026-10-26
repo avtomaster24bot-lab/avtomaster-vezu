@@ -4,10 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ВЕЗУ — перевезём что угодно по лучшей цене</title>
-<meta name="description" content="Грузоперевозки до 3 тонн по Казахстану: переезды, стройматериалы, мебель, вывоз мусора, грузчики. Заказ в WhatsApp за 2 касания. Водителям — бесплатная цифровая визитка с QR-кодом.">
+<meta name="description" content="Грузоперевозки до 3 тонн по Казахстану: переезды, стройматериалы, мебель, вывоз мусора. Заказ в WhatsApp за 2 касания. Водителям — бесплатная визитка с QR.">
 <meta name="theme-color" content="#06061a">
 <meta property="og:title" content="ВЕЗУ — перевезём что угодно по лучшей цене">
-<meta property="og:description" content="Грузы до 3 тонн. Заказ в WhatsApp за 2 касания. Водителям — визитка с QR за 1 минуту.">
+<meta property="og:description" content="Грузоперевозки до 3 тонн по Казахстану: переезды, стройматериалы, мебель, вывоз мусора. Заказ в WhatsApp за 2 касания. Водителям — бесплатная визитка с QR.">
+<meta property="og:url" content="https://avtomaster24bot-lab.github.io/dogruz/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="ВЕЗУ">
 <meta property="og:locale" content="ru_RU">
@@ -23,9 +24,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ВЕЗУ">
-<meta property="og:url" content="https://avtomaster24bot-lab.github.io/dogruz/">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="css/style.css">
+<link rel="preload" as="image" href="img/hero-van-720.webp" imagesrcset="img/hero-van-720.webp 720w, img/hero-van-1280.webp 1280w" imagesizes="(min-width:880px) 1120px, 100vw">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -49,84 +50,92 @@
   <symbol id="i-tg" viewBox="0 0 24 24"><path fill="currentColor" d="M21.4 4.1 2.9 11.3c-1.2.5-1.2 1.2-.2 1.5l4.7 1.5 1.8 5.6c.2.6.1.9.8.9.5 0 .7-.2 1-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.3-.5-1.9-1.5-1.4zM8.6 14l9.9-6.3c.5-.3.9-.1.5.2l-8.5 7.7-.3 3.6z"/></symbol>
   <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></symbol>
   <symbol id="i-install" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v7M9 11l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 11v6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="7.6" r="1.3" fill="currentColor"/></symbol>
+  <symbol id="i-qr" viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 5.5h2v2h-2zM16.5 5.5h2v2h-2zM5.5 16.5h2v2h-2zM14 14h3v3h-3zM18 18h3v3h-3zM18 14h3M14 18v3" fill="currentColor" stroke="currentColor" stroke-width=".6"/></symbol>
+  <symbol id="i-cam" viewBox="0 0 24 24"><path d="M4 8h3l1.5-2.5h7L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13.5" r="3.6" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="i-msg" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 9.5h8M8 12.5h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-hand" viewBox="0 0 24 24"><path d="M3 12l4-4 4 2 3-2 7 5-3 3M7 8l-4 4 6 6 2-1M11 17l2 1 2-1M13 15l2 1" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="9.5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3l2.6 5.5 6 .8-4.4 4.2 1.1 6L12 16.6 6.7 19.5l1.1-6L3.4 9.3l6-.8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
 </svg>
 
 <header class="top">
   <div class="wrap">
     <a class="logo" href="./" aria-label="ВЕЗУ — на главную"><svg><use href="#logo"/></svg><span>везу<small>грузы до 3 тонн</small></span></a>
-    <a class="btn btn-glass btn-sm" href="new.html">Я водитель</a>
+    <nav class="topnav"><a href="tarify.html">Тарифы</a><a class="btn btn-glass btn-sm" href="new.html">Я водитель</a></nav>
   </div>
 </header>
 
 <main class="wrap">
-  <section class="hero">
-    <div>
+  <section class="banner">
+    <img src="img/hero-van-720.webp" srcset="img/hero-van-720.webp 720w, img/hero-van-1280.webp 1280w" sizes="(min-width:880px) 1120px, 100vw" alt="Грузовая машина едет по ночному городу" width="1280" height="720" fetchpriority="high">
+    <div class="banner-txt">
       <span class="badge"><i></i>Казахстан · грузы до 3 тонн</span>
       <h1 class="h1">Перевезём <span class="grad-text">что угодно</span> по лучшей цене</h1>
-      <p class="lead">Переезды, стройматериалы, мебель, вывоз мусора, грузчики. Пишете водителю в WhatsApp напрямую — без диспетчеров и звонков в никуда.</p>
     </div>
+  </section>
 
+  <ol class="how" aria-label="Как это работает">
+    <li><svg><use href="#i-box"/></svg><b>Опишите груз</b><span>что, откуда, куда</span></li>
+    <li><svg><use href="#i-wa"/></svg><b>Отправьте в WhatsApp</b><span>одним нажатием</span></li>
+    <li><svg><use href="#i-hand"/></svg><b>Договоритесь</b><span>с водителем напрямую</span></li>
+  </ol>
+
+  <section class="home-grid">
     <form class="order glass glow f" id="order" novalidate>
-      <div>
+      <div class="order-h">
         <h2>Заказ <b>2 касания</b></h2>
-        <p class="sub">Выберите, что везём, и отправьте — остальное обсудите в чате.</p>
+        <button type="button" class="info-btn" data-info="geo" aria-label="Что такое «Где я»"><svg><use href="#i-info"/></svg>Где я?</button>
       </div>
-      <div class="qchips" aria-label="Что везём">
-        <button type="button" class="qchip" data-fill="what">Переезд</button>
-        <button type="button" class="qchip" data-fill="what">Стройматериалы</button>
-        <button type="button" class="qchip" data-fill="what">Мебель</button>
-        <button type="button" class="qchip" data-fill="what">Вывоз мусора</button>
-        <button type="button" class="qchip" data-fill="what" data-v="Нужны грузчики">Грузчики</button>
-      </div>
-      <label class="fld"><span class="sr">Что везём</span><input class="inp" name="what" placeholder="Что везём? Например: диван и 10 коробок" maxlength="120"></label>
-      <div class="route">
-        <i class="dot d1"></i><i class="dot d2"></i>
-        <label class="fld"><span class="sr">Откуда</span><input class="inp" name="from" placeholder="Откуда" maxlength="120" autocomplete="street-address"></label>
-        <label class="fld"><span class="sr">Куда</span><input class="inp" name="to" placeholder="Куда" maxlength="120"></label>
-      </div>
-      <div class="row2">
-        <label class="fld"><span class="sr">Когда</span>
-          <select class="inp" name="when"><option>Сейчас</option><option>Сегодня</option><option>Завтра</option><option>На этой неделе</option><option value="">Договоримся</option></select>
-        </label>
-        <label class="fld"><span class="sr">Ваша цена</span><input class="inp" name="price" inputmode="numeric" placeholder="Ваша цена"><b class="suffix">₸</b></label>
-      </div>
+    <div class="qchips" aria-label="Что везём">
+      <button type="button" class="qchip" data-fill="what" data-v="Переезд" data-i18n="q_move">Переезд</button>
+      <button type="button" class="qchip" data-fill="what" data-v="Стройматериалы" data-i18n="q_build">Стройматериалы</button>
+      <button type="button" class="qchip" data-fill="what" data-v="Мебель" data-i18n="q_furn">Мебель</button>
+      <button type="button" class="qchip" data-fill="what" data-v="Вывоз мусора" data-i18n="q_trash">Вывоз мусора</button>
+    </div>
+    <label class="fld"><span class="sr">Что везём</span><input class="inp" name="what" placeholder="Что везём? Например: диван и 10 коробок" data-i18n-ph="what" maxlength="120"></label>
+    <div class="route">
+      <i class="dot d1"></i><i class="dot d2"></i>
+      <label class="fld"><span class="sr" data-i18n="from">Откуда</span><input class="inp" name="from" placeholder="Откуда" data-i18n-ph="from" maxlength="120" autocomplete="street-address"></label>
+      <label class="fld"><span class="sr" data-i18n="to">Куда</span><input class="inp" name="to" placeholder="Куда" data-i18n-ph="to" maxlength="120"></label>
+    </div>
+    <div class="row2">
+      <label class="fld"><span class="sr">Когда</span>
+        <select class="inp" name="when"><option value="Сейчас" data-i18n="when_now">Сейчас</option><option value="Сегодня" data-i18n="when_today">Сегодня</option><option value="Завтра" data-i18n="when_tomorrow">Завтра</option><option value="На этой неделе" data-i18n="when_week">На этой неделе</option><option value="" data-i18n="when_any">Договоримся</option></select>
+      </label>
+      <label class="fld"><span class="sr" data-i18n="price">Ваша цена</span><input class="inp" name="price" inputmode="numeric" placeholder="Ваша цена" data-i18n-ph="price"><b class="suffix">₸</b></label>
+    </div>
       <button class="btn btn-wa btn-lg btn-block" type="submit"><svg><use href="#i-wa"/></svg>Отправить в WhatsApp</button>
       <p class="hint">Откроется WhatsApp с готовым сообщением. Цену можно не указывать.</p>
     </form>
-  </section>
 
-  <p class="sec-title">Что возим</p>
-  <section class="svc" aria-label="Услуги">
-    <button type="button" data-svc="Переезд"><svg><use href="#i-home"/></svg>Переезды</button>
-    <button type="button" data-svc="Стройматериалы"><svg><use href="#i-brick"/></svg>Стройка</button>
-    <button type="button" data-svc="Мебель"><svg><use href="#i-sofa"/></svg>Мебель</button>
-    <button type="button" data-svc="Вывоз мусора"><svg><use href="#i-trash"/></svg>Вывоз мусора</button>
-    <button type="button" data-svc="Нужны грузчики"><svg><use href="#i-worker"/></svg>Грузчики</button>
-    <button type="button" data-svc="Груз до 3 тонн"><svg><use href="#i-box"/></svg>До 3 тонн</button>
+    <div class="svc4" aria-label="Что возим">
+      <button type="button" data-svc="Переезд"><img src="img/s-move.webp" alt="" width="320" height="320" loading="lazy" decoding="async"><span>Переезды</span></button>
+      <button type="button" data-svc="Мебель"><img src="img/s-furniture.webp" alt="" width="320" height="320" loading="lazy" decoding="async"><span>Мебель</span></button>
+      <button type="button" data-svc="Стройматериалы"><img src="img/s-build.webp" alt="" width="320" height="320" loading="lazy" decoding="async"><span>Стройка</span></button>
+      <button type="button" data-svc="Вывоз мусора"><img src="img/s-trash.webp" alt="" width="320" height="320" loading="lazy" decoding="async"><span>Вывоз мусора</span></button>
+    </div>
   </section>
 
   <section class="drivers glass glow" id="drivers">
     <div>
       <span class="badge"><i></i>Для водителей · бесплатно</span>
-      <h2>Ваша визитка<br><span class="grad-text">за 1 минуту</span></h2>
-      <ul class="ticks">
-        <li><svg><use href="#i-check"/></svg><span><b>Своя ссылка и QR-код.</b> Покажите клиенту — он отсканирует и напишет вам.</span></li>
-        <li><svg><use href="#i-check"/></svg><span><b>Заказы сразу в WhatsApp.</b> Откуда, куда, что и цена — в одном сообщении.</span></li>
-        <li><svg><use href="#i-check"/></svg><span><b>Печать.</b> Бумажные визитки и наклейка на машину — в один клик.</span></li>
-      </ul>
+      <h2>Ваша визитка <span class="grad-text">за 1 минуту</span></h2>
+      <p class="muted">Ссылка и QR-код — клиенты пишут вам в WhatsApp напрямую, без комиссий.</p>
+      <button type="button" class="info-link" data-info="why"><svg><use href="#i-info"/></svg>Почему это удобнее бумажной визитки</button>
       <div class="btns">
         <a class="btn btn-grad" href="new.html">Создать визитку<svg><use href="#i-arrow"/></svg></a>
-        <a class="btn btn-glass" href="card.html?demo">Посмотреть пример</a>
+        <a class="btn btn-glass" href="card.html?demo">Пример</a>
       </div>
+      <a class="tlink" href="tarify.html">Тарифы, печать визиток и ВЕЗУ Про →</a>
     </div>
     <a class="mock" href="card.html?demo" aria-label="Пример визитки водителя" id="mock"></a>
   </section>
 </main>
-
 <footer class="foot">
   <div class="wrap">
     <span>© 2026 ВЕЗУ · грузоперевозки до 3 тонн</span>
-    <span><a href="new.html">Создать визитку</a> · <a href="card.html?demo">Пример визитки</a></span>
+    <span><a href="new.html">Создать визитку</a> · <a href="card.html?demo">Пример</a> · <a href="tarify.html">Тарифы</a></span>
   </div>
 </footer>
 
@@ -138,11 +147,12 @@
   document.querySelectorAll('[data-svc]').forEach(function (b) {
     b.addEventListener('click', function () {
       var w = form.querySelector('[name=what]'); w.value = b.dataset.svc;
+      form.querySelectorAll('[data-fill]').forEach(function (x) { x.classList.toggle('on', x.dataset.v === b.dataset.svc); });
       form.scrollIntoView({ behavior: 'smooth', block: 'center' });
       setTimeout(function () { form.querySelector('[name=from]').focus({ preventScroll: true }); }, 400);
     });
   });
-  document.getElementById('mock').innerHTML = V.cardHero(V.DEMO);
+  if (matchMedia('(min-width:880px)').matches) document.getElementById('mock').innerHTML = V.cardHero(V.DEMO);
 })();
 </script>
 </body>

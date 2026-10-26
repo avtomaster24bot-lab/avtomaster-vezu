@@ -39,7 +39,7 @@
       wah_open: 'Открыть WhatsApp', wah_copy: 'Скопировать номер', wah_web: 'Через сайт WhatsApp', wah_aria: 'WhatsApp не открылся', close: 'Закрыть',
       ios_install: 'На iPhone: нажмите «Поделиться» внизу экрана → «На экран „Домой“».',
       nf_t: 'Визитка не найдена', nf_s: 'Похоже, ссылка обрезана или скопирована не полностью. Попросите водителя прислать её ещё раз.', nf_new: 'Создать свою визитку', nf_home: 'На главную',
-      sub_card: 'визитка водителя', qr_aria: 'QR-код визитки'
+      sub_card: 'визитка водителя', qr_aria: 'QR-код визитки', details: 'Подробнее', made_by: 'Сделано на ВЕЗУ — сделай свою визитку', wa_short: 'WhatsApp', qr: 'QR-код', save: 'В контакты', why_geo: 'Что это?'
     },
     kk: {
       tag: '3 т дейін жүк тасымалы', demo: 'Үлгі', upto: '{0} дейін', your_name: 'Атыңыз', driver: 'Жүргізуші', ph_meta: 'Көлік · 1,5 т дейін · Қала',
@@ -64,7 +64,7 @@
       wah_open: 'WhatsApp ашу', wah_copy: 'Нөмірді көшіру', wah_web: 'WhatsApp сайты арқылы', wah_aria: 'WhatsApp ашылмады', close: 'Жабу',
       ios_install: 'iPhone-да: төмендегі «Бөлісу» батырмасын басыңыз → «Басты экранға».',
       nf_t: 'Визитка табылмады', nf_s: 'Сілтеме толық көшірілмеген сияқты. Жүргізушіден оны қайта жіберуін сұраңыз.', nf_new: 'Өз визиткаңызды жасау', nf_home: 'Басты бет',
-      sub_card: 'жүргізуші визиткасы', qr_aria: 'Визитканың QR-коды'
+      sub_card: 'жүргізуші визиткасы', qr_aria: 'Визитканың QR-коды', details: 'Толығырақ', made_by: 'ВЕЗУ-да жасалған — өз визиткаңды жаса', wa_short: 'WhatsApp', qr: 'QR-код', save: 'Контактілерге', why_geo: 'Бұл не?'
     }
   };
   var lang = 'ru';
@@ -127,7 +127,7 @@
     if (hs >= 0 && hs <= 24 && he >= 0 && he <= 24 && hs !== he) { out.hs = hs; out.he = he; }
     var tg = String(d.tg || '').trim().replace(/^(https?:\/\/)?(t\.me\/|telegram\.me\/)?@?/i, '');
     if (/^[A-Za-z][A-Za-z0-9_]{3,31}$/.test(tg)) out.tg = tg;
-    var f = parseInt(d.f, 10) & 63; if (f) out.f = f;
+    var f = parseInt(d.f, 10) & 127; if (f) out.f = f;
     var th = parseInt(d.th, 10); if (th > 0 && th < THEMES.length) out.th = th;
     if (d.x) out.x = 1;
     return out;
@@ -436,36 +436,142 @@
   function priceText(d) { return d.pr ? t('price_from', fmtPrice(d.pr)) + ' / ' + t(d.pu ? 'per_hour' : 'per_trip') : ''; }
   function flagList(d, keys, shift) { var o = []; keys.forEach(function (k, i) { if ((d.f || 0) & (1 << (i + shift))) o.push(t(k)); }); return o; }
 
-  function cardHero(d, placeholder) {
+  function cardHero(d, placeholder, opts) {
+    opts = opts || {};
     var name = d.n || (placeholder ? t('your_name') : t('driver'));
     var meta = metaLine(d) || (placeholder ? t('ph_meta') : '');
-    var sv = services(d), open = isOpen(d), ex = flagList(d, EXTRAS, 0), pay = flagList(d, PAYMENTS, 3);
-    var av = '<div class="av"><span>' + esc(initials(name)) + '</span>' +
-      (d.i ? '<img src="' + esc(d.i) + '" alt="" referrerpolicy="no-referrer" onerror="this.remove()">' : '') + '</div>';
+    var open = isOpen(d), ph = photoSrc(d, opts.local);
     var pills = '';
     if (open !== null) pills += '<span class="pill ' + (open ? 'on' : 'off') + '"><i></i>' + esc(open ? (is24(d) ? t('h24') : t('open_now')) : t('closed_now')) +
       (is24(d) ? '' : ' · ' + esc(open ? hoursText(d) : t('from_h', hh(d.hs)))) + '</span>';
     if (d.pr) pills += '<span class="pill price">' + esc(priceText(d)) + '</span>';
-    var facts = '';
-    if (d.z) facts += '<div class="fact"><dt>' + esc(t('zones')) + '</dt><dd>' + esc(d.z) + '</dd></div>';
-    if (ex.length) facts += '<div class="fact"><dt>' + esc(t('extras')) + '</dt><dd>' + ex.map(function (x) { return '<span class="tick">' + esc(x) + '</span>'; }).join('') + '</dd></div>';
-    if (pay.length) facts += '<div class="fact"><dt>' + esc(t('pay')) + '</dt><dd>' + pay.map(function (x) { return '<span class="tick">' + esc(x) + '</span>'; }).join('') + '</dd></div>';
     return '<div class="hero-card">' +
-      '<div class="hc-top"><span class="hc-tag">' + esc(t('tag')) + '</span>' + (d.x ? '<span class="hc-demo">' + esc(t('demo')) + '</span>' : '') + '</div>' +
-      av +
+      '<div class="hc-media"><img class="veh" src="' + vehicleImg(d) + '" alt="" width="520" height="319" decoding="async">' +
+      '<span class="hc-tag">' + esc(t('tag')) + '</span>' + (d.x ? '<span class="hc-demo">' + esc(t('demo')) + '</span>' : '') +
+      '<div class="av"><span>' + esc(initials(name)) + '</span>' +
+      (ph ? '<img src="' + esc(ph) + '" alt="" referrerpolicy="no-referrer" onerror="this.remove()">' : '') + '</div></div>' +
       '<h1 class="hc-name">' + esc(name) + '</h1>' +
       (meta ? '<p class="hc-meta">' + esc(meta) + '</p>' : '') +
-      (d.p ? '<p class="hc-phone">' + esc(fmtPhone(d.p)) + '</p>' : (placeholder ? '<p class="hc-phone muted">+7 ··· ··· ·· ··</p>' : '')) +
       (pills ? '<div class="pills">' + pills + '</div>' : '') +
-      (sv.length ? '<ul class="chips">' + sv.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>' : '') +
-      (d.m ? '<p class="hc-note">' + esc(d.m) + '</p>' : '') +
-      (facts ? '<dl class="facts">' + facts + '</dl>' : '') +
       '</div>';
+  }
+  // Подробности под первым экраном: услуги, районы, «есть», оплата, заметка
+  function cardDetails(d) {
+    var sv = services(d), ex = flagList(d, EXTRAS, 0), pay = flagList(d, PAYMENTS, 3), facts = '';
+    var ticks = function (a) { return a.map(function (x) { return '<span class="tick">' + esc(x) + '</span>'; }).join(''); };
+    if (d.z) facts += '<div class="fact"><dt>' + esc(t('zones')) + '</dt><dd>' + esc(d.z) + '</dd></div>';
+    if (ex.length) facts += '<div class="fact"><dt>' + esc(t('extras')) + '</dt><dd>' + ticks(ex) + '</dd></div>';
+    if (pay.length) facts += '<div class="fact"><dt>' + esc(t('pay')) + '</dt><dd>' + ticks(pay) + '</dd></div>';
+    if (!sv.length && !facts && !d.m) return '';
+    return (sv.length ? '<ul class="chips">' + sv.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : '') +
+      (d.m ? '<p class="hc-note">' + esc(d.m) + '</p>' : '') +
+      (facts ? '<dl class="facts">' + facts + '</dl>' : '');
   }
   function applyTheme(el, th) {
     for (var i = 0; i < THEMES.length; i++) el.classList.remove('th-' + i);
     el.classList.add('th-' + (th || 0));
   }
+
+  // ---------- машина и фото ----------
+  var VEHICLES = [
+    { k: 'kabluk', l: 'Каблук', c: 'Каблук', w: '0,5 т' },
+    { k: 'gazel', l: 'Газель', c: 'Газель', w: '1,5 т' },
+    { k: 'gazel-long', l: 'Газель длинная', c: 'Газель удлинённая', w: '2 т' },
+    { k: 'truck3', l: 'Грузовик 3 т', c: 'Грузовик', w: '3 т' }
+  ];
+  function vehicle(d) {
+    var c = String(d.c || '').toLowerCase();
+    if (/каблук|ларгус|largus|caddy|партн[её]р|berlingo|kangoo|doblo|citan/.test(c)) return 'kabluk';
+    if (/удлин|длинн|long|фермер/.test(c)) return 'gazel-long';
+    if (/грузовик|бычок|isuzu|исузу|hino|валдай|зил|камаз|foton|jac|hd ?\d|3 ?т/.test(c)) return 'truck3';
+    if (d.w === '0,5 т') return 'kabluk';
+    if (d.w === '3 т') return 'truck3';
+    if (d.w === '2 т') return 'gazel-long';
+    return 'gazel';
+  }
+  function vehicleImg(d) { return 'img/v-' + vehicle(d) + '.webp'; }
+  var TG_PHOTO = 64;
+  // Фото с телефона хранится только на этом устройстве и показывается на визитке с тем же номером
+  function localPhoto(d, any) {
+    try { var x = JSON.parse(localStorage.getItem('vezu-photo') || 'null'); if (x && x.img && (any || (d && d.p && x.p === d.p))) return x.img; } catch (e) {}
+    return '';
+  }
+  function photoSrc(d, anyLocal) {
+    return localPhoto(d, anyLocal) || d.i || ((d.f & TG_PHOTO) && d.tg ? 'https://t.me/i/userpic/320/' + d.tg + '.jpg' : '');
+  }
+  // Сжать фото с телефона до маленького квадрата (для хранения на устройстве)
+  function resizePhoto(file, size) {
+    size = size || 128;
+    return new Promise(function (ok, fail) {
+      var img = new Image(), url = URL.createObjectURL(file);
+      img.onload = function () {
+        var s = Math.min(img.naturalWidth, img.naturalHeight), cv = document.createElement('canvas');
+        cv.width = cv.height = size;
+        var g = cv.getContext('2d'); g.imageSmoothingQuality = 'high';
+        g.drawImage(img, (img.naturalWidth - s) / 2, (img.naturalHeight - s) / 2, s, s, 0, 0, size, size);
+        URL.revokeObjectURL(url);
+        var out = cv.toDataURL('image/webp', 0.7);
+        if (out.indexOf('data:image/webp') !== 0) out = cv.toDataURL('image/jpeg', 0.72);
+        ok(out);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); fail(new Error('bad image')); };
+      img.src = url;
+    });
+  }
+
+  // ---------- всплывающие окна (bottom-sheet) ----------
+  var INFO = {
+    ru: {
+      why: ['Почему это удобнее бумажной визитки', '<ul class="why"><li><b>Не теряется.</b> Ссылка остаётся в WhatsApp и Telegram клиента.</li><li><b>Один клик до WhatsApp.</b> Не нужно переписывать номер.</li><li><b>Адрес и точка на карте приходят сами.</b> Меньше звонков «а где вы?».</li><li><b>Как приложение.</b> Можно установить на телефон — открывается даже без интернета.</li><li><b>Без комиссий.</b> Клиент пишет вам напрямую, без агрегатора.</li></ul>'],
+      qr: ['Зачем QR-код', '<p>Клиент наводит камеру телефона на QR — и сразу открывается ваша визитка. Не нужно диктовать номер.</p><p>Распечатайте QR на визитках или на наклейке для машины — его увидят на парковке, у магазина, в пробке.</p>'],
+      geo: ['Что такое «Где я»', '<p>Кнопка определяет, где сейчас клиент, и подставляет адрес в поле «Откуда».</p><p>В сообщение водителю добавляется ссылка на точку в 2ГИС и Google Maps — сразу видно, куда ехать.</p><p>Телефон спросит разрешение. Место отправляется только в этом сообщении.</p>'],
+      install: ['Зачем установить на телефон', '<p>Визитка появится иконкой на главном экране, как приложение. Открывается за секунду и работает даже без интернета — удобно быстро показать QR клиенту.</p><p><b>Android:</b> кнопка «Установить». <b>iPhone:</b> «Поделиться» → «На экран „Домой“».</p>'],
+      pricefrom: ['Что значит «цена от»', '<p>Это ваша минимальная цена — за поездку или за час. Клиент сразу понимает порядок цен.</p><p>Точную сумму вы обсуждаете в WhatsApp: она зависит от расстояния, этажа и грузчиков. Клиент может предложить свою цену прямо в заказе.</p>'],
+      photo: ['Как работает фото', '<p><b>Фото с телефона</b> хранится только на этом устройстве: вы видите его на своей визитке и на печатных визитках. В ссылку фото не помещается — у ВЕЗУ нет сервера, все данные визитки живут прямо в ссылке.</p><p><b>Чтобы фото видели клиенты</b>, включите «Фото из Telegram» (берётся аватар вашего профиля, если он открыт) или вставьте ссылку на фото из интернета.</p><p>Если фото нет — на визитке показывается картинка вашей машины.</p>']
+    },
+    kk: {
+      why: ['Неге бұл қағаз визиткадан ыңғайлы', '<ul class="why"><li><b>Жоғалмайды.</b> Сілтеме клиенттің WhatsApp пен Telegram-ында қалады.</li><li><b>WhatsApp-қа бір басу.</b> Нөмірді қайта жазудың қажеті жоқ.</li><li><b>Мекенжай мен картадағы нүкте өзі келеді.</b></li><li><b>Қосымша сияқты.</b> Телефонға орнатуға болады — интернетсіз де ашылады.</li><li><b>Комиссиясыз.</b> Клиент сізге тікелей жазады.</li></ul>'],
+      qr: ['QR-код не үшін', '<p>Клиент телефон камерасын QR-ға бағыттайды — визиткаңыз бірден ашылады. Нөмірді айтып тұрудың қажеті жоқ.</p><p>QR-ды визиткаға немесе көліктегі жапсырмаға басып шығарыңыз.</p>'],
+      geo: ['«Орным» деген не', '<p>Батырма клиенттің қазір қай жерде екенін анықтап, «Қайдан» жолына мекенжайды қояды.</p><p>Жүргізушіге хабарламада 2ГИС және Google Maps сілтемесі барады — қайда бару керегі бірден көрінеді.</p><p>Телефон рұқсат сұрайды. Орын тек осы хабарламада жіберіледі.</p>'],
+      install: ['Телефонға не үшін орнату', '<p>Визитка басты экранда қосымша сияқты белгіше болып тұрады. Бір секундта ашылады және интернетсіз де жұмыс істейді.</p><p><b>Android:</b> «Орнату» батырмасы. <b>iPhone:</b> «Бөлісу» → «Басты экранға».</p>'],
+      pricefrom: ['«Бастап» баға деген не', '<p>Бұл ең төменгі баға — бір рейс немесе бір сағат үшін.</p><p>Нақты соманы WhatsApp-та келісесіз: қашықтыққа, қабатқа және жүк тиеушілерге байланысты. Клиент тапсырыста өз бағасын ұсына алады.</p>']
+    }
+  };
+  var openSheet = null;
+  function sheet(title, html, cls) {
+    if (openSheet) openSheet();
+    var prev = document.activeElement;
+    var bg = document.createElement('div'); bg.className = 'sheet-bg';
+    var el = document.createElement('div'); el.className = 'sheet' + (cls ? ' ' + cls : ''); el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true');
+    el.innerHTML = '<div class="sheet-grab" aria-hidden="true"></div><button type="button" class="sheet-x" aria-label="' + esc(t('close')) + '">×</button>' +
+      (title ? '<h2 class="sheet-t">' + esc(title) + '</h2>' : '') + '<div class="sheet-b">' + html + '</div>';
+    if (title) el.setAttribute('aria-label', title);
+    bg.appendChild(el); document.body.appendChild(bg);
+    document.body.classList.add('noscroll');
+    requestAnimationFrame(function () { bg.classList.add('in'); });
+    function close() {
+      if (openSheet !== close) return;
+      openSheet = null; document.removeEventListener('keydown', key);
+      document.body.classList.remove('noscroll');
+      bg.classList.remove('in'); setTimeout(function () { bg.remove(); }, 220);
+      if (prev && prev.focus) try { prev.focus({ preventScroll: true }); } catch (e) {}
+    }
+    function key(e) { if (e.key === 'Escape') close(); }
+    bg.addEventListener('click', function (e) { if (e.target === bg) close(); });
+    el.querySelector('.sheet-x').addEventListener('click', close);
+    document.addEventListener('keydown', key);
+    openSheet = close;
+    setTimeout(function () { el.querySelector('.sheet-x').focus({ preventScroll: true }); }, 30);
+    return { el: el, close: close };
+  }
+  function info(key) {
+    var x = (INFO[lang] && INFO[lang][key]) || INFO.ru[key]; if (!x) return;
+    return sheet(x[0], x[1], 'sheet-info');
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-info]');
+    if (b) { e.preventDefault(); info(b.dataset.info); }
+  });
 
   // ---------- QR ----------
   function makeQR(text) {
@@ -595,12 +701,13 @@
 
   var VEZU = window.VEZU = {
     SITE_PHONE: SITE_PHONE, SERVICES: SERVICES, CAPACITY: CAPACITY, EXTRAS: EXTRAS, PAYMENTS: PAYMENTS, THEMES: THEMES, DEMO: DEMO,
-    t: t, setLang: setLang, savedLang: savedLang, applyI18n: applyI18n, lang: function () { return lang; },
+    VEHICLES: VEHICLES, vehicle: vehicle, vehicleImg: vehicleImg, TG_PHOTO: TG_PHOTO, localPhoto: localPhoto, photoSrc: photoSrc, resizePhoto: resizePhoto,
+    sheet: sheet, info: info, t: t, setLang: setLang, savedLang: savedLang, applyI18n: applyI18n, lang: function () { return lang; },
     esc: esc, clean: clean, encode: encode, encodeSync: encodeSync, decode: decode, decodeLegacy: decodeLegacy, decodeCard: decodeLegacy, readCard: readCard,
     cardUrl: cardUrl, cardUrlAsync: cardUrlAsync, editUrl: editUrl,
     normPhone: normPhone, fmtPhone: fmtPhone, waLink: waLink, waApp: waApp, waApi: waApi, waIntent: waIntent, waHref: waHref, openWA: openWA, bindWaLink: bindWaLink, inAppBrowser: inAppBrowser,
     IS_MOBILE: IS_MOBILE, IS_ANDROID: IS_ANDROID, IS_IOS: IS_IOS, _nav: function (u) { location.href = u; }, gisLink: gisLink, gmapsLink: gmapsLink, fmtNum: fmtNum, fmtPrice: fmtPrice, orderText: orderText,
-    services: services, initials: initials, metaLine: metaLine, hoursText: hoursText, isOpen: isOpen, almatyHour: almatyHour, priceText: priceText, cardHero: cardHero, applyTheme: applyTheme,
+    services: services, initials: initials, metaLine: metaLine, hoursText: hoursText, isOpen: isOpen, almatyHour: almatyHour, priceText: priceText, cardHero: cardHero, cardDetails: cardDetails, applyTheme: applyTheme,
     qrSvg: qrSvg, qrPng: qrPng, vcf: vcf, download: download, fileName: fileName,
     toast: toast, copy: copy, share: share, bindOrderForm: bindOrderForm, bindInstall: bindInstall, cardManifest: cardManifest
   };

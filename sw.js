@@ -1,7 +1,8 @@
 /* ВЕЗУ service worker: сеть в первую очередь, кэш — для работы офлайн */
-var CACHE = 'vezu-v3';
-var SHELL = ['./', 'index.html', 'card.html', 'new.html', 'css/style.css', 'js/common.js', 'js/card.js', 'js/new.js',
-  'js/vendor/qrcode.js', 'js/vendor/inflate.js', 'favicon.svg', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
+var CACHE = 'vezu-v4';
+var SHELL = ['./', 'index.html', 'card.html', 'new.html', 'tarify.html', 'css/style.css', 'js/common.js', 'js/card.js', 'js/new.js',
+  'js/vendor/qrcode.js', 'js/vendor/inflate.js', 'favicon.svg', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png',
+  'img/hero-van-720.webp', 'img/v-kabluk.webp', 'img/v-gazel.webp', 'img/v-gazel-long.webp', 'img/v-truck3.webp'];
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(SHELL); }).then(function () { return self.skipWaiting(); }));
 });
