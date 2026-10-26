@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Генерирует справочники (без личных данных) из SQLite-базы бота:
-site/avto/js/seed.js (для демо-режима) и supabase/02_seed.sql (для Supabase).
+site/js/seed.js (для демо-режима) и supabase/02_seed.sql (для Supabase).
 Запуск: python3 tools/build_seed.py путь/avtomaster.db путь/старая_база.db
 Из баз берутся ТОЛЬКО справочники: города, категории, услуги, марки, модели, интервалы ТО, справочный прайс.
 Пользователи, телефоны, telegram id, админы, заявки — НЕ выгружаются."""
@@ -21,7 +21,7 @@ for brand, model, svc, price in b.execute('select brand,model,service_name,price
     prices.append(dict(brand=(brand or '').title(), model=model.title(), service=re.sub(r'\s+', ' ', svc).strip(), price=int(price)))
 data = dict(cities=cities, categories=cats, subcategories=subs, price_categories=pcats, price_services=psvc,
             brands=brands, models=models, maintenance=maint, ref_prices=prices)
-open('site/avto/js/seed.js', 'w').write('// Сгенерировано tools/build_seed.py из базы бота (только справочники, без личных данных)\nexport const SEED = ' + json.dumps(data, ensure_ascii=False, separators=(',', ':')) + ';\n')
+open('site/js/seed.js', 'w').write('// Сгенерировано tools/build_seed.py из базы бота (только справочники, без личных данных)\nexport const SEED = ' + json.dumps(data, ensure_ascii=False, separators=(',', ':')) + ';\n')
 q = lambda s: 'null' if s is None else "'" + str(s).replace("'", "''") + "'"
 out = ['-- Справочники АвтоМастер24 (сгенерировано tools/build_seed.py, без личных данных). Повторный запуск безопасен.']
 for c in cities: out.append(f"insert into am_cities(id,name,region,active) values ({c['id']},{q(c['name'])},{q(c['region'])},{str(c['active']).lower()}) on conflict (id) do nothing;")

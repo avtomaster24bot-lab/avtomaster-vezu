@@ -1,9 +1,28 @@
 <!doctype html>
-<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Страница не найдена — АвтоМастер24 + ВЕЗУ</title>
-<link rel="icon" href="/avtomaster-vezu/avto/assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/avtomaster-vezu/hub.css">
-</head><body><div class="wrap"><section class="hero">
-<h1>Страница не найдена</h1><p>Такой страницы нет. Выберите раздел:</p></section>
-<nav class="quick"><a href="/avtomaster-vezu/">⌂ Главная</a><a href="/avtomaster-vezu/avto/">🔧 АвтоМастер24</a><a href="/avtomaster-vezu/vezu/">🚚 ВЕЗУ</a></nav>
-</div></body></html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>АвтоМастер24 — СТО, эвакуатор, мойка, запчасти</title>
+<meta name="description" content="АвтоМастер24: заявка на СТО, эвакуатор, автомойку, запчасти и выездную помощь. Для клиентов и для исполнителей.">
+<meta name="theme-color" content="#0F0F0F">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@400;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script src="https://telegram.org/js/telegram-web-app.js" defer></script>
+</head>
+<body>
+<header class="top">
+  <a href="#/" class="logo"><img src="assets/favicon.svg" alt=""><span>АВТОМАСТЕР<b>24</b></span></a>
+  <select id="citySel" aria-label="Город"></select>
+  <a href="#/profile" id="meChip" class="chip">Войти</a>
+</header>
+<div id="demoBar" class="demobar" hidden></div>
+<main id="view"><div class="loading">Загрузка…</div></main>
+<nav class="bottom" id="nav"></nav>
+<div id="toast" class="toast" hidden></div>
+<script type="module" src="js/app.js"></script>
+<noscript>Для работы сайта включите JavaScript.</noscript>
+</body>
+</html>

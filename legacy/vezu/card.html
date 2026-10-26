@@ -3,21 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Тарифы и ВЕЗУ Про — визитки водителей</title>
-<meta name="description" content="Базовая визитка водителя — бесплатно. ВЕЗУ Про, печать визиток и наклейки на машину, реклама для партнёров.">
+<title>Визитка водителя — ВЕЗУ</title>
+<meta name="description" content="Грузоперевозки до 3 тонн. Напишите водителю в WhatsApp, позвоните или сохраните контакт.">
 <meta name="theme-color" content="#06061a">
-<meta property="og:title" content="Тарифы и ВЕЗУ Про — визитки водителей">
-<meta property="og:description" content="Базовая визитка водителя — бесплатно. ВЕЗУ Про, печать визиток и наклейки на машину, реклама для партнёров.">
-<meta property="og:url" content="https://avtomaster24bot-lab.github.io/avtomaster-vezu/vezu/tarify.html">
+<meta property="og:title" content="Визитка водителя — ВЕЗУ">
+<meta property="og:description" content="Грузоперевозки до 3 тонн. Напишите водителю в WhatsApp, позвоните или сохраните контакт.">
+<meta property="og:url" content="https://avtomaster24bot-lab.github.io/dogruz/card.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="ВЕЗУ">
 <meta property="og:locale" content="ru_RU">
-<meta property="og:image" content="https://avtomaster24bot-lab.github.io/avtomaster-vezu/vezu/og.png">
+<meta property="og:image" content="https://avtomaster24bot-lab.github.io/dogruz/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="ВЕЗУ — грузоперевозки до 3 тонн и визитки водителей">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://avtomaster24bot-lab.github.io/avtomaster-vezu/vezu/og.png">
+<meta name="twitter:image" content="https://avtomaster24bot-lab.github.io/dogruz/og.png">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -26,10 +26,8 @@
 <meta name="apple-mobile-web-app-title" content="ВЕЗУ">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="../shared/hubbar.css">
 </head>
 <body>
-<nav class="hubbar" aria-label="Разделы сайта"><a class="hb-home" href="../" title="На общую главную">⌂ <span>АвтоМастер<b>24</b> + <i>ВЕЗУ</i></span></a><span class="hb-links"><a href="../avto/">🔧 Авто-услуги</a><a class="on" aria-current="true" href="../vezu/">🚚 Грузоперевозки</a></span></nav>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8f7cff"/><stop offset=".55" stop-color="#4fd1ff"/><stop offset="1" stop-color="#ff8f70"/></linearGradient></defs>
   <symbol id="logo" viewBox="0 0 40 40"><rect width="40" height="40" rx="12" fill="url(#lg)"/><path d="M10 11l8 17 13-13M24.5 15H31v6.5" fill="none" stroke="#0b0b1f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
@@ -61,77 +59,67 @@
 </svg>
 
 <header class="top">
-  <div class="wrap">
-    <a class="logo" href="./" aria-label="ВЕЗУ — на главную"><svg><use href="#logo"/></svg><span>везу<small>тарифы</small></span></a>
-    <nav class="topnav"><a class="btn btn-glass btn-sm" href="new.html">Создать визитку</a></nav>
+  <div class="wrap narrow">
+    <a class="logo" href="./" aria-label="ВЕЗУ — на главную"><svg><use href="#logo"/></svg><span>везу<small><span data-i18n="sub_card">визитка водителя</span></small></span></a>
+    <div class="lang" role="group" aria-label="Язык / Тіл">
+      <button type="button" data-lang="ru" aria-pressed="true">Рус</button><button type="button" data-lang="kk" aria-pressed="false">Қаз</button>
+    </div>
   </div>
 </header>
 
-<main class="wrap tarify">
-  <h1>Тарифы <span class="grad-text">ВЕЗУ</span></h1>
-  <p class="muted lead2">Визитка водителя бесплатна. Платно — то, что экономит ваше время.</p>
+<main class="wrap narrow card-page" id="app">
+  <div id="hero"></div>
 
-  <div class="plans">
-    <section class="plan glass">
-      <h2>Базовая</h2>
-      <p class="price">0 ₸<small>навсегда</small></p>
-      <ul><li><svg><use href="#i-check"/></svg><span>Визитка-ссылка и QR-код</span></li><li><svg><use href="#i-check"/></svg><span>Кнопки WhatsApp и «Позвонить»</span></li><li><svg><use href="#i-check"/></svg><span>Печать визиток и наклейки сами</span></li><li><svg><use href="#i-check"/></svg><span>Русский и казахский</span></li></ul>
-      <a class="btn btn-glass btn-block" href="new.html">Создать визитку</a>
-    </section>
-    <section class="plan glass glow pro">
-      <span class="tag-soon">Скоро</span>
-      <h2>Про</h2>
-      <p class="price">1 500 ₸<small>в месяц</small></p>
-      <ul><li><svg><use href="#i-check"/></svg><span>Короткий адрес визитки</span><em>скоро</em></li><li><svg><use href="#i-check"/></svg><span>Место в каталоге водителей</span><em>скоро</em></li><li><svg><use href="#i-check"/></svg><span>Фото на сервере — видно всем</span><em>скоро</em></li><li><svg><use href="#i-check"/></svg><span>Статистика просмотров</span><em>скоро</em></li><li><svg><use href="#i-check"/></svg><span>Без надписи «Сделано на ВЕЗУ»</span><em>скоро</em></li></ul>
-      <button type="button" class="btn btn-grad btn-block" data-wa="pro"><svg><use href="#i-wa"/></svg>Хочу Про</button>
-    </section>
-    <section class="plan glass">
-      <h2>Визитки + наклейка</h2>
-      <p class="price">Уточняйте<small>печать под ключ</small></p>
-      <ul><li><svg><use href="#i-check"/></svg><span>Пачка бумажных визиток с QR</span></li><li><svg><use href="#i-check"/></svg><span>Наклейка с QR на машину</span></li><li><svg><use href="#i-check"/></svg><span>Под цвет вашей визитки</span></li></ul>
-      <button type="button" class="btn btn-wa btn-block" data-wa="print"><svg><use href="#i-wa"/></svg>Заказать печать</button>
-    </section>
+  <div class="big2">
+    <a class="btn btn-wa btn-xl" id="wa" href="#" target="_blank" rel="noopener"><svg><use href="#i-wa"/></svg><span data-i18n="wa_short">WhatsApp</span></a>
+    <a class="btn btn-call btn-xl" id="call" href="#"><svg><use href="#i-phone"/></svg><span data-i18n="call">Позвонить</span></a>
   </div>
 
-  <div class="plans2">
-    <section class="plan glass mini">
-      <h2>Партнёрам</h2>
-      <p class="muted">СТО, шиномонтаж, строймагазины, мебельные: реклама на визитках водителей и на сайте ВЕЗУ.</p>
-      <button type="button" class="btn btn-glass btn-sm" data-wa="partner"><svg><use href="#i-wa"/></svg>Обсудить</button>
-    </section>
-    <section class="plan glass mini">
-      <h2>Приведи водителя <em class="soon">идея</em></h2>
-      <p class="muted">Когда запустится Про: водитель, которого вы пригласили, подключил Про — вам месяц Про бесплатно.</p>
-      <button type="button" class="btn btn-glass btn-sm" id="shareApp"><svg><use href="#i-share"/></svg>Рассказать коллеге</button>
-    </section>
+  <nav class="iconrow" aria-label="Действия">
+    <button type="button" id="vcf"><svg><use href="#i-user"/></svg><span data-i18n="save">В контакты</span></button>
+    <button type="button" id="share"><svg><use href="#i-share"/></svg><span data-i18n="share">Поделиться</span></button>
+    <button type="button" id="qrbtn"><svg><use href="#i-qr"/></svg><span data-i18n="qr">QR-код</span></button>
+    <a id="tg" href="#" target="_blank" rel="noopener" hidden><svg><use href="#i-tg"/></svg><span>Telegram</span></a>
+  </nav>
+
+  <section class="panel glass" id="details" hidden></section>
+
+  <form class="panel glass f" id="order" novalidate>
+    <div class="order-h">
+      <div><h2 data-i18n="order">Быстрый заказ</h2><p class="sub" data-i18n="order_sub">Заполните — сообщение уйдёт водителю в WhatsApp.</p></div>
+      <button type="button" class="info-btn" data-info="geo" data-i18n-aria="why_geo" aria-label="Что это?"><svg><use href="#i-info"/></svg></button>
+    </div>
+    <div class="qchips" aria-label="Что везём">
+      <button type="button" class="qchip" data-fill="what" data-v="Переезд" data-i18n="q_move">Переезд</button>
+      <button type="button" class="qchip" data-fill="what" data-v="Стройматериалы" data-i18n="q_build">Стройматериалы</button>
+      <button type="button" class="qchip" data-fill="what" data-v="Мебель" data-i18n="q_furn">Мебель</button>
+      <button type="button" class="qchip" data-fill="what" data-v="Вывоз мусора" data-i18n="q_trash">Вывоз мусора</button>
+    </div>
+    <label class="fld"><span class="sr">Что везём</span><input class="inp" name="what" placeholder="Что везём?" data-i18n-ph="what" maxlength="120"></label>
+    <div class="route">
+      <i class="dot d1"></i><i class="dot d2"></i>
+      <label class="fld"><span class="sr" data-i18n="from">Откуда</span><input class="inp" name="from" placeholder="Откуда" data-i18n-ph="from" maxlength="120" autocomplete="street-address"></label>
+      <label class="fld"><span class="sr" data-i18n="to">Куда</span><input class="inp" name="to" placeholder="Куда" data-i18n-ph="to" maxlength="120"></label>
+    </div>
+    <div class="row2">
+      <label class="fld"><span class="sr">Когда</span>
+        <select class="inp" name="when"><option value="Сейчас" data-i18n="when_now">Сейчас</option><option value="Сегодня" data-i18n="when_today">Сегодня</option><option value="Завтра" data-i18n="when_tomorrow">Завтра</option><option value="На этой неделе" data-i18n="when_week">На этой неделе</option><option value="" data-i18n="when_any">Договоримся</option></select>
+      </label>
+      <label class="fld"><span class="sr" data-i18n="price">Ваша цена</span><input class="inp" name="price" inputmode="numeric" placeholder="Ваша цена" data-i18n-ph="price"><b class="suffix">₸</b></label>
+    </div>
+    <button class="btn btn-wa btn-block" type="submit"><svg><use href="#i-wa"/></svg><span data-i18n="send">Отправить заказ</span></button>
+  </form>
+
+  <div class="card-foot">
+    <button class="lnk" id="install" type="button" hidden><svg><use href="#i-install"/></svg><span data-i18n="install">Установить на телефон</span></button>
+    <a class="lnk" id="edit" href="new.html"><svg><use href="#i-edit"/></svg><span data-i18n="edit">Редактировать визитку</span></a>
   </div>
-  <p class="fine">Цены Про — планируемые, функции с пометкой «скоро» ещё в разработке. Всё, что есть на сайте сейчас, — бесплатно.</p>
+  <a class="made" id="made" href="./" data-i18n="made_by">Сделано на ВЕЗУ — сделай свою визитку</a>
 </main>
-<footer class="foot">
-  <div class="wrap">
-    <span>© 2026 ВЕЗУ · грузоперевозки до 3 тонн</span>
-    <span><a href="new.html">Создать визитку</a> · <a href="card.html?demo">Пример</a> · <a href="tarify.html">Тарифы</a></span>
-  </div>
-</footer>
 
+<script src="js/vendor/qrcode.js"></script>
 <script src="js/vendor/inflate.js"></script>
 <script src="js/common.js"></script>
-<script>
-(function () {
-  var V = window.VEZU, mine = '';
-  try { var d = JSON.parse(localStorage.getItem('vezu-card') || 'null'); if (d && d.n && d.p) mine = V.cardUrl(d); } catch (e) {}
-  var T = {
-    pro: 'Здравствуйте! Хочу ВЕЗУ Про. Напишите, когда запустится.',
-    print: 'Здравствуйте! Хочу заказать печать визиток и наклейку на машину (ВЕЗУ).',
-    partner: 'Здравствуйте! Интересует реклама/партнёрство с ВЕЗУ.'
-  };
-  document.querySelectorAll('[data-wa]').forEach(function (b) {
-    b.addEventListener('click', function () { V.openWA(V.SITE_PHONE, T[b.dataset.wa] + (mine ? '\nМоя визитка: ' + mine : '')); });
-  });
-  document.getElementById('shareApp').addEventListener('click', function () {
-    V.share('ВЕЗУ — визитка водителя', 'Сделай бесплатную визитку водителя с WhatsApp и QR:', location.href.replace(/[^/]*$/, '') + 'new.html');
-  });
-})();
-</script>
+<script src="js/card.js"></script>
 </body>
 </html>
