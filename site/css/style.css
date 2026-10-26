@@ -1,4 +1,5 @@
 :root{--p:#E8B84B;--p2:#f3cf78;--bg:#0F0F0F;--s1:#181818;--s2:#242424;--s3:#2c2c2c;--line:#2a2a2a;--t:#F5F5F5;--t2:#d6d6d6;--m:#9a9a9a;--ok:#3fae4a;--err:#FF5252;--blue:#2196F3;--r:16px;--sh:0 10px 30px rgba(0,0,0,.35);--spring:cubic-bezier(.34,1.56,.64,1);--topbg:rgba(15,15,15,.88);--navbg:#141414;color-scheme:dark}
+[hidden]{display:none!important}
 [data-theme=light]{--bg:#F6F4EF;--s1:#FFFFFF;--s2:#F0EDE6;--s3:#E6E1D6;--line:#E3DED3;--t:#1A1A1A;--t2:#333;--m:#6d6a64;--sh:0 8px 24px rgba(40,30,0,.08);--topbg:rgba(246,244,239,.9);--navbg:#fff;--p:#D9A22E;color-scheme:light}
 *{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--t);font:15px/1.5 Manrope,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
 a{color:var(--p);text-decoration:none}a:hover{text-decoration:underline}h1,h2,h3{font-family:Manrope,system-ui,sans-serif;letter-spacing:-.4px;font-weight:800;margin:.2em 0 .45em;line-height:1.15}
