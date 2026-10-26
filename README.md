@@ -10,3 +10,16 @@
 QR генерируется в браузере библиотекой `js/vendor/qrcode.js` (MIT).
 
 PWA: `manifest.webmanifest`, `sw.js` (сеть в первую очередь, офлайн из кэша), иконки в `icons/`. Превью для мессенджеров — `og.png`.
+
+## ВЕЗУ Про (облако, Supabase)
+
+- Проект Supabase: `sfgrwquitlnzlkyzashb` (VEZU). В `js/config.js` — только публичный publishable-ключ; service_role нигде в репозитории нет.
+- Схема: `supabase/vz_schema.sql` (идемпотентная): таблицы `vz_cards`, `vz_events`, `vz_admins`, `vz_pro_log` (RLS включён, прямого доступа нет),
+  функции с правами владельца — в непубличной схеме `vz_private`, наружу — обёртки `public.vz_*` (security invoker). Bucket `vz_photos` (публичное чтение).
+- Edge-функция `supabase/functions/vz-photo` — загрузка фото (проверяет ключ доступа и активный Про), `verify_jwt = false`.
+- Вход без регистрации: при первом сохранении в облако телефон создаёт случайный ключ доступа (256 бит), в базе хранится только SHA-256.
+  Перенос на другой телефон — ссылка `new.html#k=<ключ>` (кнопка «Сохранить себе в WhatsApp»).
+- Первое сохранение — 7 дней Про бесплатно. Продление — вручную на `admin.html` (ключ админа; в `vz_admins` — его SHA-256).
+- Короткие адреса: `…/dogruz/<slug>` (через `404.html`) и `…/dogruz/d/?<slug>` → `card.html?u=<slug>`.
+- Если облако недоступно или схемы нет — сайт работает как раньше (визитка-ссылка), Про показывается как «скоро».
+- Проверка SQL локально: `tests/run_db_tests.sh` (чистый PostgreSQL + `tests/local_shim.sql`). Страницы собираются `python3 tools/build_pages.py`.

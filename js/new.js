@@ -83,13 +83,13 @@
   function photo() { try { return JSON.parse(localStorage.getItem(PKEY) || 'null'); } catch (e) { return null; } }
   document.getElementById('photo').addEventListener('change', function (e) {
     var file = e.target.files && e.target.files[0]; if (!file) return;
-    V.resizePhoto(file, 128).then(function (img) {
-      try { localStorage.setItem(PKEY, JSON.stringify({ p: V.normPhone(phone.value), img: img })); } catch (er) { V.toast('Не удалось сохранить фото'); return; }
+    V.resizePhoto(file, 256).then(function (img) {
+      try { localStorage.setItem(PKEY, JSON.stringify({ p: V.normPhone(phone.value), img: img })); localStorage.removeItem('vezu-photo-del'); } catch (er) { V.toast('Не удалось сохранить фото'); return; }
       V.toast('Фото сохранено на этом телефоне'); update();
     }, function () { V.toast('Не получилось открыть фото — попробуйте другое'); });
     e.target.value = '';
   });
-  phdel.addEventListener('click', function () { localStorage.removeItem(PKEY); update(); });
+  phdel.addEventListener('click', function () { var x = photo(); localStorage.removeItem(PKEY); if (x && x.up) localStorage.setItem('vezu-photo-del', '1'); update(); });
 
   // ---- шаги ----
   var step = 1;
@@ -113,7 +113,7 @@
     go(+(b.dataset.next || b.dataset.go));
   });
 
-  var link = '', d = {}, seq = 0, pvwrap = document.getElementById('pvwrap');
+  var link = '', d = {}, seq = 0, short = '', pvwrap = document.getElementById('pvwrap');
   function on(el, test) { el.querySelectorAll('button').forEach(function (b) { var v = test(b); b.classList.toggle('on', v); b.setAttribute('aria-pressed', v); }); }
   function update() {
     TEXT.forEach(function (k) { state[k] = f.elements[k].value.trim(); });
@@ -146,11 +146,19 @@
 
     var ok = !!(d.n && d.p);
     document.getElementById('rbody').classList.toggle('locked', !ok);
+    if (window.VEZU_PRO) window.VEZU_PRO.changed(d);
     if (!ok) { setLink(''); return; }
     var my = ++seq;
+    if (short) { setLink(short); return; }
     setLink(V.cardUrl(d));
-    V.cardUrlAsync(d).then(function (u) { if (my === seq) setLink(u); });
+    V.cardUrlAsync(d).then(function (u) { if (my === seq && !short) setLink(u); });
   }
+  // для ВЕЗУ Про (js/pro.js): данные визитки, короткий адрес вместо длинной ссылки, обновление фото
+  window.VEZU_B = {
+    data: function () { return d; }, photo: photo, refresh: update,
+    setShort: function (u) { if (short !== (u || '')) { short = u || ''; update(); } },
+    setForm: function (x) { if (f.elements.n.value.trim()) return false; init = V.clean(x); location.replace('new.html?c=' + V.encodeSync(init)); return true; }
+  };
   function setLink(u) {
     link = u;
     document.getElementById('link').value = u || 'Здесь появится ваша ссылка';
