@@ -1,3 +1,5 @@
+> Перенесено в гибрид: файлы сайта теперь в `site/avto/`, адрес — https://avtomaster24bot-lab.github.io/avtomaster-vezu/avto/ (пути `site/...` ниже читайте как `site/avto/...`).
+
 # АвтоМастер24 — веб-версия сервиса (сайт на GitHub Pages)
 
 Тот же сервис, что в Telegram-боте **@TochkaSborki_A24_bot**, только в браузере:

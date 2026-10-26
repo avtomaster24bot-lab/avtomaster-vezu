@@ -1,3 +1,5 @@
+> Перенесено в гибрид: файлы сайта теперь в `site/vezu/`, адрес — https://avtomaster24bot-lab.github.io/avtomaster-vezu/vezu/
+
 # ВЕЗУ — грузоперевозки до 3 тонн и визитки водителей
 
 Статический сайт (GitHub Pages, без сервера).
