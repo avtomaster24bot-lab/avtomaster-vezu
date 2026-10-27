@@ -5,6 +5,7 @@ import { KINDS, URGENT, SUPPLIER, TOW_VEHICLES, WHEELS, WASH_SERVICES, CAR_TYPES
 import { REGION, money as rMoney, mapSearch, mapPoint, fmtPhone, validPhone } from './region.js';
 import { PRIMARY, sendLink, requestText, ownerContact, dispatcherPhone } from './messaging.js';
 import { startOrder, orderUrl, ownerOrderUrl, myOrders } from './orders.js';
+import { ic, KIND_IC } from './icons.js';
 import { qrSvg, qrPng, download, cardUrl, shopUrl, hasShop, isExternalShop, share as shareLink } from './cardkit.js';
 
 // ------------------------------------------------------------ утилиты
@@ -81,7 +82,13 @@ const siteUrl = () => location.origin + location.pathname;
 async function boot() {
   try { window.Telegram?.WebApp?.ready(); window.Telegram?.WebApp?.expand(); } catch { /* ignore */ }
   applyTheme(localStorage.getItem('am24-theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
-  S.ref = await api.ref();
+  try { S.ref = await api.ref(); }
+  catch (e) {
+    $('#view').innerHTML = `<div class="card center"><div class="big-i">📡</div><h2>Не удалось загрузить данные</h2><p class="muted">${esc(e.message || e)}</p>
+      <p class="small muted">Проверьте интернет. Если не помогло — сбросьте сохранённые данные сайта (вход и кэш), заказы в базе не пропадут.</p>
+      <div class="row" style="justify-content:center"><button class="p" onclick="location.reload()">Повторить</button><button onclick="window.am24Reset&&am24Reset()">Сбросить и открыть заново</button></div></div>`;
+    return;
+  }
   try { S.caps = await api.caps(); } catch { S.caps = { v3: false }; }
   await refreshMe();
   window.addEventListener('hashchange', () => { render(); window.scrollTo(0, 0); });
@@ -93,10 +100,10 @@ async function boot() {
     const fv = e.target.closest('[data-fav]'); if (fv) { e.preventDefault(); const on = toggleFav(fv.dataset.fav); fv.classList.toggle('on', on); fv.setAttribute('aria-pressed', on); fv.textContent = on ? '♥' : '♡'; toast(on ? 'Добавлено в избранное' : 'Убрано из избранного'); }
   });
   window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); S.installEvt = e; $$('[data-install]').forEach((b) => { b.hidden = false; }); });
-  if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+  if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((r) => r.update?.()).catch(() => {});
   render();
 }
-function applyTheme(t, save) { document.documentElement.dataset.theme = t; $('meta[name=theme-color]')?.setAttribute('content', t === 'light' ? '#F6F4EF' : '#0F0F0F'); $('#themeBtn').textContent = t === 'light' ? '🌙' : '☀️'; $('#themeBtn').setAttribute('aria-label', t === 'light' ? 'Тёмная тема' : 'Светлая тема'); if (save) localStorage.setItem('am24-theme', t); }
+function applyTheme(t, save) { document.documentElement.dataset.theme = t; $('meta[name=theme-color]')?.setAttribute('content', t === 'light' ? '#F6F4EF' : '#0F0F0F'); $('#themeBtn').innerHTML = ic(t === 'light' ? 'moon' : 'sun'); $('#themeBtn').setAttribute('aria-label', t === 'light' ? 'Тёмная тема' : 'Светлая тема'); if (save) localStorage.setItem('am24-theme', t); }
 async function refreshMe() {
   try { S.me = await api.session(); } catch (e) { S.me = null; toast(e.message, true); }
   if (S.me?.city && !localStorage.getItem('am24-city')) S.city = S.me.city;
@@ -118,9 +125,9 @@ function chrome(route) {
     $('[data-reset]', bar).onclick = async () => { await api.resetDemo(); await refreshMe(); toast('Демо-данные сброшены'); render(); };
     const lv = $('[data-leave]', bar); if (lv) lv.onclick = () => { leaveDemo(); location.href = location.pathname + '#/'; location.reload(); };
   } else bar.hidden = true;
-  const items = [['', '🏠', 'Главная'], ['requests', '📋', 'Заявки'], ['catalog', '🔎', 'Мастера'],
-    S.myProv.length ? ['cabinet', '🛠', 'Кабинет'] : ['garage', '🚗', 'Гараж'], isAdmin() ? ['admin', '🛡', 'Админ'] : ['profile', '👤', 'Профиль']];
-  $('#nav').innerHTML = items.map(([h, i, t]) => `<a href="#/${h}" class="${route === h ? 'on' : ''}" ${route === h ? 'aria-current="page"' : ''}><span aria-hidden="true">${i}</span>${t}</a>`).join('');
+  const items = [['', 'home', 'Главная'], ['requests', 'list', 'Заявки'], ['catalog', 'search', 'Мастера'],
+    S.myProv.length ? ['cabinet', 'wrench', 'Кабинет'] : ['garage', 'car', 'Гараж'], isAdmin() ? ['admin', 'shield', 'Админ'] : ['profile', 'user', 'Профиль']];
+  $('#nav').innerHTML = items.map(([h, i, t]) => `<a href="#/${h}" class="${route === h ? 'on' : ''}" ${route === h ? 'aria-current="page"' : ''}><span aria-hidden="true">${ic(i)}</span>${t}</a>`).join('');
 }
 
 // ------------------------------------------------------------ роутер
@@ -145,7 +152,20 @@ async function render() {
 }
 const needLogin = (what = 'этого действия') => `<div class="card center"><div class="big-i">🔐</div><h2>Нужно войти</h2><p class="muted">Для ${what} войдите через Telegram — это занимает 5 секунд. Телефон вы укажете сами, и его увидит только исполнитель, который возьмёт вашу заявку.</p><a class="btn p" href="#/login">Войти</a></div>`;
 const autoRefresh = () => { S.timer = setInterval(() => { if (!document.hidden && !document.activeElement?.closest('form')) render(); }, CONFIG.REFRESH_SECONDS * 1000); };
-const empty = (icon, text, cta = '') => `<div class="empty"><div class="big-i">${icon}</div><p>${text}</p>${cta}</div>`;
+const empty = (icon, text, cta = '', hint = '') => `<div class="empty"><div class="empty-i">${icon}</div><p>${text}</p>${hint ? `<p class="small muted">${hint}</p>` : ''}<div class="row" style="justify-content:center">${cta}</div></div>`;
+const hint = (text) => `<div class="hint">${ic('bulb')}<span>${text}</span></div>`;
+const HOW = {
+  client: [['search', 'Опишите, что случилось', 'Выберите услугу или напишите своими словами: «стучит подвеска», «сел аккумулятор».'],
+    ['chat', 'Мастера откликнутся', 'Заявку увидят подходящие исполнители города. Цену и детали уточните в чате на сайте.'],
+    ['star', 'Сделано — оцените', 'После работы поставьте оценку: рейтинг помогает другим выбрать честного мастера.']],
+  biz: [['idcard', 'Создайте визитку', 'Бесплатно за минуту: услуги, цены, фото, адрес и QR-код для клиентов.'],
+    ['chat', 'Получайте заявки', `Заказы приходят в ${PRIMARY.label} и в кабинет, переписка и цена — в чате на сайте.`],
+    ['star', 'Растите в рейтинге', 'Оценки клиентов поднимают визитку в каталоге. Магазину — витрина с корзиной.']],
+};
+const howBlock = () => `<section class="how" aria-labelledby="howH"><div class="row between"><h2 id="howH">Как это работает</h2>
+  <div class="seg" role="tablist"><button type="button" role="tab" class="on" aria-selected="true" data-how="client">Клиентам</button><button type="button" role="tab" aria-selected="false" data-how="biz">Бизнесу</button></div></div>
+  ${Object.entries(HOW).map(([k, steps]) => `<ol class="how-steps" data-how-panel="${k}" ${k === 'biz' ? 'hidden' : ''}>${steps.map(([i, h, s], n) => `<li><span class="how-i">${ic(i)}<b>${n + 1}</b></span><div><b>${h}</b><small>${s}</small></div></li>`).join('')}</ol>`).join('')}
+  <div class="row how-cta"><a class="btn p" href="#/new/sto">${ic('plus')} Оставить заявку</a><a class="btn" href="#/business">${ic('idcard')} Визитка для бизнеса</a></div></section>`;
 
 // ------------------------------------------------------------ умный поиск «что случилось?»
 const KW = [
@@ -177,40 +197,50 @@ function suggest(text) {
 async function home() {
   const fv = favs();
   const favList = fv.length ? (await Promise.all(fv.slice(0, 6).map((id) => api.getProvider(id).catch(() => null)))).filter(Boolean) : [];
-  const onboard = localStorage.getItem('am24-onboarded') ? '' : `<div class="card onboard" id="onb"><button class="x" id="onbX" aria-label="Скрыть">✕</button><h3>Как пользоваться — 3 шага</h3>
-    <div class="steps3"><div><b>1</b>Выберите услугу или опишите проблему в поиске</div><div><b>2</b>Мастера города увидят заявку и откликнутся</div><div><b>3</b>Общайтесь в чате, после работы поставьте оценку</div></div></div>`;
-  return `<section class="hero" style="background-image:url('assets/img/hero.webp')"><div class="hero-in"><span class="eyebrow">📍 ${esc(S.city)} · бесплатно для автовладельцев</span>
-    <h1>Помощь с машиной —<br>за пару минут</h1><p>${esc(CONFIG.SITE_TAGLINE)}. Опишите, что случилось, — мастера откликнутся сами.</p>
-    <div class="search" role="search"><input id="q" type="search" placeholder="Например: стучит подвеска, сел аккумулятор, нужна мойка" aria-label="Что случилось с машиной?" autocomplete="off"><div id="sugg" class="sugg" role="listbox"></div></div>
-    <div class="row"><a class="btn p" href="#/new/sto">🆕 Новая заявка</a><a class="btn" href="#/catalog/sto">🔎 Выбрать мастера</a><a class="btn" href="#/prices">💰 Цены</a></div></div></section>
+  const onboard = localStorage.getItem('am24-onboarded') ? '' : `<div class="card onboard" id="onb" role="region" aria-label="Подсказки для первого визита"><button class="x" id="onbX" aria-label="Скрыть подсказки">${ic('x')}</button>
+    <div class="onb-h">${ic('bulb')}<div><b>Впервые здесь? Три подсказки</b><small>Займёт 10 секунд</small></div></div>
+    <ul class="onb-tips"><li>${ic('search')}<span><b>Поиск понимает простые слова.</b> Напишите «стучит подвеска» или «закрыл ключи» — подскажем нужную услугу.</span></li>
+    <li>${ic('lock')}<span><b>Можно без регистрации.</b> Заявка уйдёт мастеру в ${PRIMARY.label}, а переписка и цена останутся в чате на сайте.</span></li>
+    <li>${ic('star')}<span><b>Выбирайте по рейтингу.</b> Оценки ставят только клиенты с выполненным заказом.</span></li></ul>
+    <div class="row"><button class="p sm" id="onbOk" type="button">Понятно</button>${IS_DEMO ? '' : '<a class="btn sm" href="?demo=1#/">Посмотреть демо</a>'}</div></div>`;
+  return `<section class="hero"><picture><source media="(max-width:700px)" srcset="assets/img/hero-640.webp"><img class="hero-img" src="assets/img/hero.webp" alt="" width="1024" height="576" fetchpriority="high"></picture>
+    <div class="hero-in"><span class="eyebrow">${ic('pin')} ${esc(S.city)} · бесплатно для автовладельцев</span>
+    <h1>Помощь с машиной —<br><span class="grad">за пару минут</span></h1><p>${esc(CONFIG.SITE_TAGLINE)}. Опишите, что случилось, — мастера откликнутся сами.</p>
+    <div class="search" role="search">${ic('search', 'search-ic')}<input id="q" type="search" placeholder="Что случилось? Например: стучит подвеска, сел аккумулятор" aria-label="Что случилось с машиной?" autocomplete="off"><div id="sugg" class="sugg" role="listbox"></div></div>
+    <div class="row"><a class="btn p" href="#/new/sto">${ic('plus')} Новая заявка</a><a class="btn glass" href="#/catalog/sto">${ic('search')} Выбрать мастера</a><a class="btn glass" href="#/prices">${ic('tag')} Цены</a></div>
+    <ul class="trust"><li>${ic('check')} Бесплатно для клиентов</li><li>${ic('clock')} Отклик обычно за 5–15 минут</li><li>${ic('star')} Рейтинг по реальным заказам</li></ul></div></section>
   ${onboard}
-  <h2>Что случилось?</h2>
-  <div class="grid photo-grid">${Object.entries(KINDS).map(([k, x]) => `<a class="tile ph-tile" href="#/new/${k}"><img src="${IMG[k]}" alt="" loading="lazy"><span><b>${x.icon} ${x.title}</b><small>${x.desc}</small></span></a>`).join('')}
-    <a class="tile ph-tile alt" href="#/catalog/sto"><span><b>📒 Все мастера</b><small>Рейтинги, отзывы, фото, часы работы</small></span></a></div>
-  <div class="card promo"><div class="grow"><b>🪪 Бесплатная визитка для вашего бизнеса</b><small>СТО, эвакуатор, мойка, магазин запчастей, выездной мастер или грузоперевозчик: своя страница и QR-код, кнопки «Позвонить» и ${PRIMARY.label}. Заявки и заказы приходят вам в ${PRIMARY.label} и видны в кабинете. Магазину — витрина с товарами.</small></div>
-    <div class="row"><a class="btn p" href="#/business">Создать визитку</a><a class="btn" href="card.html?id=14${IS_DEMO ? '' : '&demo=1'}">Пример визитки${IS_DEMO ? '' : ' (демо)'}</a><a class="btn" href="#/tariffs">Тарифы</a></div></div>
-  ${favList.length ? `<h2>♥ Избранные</h2><div class="hscroll">${favList.map((p) => `<a class="mini" href="#/provider/${p.id}"><b>${KINDS[p.kind].icon} ${esc(p.name)}</b><small>★ ${Number(p.rating || 0).toFixed(1)} · ${esc(p.working_hours || '')}</small></a>`).join('')}</div>` : ''}
+  <div class="sec-h"><h2>Что случилось?</h2><a class="small" href="#/catalog/sto">Все мастера ${ic('arrow')}</a></div>
+  <div class="grid photo-grid">${Object.entries(KINDS).map(([k, x]) => `<a class="tile ph-tile" href="#/new/${k}"><img src="${IMG[k]}" alt="" loading="lazy" width="560" height="420"><span class="kind-ic">${ic(KIND_IC[k])}</span><span class="ph-txt"><b>${x.title}</b><small>${x.desc}</small></span></a>`).join('')}</div>
+  ${howBlock()}
+  <div class="card promo"><div class="promo-ic">${ic('idcard')}</div><div class="grow"><b>Бесплатная визитка для вашего бизнеса</b><small>СТО, эвакуатор, мойка, магазин запчастей, выездной мастер или грузоперевозчик: своя страница и QR-код, кнопки «Позвонить» и ${PRIMARY.label}. Заявки приходят вам в ${PRIMARY.label} и видны в кабинете. Магазину — витрина с товарами.</small></div>
+    <div class="row"><a class="btn p" href="#/business">Создать визитку</a><a class="btn" href="card.html?id=14${IS_DEMO ? '' : '&demo=1'}">Пример${IS_DEMO ? '' : ' (демо)'}</a><a class="btn ghost" href="#/tariffs">Тарифы</a></div></div>
+  ${favList.length ? `<h2>Избранные</h2><div class="hscroll">${favList.map((p) => `<a class="mini" href="#/provider/${p.id}"><b>${KINDS[p.kind].icon} ${esc(p.name)}</b><small>★ ${Number(p.rating || 0).toFixed(1)} · ${esc(p.working_hours || '')}</small></a>`).join('')}</div>` : ''}
   <h2>Почему удобно</h2>
   <div class="grid feats">
-    <div class="tile"><div class="i">⚡</div><b>Один запрос — много мастеров</b><small>Не обзваниваете всех: заявку видят все подходящие исполнители города.</small></div>
-    <div class="tile"><div class="i">📷</div><b>Фото и чат</b><small>Приложите фото поломки, уточните детали в чате прямо по заявке.</small></div>
-    <div class="tile"><div class="i">🔒</div><b>Телефон под защитой</b><small>Ваш номер видит только тот, кто взял заявку. Поставщики запчастей анонимны до выбора.</small></div>
-    <div class="tile"><div class="i">⭐</div><b>Честный рейтинг</b><small>Оценить может только тот, чья заявка выполнена. Мастера отвечают на отзывы.</small></div>
+    <div class="tile"><div class="i">${ic('zap')}</div><b>Один запрос — много мастеров</b><small>Не обзваниваете всех: заявку видят все подходящие исполнители города.</small></div>
+    <div class="tile"><div class="i">${ic('camera')}</div><b>Фото и чат</b><small>Приложите фото поломки, уточните детали и цену в чате прямо по заявке.</small></div>
+    <div class="tile"><div class="i">${ic('lock')}</div><b>Телефон под защитой</b><small>Ваш номер видит только тот, кто взял заявку. Поставщики запчастей анонимны до выбора.</small></div>
+    <div class="tile"><div class="i">${ic('star')}</div><b>Честный рейтинг</b><small>Оценить может только тот, чья заявка выполнена. Мастера отвечают на отзывы.</small></div>
   </div>
   <h2>Для своих</h2>
   <div class="grid">
-    <a class="tile" href="#/business"><div class="i">🪪</div><b>Для бизнеса</b><small>Визитка с QR: СТО, мойка, эвакуатор, магазин, грузоперевозки</small></a>
-    <a class="tile" href="#/tariffs"><div class="i">💳</div><b>Тарифы</b><small>Визитка бесплатно, Про, магазин, печать</small></a>
-    <a class="tile" href="#/garage"><div class="i">🚗</div><b>Мой гараж</b><small>Авто и регламент ТО</small></a>
-    ${S.myProv.length ? '<a class="tile" href="#/cabinet"><div class="i">🛠</div><b>Кабинет исполнителя</b><small>Входящие заявки</small></a>' : ''}
-    ${isAdmin() ? '<a class="tile" href="#/admin"><div class="i">🛡</div><b>Админ-панель</b><small>Модерация и статистика</small></a>' : ''}
-    <button class="tile" data-install hidden><div class="i">📲</div><b>Установить приложение</b><small>Иконка на экране телефона, работает как приложение</small></button></div>`;
+    <a class="tile" href="#/business"><div class="i">${ic('idcard')}</div><b>Для бизнеса</b><small>Визитка с QR: СТО, мойка, эвакуатор, магазин, грузоперевозки</small></a>
+    <a class="tile" href="#/tariffs"><div class="i">${ic('card')}</div><b>Тарифы</b><small>Визитка бесплатно, Про, магазин, печать</small></a>
+    <a class="tile" href="#/garage"><div class="i">${ic('car')}</div><b>Мой гараж</b><small>Авто и регламент ТО</small></a>
+    ${S.myProv.length ? `<a class="tile" href="#/cabinet"><div class="i">${ic('wrench')}</div><b>Кабинет исполнителя</b><small>Входящие заявки</small></a>` : ''}
+    ${isAdmin() ? `<a class="tile" href="#/admin"><div class="i">${ic('shield')}</div><b>Админ-панель</b><small>Модерация и статистика</small></a>` : ''}
+    <button class="tile" data-install hidden><div class="i">${ic('phone')}</div><b>Установить приложение</b><small>Иконка на экране телефона, работает как приложение</small></button></div>
+  <footer class="foot small muted">© АвтоМастер24 · <a href="#/tariffs">Тарифы</a> · <a href="#/business">Для бизнеса</a> · <a href="order.html">Мои заказы</a></footer>`;
 }
 home.after = (v) => {
   const q = $('#q', v), sg = $('#sugg', v);
   q.oninput = () => { const list = suggest(q.value); sg.innerHTML = list.map((x) => `<a href="${x.href}" role="option"><span>${x.icon}</span><b>${esc(x.title)}</b><small>${esc(x.hint)}</small></a>`).join(''); sg.classList.toggle('on', !!list.length); };
   q.onkeydown = (e) => { if (e.key === 'Enter') { const a = $('a', sg); if (a) location.hash = a.getAttribute('href'); } };
-  const x = $('#onbX', v); if (x) x.onclick = () => { localStorage.setItem('am24-onboarded', '1'); $('#onb', v).remove(); };
+  const hide = () => { localStorage.setItem('am24-onboarded', '1'); const o = $('#onb', v); if (o) { o.classList.add('bye'); setTimeout(() => o.remove(), 250); } };
+  [$('#onbX', v), $('#onbOk', v)].forEach((b) => { if (b) b.onclick = hide; });
+  $$('[data-how]', v).forEach((b) => b.onclick = () => { $$('[data-how]', v).forEach((x) => { x.classList.toggle('on', x === b); x.setAttribute('aria-selected', x === b); });
+    $$('[data-how-panel]', v).forEach((p) => { p.hidden = p.dataset.howPanel !== b.dataset.how; }); });
   installBtns(v);
 };
 function installBtns(v) {
@@ -351,7 +381,13 @@ async function newRequest(kind = 'sto', q) {
       <label>Где вы?</label><div class="row"><input name="location" class="grow" required placeholder="Адрес или ориентир" value="${esc(D.location || '')}"><button type="button" id="geo">📍 Моё место</button></div>
       <input type="hidden" name="lat"><input type="hidden" name="lon">${car}<label>Опишите ситуацию</label><textarea name="description" rows="2" placeholder="Например: ключи в закрытой машине">${esc(desc)}</textarea>${photo}`;
   }
-  return `<h1>${KINDS[kind].icon} ${KINDS[kind].title}</h1>${tabs}${warn}${prev ? '<div class="notice">🔁 Заполнили по прошлой заявке — проверьте и отправьте.</div>' : ''}
+  const HINTS = { sto: 'Опишите симптомы: когда появилось, при каких условиях (на холодную, на кочках, при торможении). Фото ошибки на панели сильно помогает.',
+    tow: 'Нажмите «📍 Моё место» — водитель получит точку на карте. Укажите, крутятся ли колёса: от этого зависит, какой эвакуатор приедет.',
+    wash: 'Выберите день и удобное время — мойка подтвердит запись и назовёт точную цену.',
+    parts: 'Лучше всего — VIN или фото старой детали. Поставщики пришлют цены анонимно, контакты откроются после вашего выбора.',
+    urgent: 'Укажите точный адрес или ориентир и что случилось — мастер возьмёт нужный инструмент.',
+    cargo: 'Перечислите крупные вещи и этаж (есть ли лифт) — так водитель сразу назовёт честную цену и подберёт машину.' };
+  return `<h1 class="pg-h"><span class="pg-ic">${ic(KIND_IC[kind])}</span>${KINDS[kind].title}</h1>${tabs}${warn}${hint(HINTS[kind])}${prev ? '<div class="notice">🔁 Заполнили по прошлой заявке — проверьте и отправьте.</div>' : ''}
     <form id="reqForm" class="card" data-kind="${kind}"><div class="small muted">Город: <b>${esc(S.city)}</b> (меняется вверху)</div>${body}
     ${guest ? `<div class="row"><div class="grow"><label>Ваше имя</label><input name="g_name" autocomplete="name" maxlength="80"></div><div class="grow"><label>Телефон (необязательно)</label><input name="g_phone" type="tel" autocomplete="tel" placeholder="${esc(REGION.phone.placeholder)}"></div></div>` : ''}
     <button class="p block" style="margin-top:16px">${guest ? `${PRIMARY.icon} Отправить в ${PRIMARY.label}` : 'Отправить заявку'}</button><p class="small muted center" style="margin:8px 0 0">${guest ? `Откроется ${PRIMARY.label} с готовым сообщением — останется нажать «Отправить».` : `Бесплатно. Телефон увидит только тот, кто возьмёт заявку. Заявку можно продублировать в ${PRIMARY.label}.`}</p></form>`;
@@ -646,7 +682,7 @@ async function business(_, q = {}) {
     : `<h1>💼 Для бизнеса</h1><div class="card"><p>Подключите СТО, мойку, эвакуатор, магазин запчастей или выездного мастера. После проверки администратором у вас появится <b>Кабинет исполнителя</b>: входящие заявки города, принятие, прайс, рейтинг.</p></div>`;
   if (!S.me) return intro + needLogin(v4 ? 'создания визитки' : 'подключения бизнеса');
   const kinds = Object.entries(KINDS).filter(([k]) => v4 || k !== 'cargo');
-  return `${intro}<form class="card" id="bf"><label>Кто вы</label>${opts('kind', kinds.map(([k, x]) => [k, x.icon + ' ' + x.short]), KINDS[q.kind] && (q.kind !== 'cargo' || v4) ? q.kind : 'sto')}
+  return `${intro}${hint('Заполните главное — название, телефон и город. Остальное (услуги, цены, фото, часы) можно добавить потом в кабинете. Визитку видно сразу после создания.')}<form class="card" id="bf"><label>Кто вы</label>${opts('kind', kinds.map(([k, x]) => [k, x.icon + ' ' + x.short]), KINDS[q.kind] && (q.kind !== 'cargo' || v4) ? q.kind : 'sto')}
     <label>Название ${tip('Как вас знают клиенты: «СТО Мотор», «Газель Ерлан», «Эвакуатор 24»')}</label><input name="name" required maxlength="120"><div class="row"><div class="grow"><label>Телефон для клиентов</label><input name="phone" type="tel" required value="${esc(S.me.phone || '')}" placeholder="${esc(REGION.phone.placeholder)}"></div>
     ${v4 ? `<div class="grow"><label>${PRIMARY.label} для заявок ${tip('Сюда приходят заявки и заказы. Если пусто — используется телефон')}</label><input name="whatsapp" type="tel" placeholder="${esc(REGION.phone.placeholder)}"></div>` : ''}</div>
     <label>Город</label><select name="city">${S.ref.cities.filter((c) => c.active).map((c) => `<option ${c.name === S.city ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>
@@ -911,4 +947,4 @@ admin.after = (v) => {
   const cf = $('#cityForm', v); if (cf) cf.onsubmit = (e) => { e.preventDefault(); act($('button', cf), async () => { await api.addCity(cf.querySelector('[name=name]').value.trim()); S.ref = await api.ref(); }, 'Город добавлен'); };
 };
 
-boot();
+boot().catch((e) => { const v = document.getElementById('view'); if (v) v.innerHTML = `<div class="card center"><h2>Ошибка запуска</h2><p class="muted">${String(e?.message || e).replace(/[<>&]/g, '')}</p><button class="p" onclick="window.am24Reset&&am24Reset()">Сбросить и открыть заново</button></div>`; });

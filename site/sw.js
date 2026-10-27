@@ -1,14 +1,20 @@
-// АвтоМастер24 — service worker: приложение открывается без сети (последняя версия из кэша).
-// Сначала сеть (чтобы после обновления сайта сразу была новая версия), при ошибке — кэш.
-const CACHE = 'am24-v5.1';
-const SHELL = ['./', 'index.html', 'css/style.css', 'js/app.js', 'js/api.js', 'js/config.js', 'js/consts.js', 'js/seed.js',
+// АвтоМастер24 — service worker. Всегда сначала сеть: страницы — без HTTP-кэша (no-store),
+// скрипты/стили/картинки — с проверкой свежести (no-cache → 304, если не менялись). Кэш — только запасной вариант без сети.
+// При выходе новой версии старые кэши am24-* удаляются, вкладки сразу переходят на новый SW.
+const CACHE = 'am24-v6.0';
+const SHELL = ['./', 'index.html', 'css/style.css', 'js/heal.js', 'js/app.js', 'js/api.js', 'js/config.js', 'js/consts.js', 'js/seed.js', 'js/icons.js',
   'js/backend-demo.js', 'js/backend-supabase.js', 'js/region.js', 'js/messaging.js', 'js/cardkit.js', 'js/card.js', 'js/shop.js', 'js/orders.js', 'js/order.js', 'js/vendor/qrcode.js',
   'card.html', 'shop.html', 'order.html', 'css/shop.css', 'assets/favicon.svg', 'assets/icon-192.png', 'manifest.webmanifest'];
-self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });
+self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => Promise.all(SHELL.map((u) => c.add(new Request(u, { cache: 'no-cache' })).catch(() => {})))).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k.startsWith('am24-') && k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
+self.addEventListener('message', (e) => { if (e.data === 'skipWaiting') self.skipWaiting(); });
 self.addEventListener('fetch', (e) => {
-  const u = new URL(e.request.url);
-  if (e.request.method !== 'GET' || u.origin !== location.origin) return; // Supabase, Telegram, шрифты — напрямую
-  e.respondWith(fetch(e.request).then((r) => { if (r.ok) { const cp = r.clone(); caches.open(CACHE).then((c) => c.put(e.request, cp)); } return r; })
-    .catch(() => caches.match(e.request).then((r) => r || caches.match('index.html'))));
+  const req = e.request, u = new URL(req.url);
+  if (req.method !== 'GET' || u.origin !== location.origin || !u.pathname.startsWith(new URL(self.registration.scope).pathname)) return; // Supabase, CDN, Telegram — напрямую
+  const page = req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');
+  const key = page ? u.origin + u.pathname : req; // ?id=…&_r=… у страниц — одна запись кэша
+  e.respondWith(fetch(req, { cache: page ? 'no-store' : 'no-cache' }).then((r) => {
+    if (r.ok && r.type === 'basic') { const cp = r.clone(); caches.open(CACHE).then((c) => c.put(key, cp)).catch(() => {}); }
+    return r;
+  }).catch(() => caches.match(key, { ignoreSearch: !page }).then((r) => r || (page ? caches.match('index.html') : Response.error()))));
 });

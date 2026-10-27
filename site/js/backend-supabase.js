@@ -8,12 +8,31 @@ const pingOrder = (chan) => { const ch = chan && orderSub[chan]; if (ch) ch.send
 const LEAD4 = 'id,provider_id,kind,source,user_id,customer_name,customer_phone,message,payload,total,status,created_at,updated_at';
 const LEAD5 = LEAD4 + ',chan,agreed_price,rating,review,rated_at,paid_at,done_at,closed_at,chat_purged_at,last_msg_at,last_from,owner_seen_at,client_seen_at';
 const leadCols = async () => ((await live.caps()).v5 ? LEAD5 : LEAD4);
-async function client() {
-  if (sb) return sb;
-  const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
-  sb = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true, storageKey: 'am24-auth' } });
-  return sb;
+// Старая сессия от другого проекта Supabase (сайт переехал на новый проект) ломает все запросы (401 JWT) —
+// удаляем её до создания клиента. Так же поступаем при смене адреса базы в config.js.
+const PROJECT_REF = (/^https:\/\/([a-z0-9]+)\.supabase\.co/.exec(CONFIG.SUPABASE_URL || '') || [])[1] || '';
+function dropAuth() { try { localStorage.removeItem('am24-auth'); sessionStorage.removeItem('am24-ready'); } catch { /* ignore */ } }
+(function purgeStaleAuth() {
+  try {
+    if (localStorage.getItem('am24-backend') !== CONFIG.SUPABASE_URL) { dropAuth(); localStorage.setItem('am24-backend', CONFIG.SUPABASE_URL); }
+    const raw = localStorage.getItem('am24-auth'); if (!raw) return;
+    const s = JSON.parse(raw); const tok = s?.access_token || s?.currentSession?.access_token;
+    const pl = tok ? JSON.parse(atob(tok.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))) : null;
+    const ref = pl?.ref || (/https:\/\/([a-z0-9]+)\.supabase\.co/.exec(pl?.iss || '') || [])[1];
+    if (!pl || (PROJECT_REF && ref && ref !== PROJECT_REF)) dropAuth();
+  } catch { dropAuth(); }
+})();
+let sbP = null;
+function client() {
+  // один клиент на страницу (параллельные вызовы ждут один и тот же промис)
+  if (!sbP) sbP = import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({ createClient }) =>
+    (sb = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true, storageKey: 'am24-auth' } })))
+    .catch((e) => { sbP = null; throw new Error('Не удалось загрузить модуль базы данных — проверьте интернет и обновите страницу'); });
+  return sbP;
 }
+// запрос отклонён из-за испорченной/чужой сессии → выходим локально и повторяем как гость
+const badJwt = (e) => /JWT|JWS|invalid.*(token|signature)|No suitable key|wrong key type|PGRST30[0-3]/i.test(`${e?.message || ''} ${e?.code || ''}`);
+async function resetSession() { dropAuth(); try { await sb?.auth.signOut({ scope: 'local' }); } catch { /* ignore */ } sb = null; sbP = null; }
 function human(e) {
   const m = e?.message || String(e);
   if (/JWT|session|not authenticated/i.test(m)) return 'Сессия истекла — войдите снова';
@@ -21,7 +40,11 @@ function human(e) {
   return m;
 }
 const must = ({ data, error }) => { if (error) throw new Error(human(error)); return data; };
-const rpc = async (fn, args = {}) => must(await (await client()).rpc(fn, args));
+async function withRetry(run) {
+  const r = await run(); if (!r.error || !badJwt(r.error)) return r;
+  await resetSession(); return run();
+}
+const rpc = async (fn, args = {}) => must(await withRetry(async () => (await client()).rpc(fn, args)));
 const from = async (t) => (await client()).from(t);
 
 export async function supabaseReady() {
@@ -43,15 +66,15 @@ export async function supabaseReady() {
 export const live = {
   mode: 'live',
   async ref() {
-    const q = async (t, order = 'id') => must(await (await from(t)).select('*').order(order));
+    const q = async (t, order = 'id') => must(await withRetry(async () => (await from(t)).select('*').order(order)));
     const [cities, categories, subcategories, price_services, brands, models] = await Promise.all(
       ['am_cities', 'am_categories', 'am_subcategories', 'am_price_services', 'am_brands', 'am_models'].map((t) => q(t)));
     const { SEED } = await import('./seed.js');
     return { cities, categories, subcategories, price_services, brands, models, price_categories: [...new Set(price_services.map((s) => s.category))], maintenance: SEED.maintenance };
   },
   async session() {
-    const s = await client(); const { data } = await s.auth.getSession();
-    if (!data.session) return null;
+    const s = await client(); const { data } = await s.auth.getSession().catch(() => ({ data: {} }));
+    if (!data?.session) return null;
     try { return await rpc('am_ensure_profile'); } catch (e) { if (/сесс/i.test(e.message)) { await s.auth.signOut({ scope: 'local' }); return null; } throw e; }
   },
   async loginTelegram(tgUser) {

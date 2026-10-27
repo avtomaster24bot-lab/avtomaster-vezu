@@ -41,7 +41,7 @@ function list() {
   const L = myOrders().filter((x) => !!x.demo === IS_DEMO);
   $('#order').innerHTML = `<h1>💬 Мои заказы</h1><p class="muted">Заявки и заказы, которые вы отправили с визиток и витрин с этого устройства. По ссылке переписка открывается без входа.</p>
     ${L.map((x) => `<a class="card lead oc-li" href="${esc(orderUrl(x.id, x.token))}"><b>№${x.id} · ${esc(x.title || 'Заявка')}</b><span class="small muted">${esc(x.provider || 'Диспетчер')} · ${tm(x.created_at)}</span></a>`).join('')
-      || '<div class="empty"><div class="big-i">💬</div><p>Пока нет заказов на этом устройстве.</p><a class="btn p" href="./#/catalog/sto">Найти исполнителя</a></div>'}`;
+      || '<div class="empty"><div class="empty-i">💬</div><p><b>Пока нет заказов на этом устройстве</b></p><p class="small muted">Откройте визитку мастера или магазина и нажмите «Написать здесь, на сайте» — заказ и переписка появятся тут. Регистрация не нужна.</p><div class="row center"><a class="btn p" href="./#/catalog/sto">Найти исполнителя</a></div></div>'}`;
 }
 
 // ---------- шкала статуса ----------
@@ -106,6 +106,7 @@ function footer(o) {
   return `<form class="oc-compose" id="msgF"><div class="row oc-tools"><label class="btn sm" title="Фото"><input type="file" accept="image/*" id="phIn" hidden>📷 Фото</label>
       ${owner ? `<input name="offer_price" type="number" min="1" step="1" inputmode="numeric" placeholder="💰 Цена, ${esc(money(0).replace(/[\d\s]/g, '') || '₸')}" class="oc-price">` : ''}<span class="small muted" id="phName"></span></div>
     <div class="row"><textarea name="body" rows="2" maxlength="2000" placeholder="${owner ? 'Ответ клиенту: уточните детали или предложите цену' : 'Напишите исполнителю: детали, вопросы, фото'}" class="grow"></textarea><button class="p" aria-label="Отправить">➤</button></div></form>
+    ${owner ? '<p class="hint small">💡 Чтобы предложить цену, впишите сумму в поле «Цена» и отправьте — у клиента появится кнопка «Принять». Новая цена заменяет прежнюю.</p>' : '<p class="hint small">💡 Спросите о цене и сроках. Когда исполнитель предложит цену, нажмите «Принять» — она зафиксируется в заказе.</p>'}
     <p class="small muted oc-note">🔒 Переписка хранится на сайте до закрытия заказа и удаляется через ${CHAT_PURGE_DAYS} дня после оплаты и оценки. Итог заказа, цена и отзыв сохраняются.</p>`;
 }
 

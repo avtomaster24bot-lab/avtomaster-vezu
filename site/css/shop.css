@@ -1,5 +1,5 @@
 /* Витрина магазина — по мотивам «Учёт + Магазин» (biznes-shablon.vercel.app): чёрная шапка, крупные заголовки, сетка карточек */
-:root{--ink:#0b0b0b;--accent:#E8B84B;--bg:#fff;--t:#111;--m:#71717a;--line:#e4e4e7;--s:#f4f4f5;--wa:#16a34a}
+:root{--ink:#0b0b0b;--accent:#FFB224;--pg:linear-gradient(135deg,#FFC24D,#FF8A1F);--bg:#fff;--t:#111;--m:#71717a;--line:#e4e4e7;--s:#f4f4f5;--wa:#16a34a}
 *{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--t);font:15px/1.5 Manrope,system-ui,sans-serif}
 a{color:inherit}button{font:inherit;cursor:pointer}[hidden]{display:none!important}
 .sh-wrap{max-width:1200px;margin:0 auto;padding:0 16px}.sh-row{display:flex;align-items:center;gap:18px}
@@ -38,3 +38,8 @@ label{display:block;font-weight:700;font-size:13px;margin:12px 0 5px}input,selec
 .sh-note{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;padding:12px;margin:10px 0;font-size:14px}.sh-warn{background:#fffbeb;border-color:#fde68a}
 .sh-foot{background:var(--ink);color:#a1a1aa;font-size:13px;padding:26px 0}.sh-foot a{color:#fff}
 @media (max-width:860px){.sh-cats,.sh-search{display:none}.sh-hero{grid-template-columns:1fr}.sh-layout{grid-template-columns:1fr}.sh-side{display:flex;gap:10px;overflow-x:auto}.sh-side h4{display:none}.sh-side a{white-space:nowrap;background:var(--s);border-radius:999px;padding:6px 12px}.sh-modal-in{grid-template-columns:1fr}.sh-grid{grid-template-columns:repeat(2,1fr);gap:14px}.sh-brand{font-size:18px;flex:1}}
+
+/* v6: мягкие тени, скругления, анимации */
+.sh-card,.pcard,.prod{border-radius:18px;transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .25s}
+.sh-card:hover,.prod:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(15,23,42,.12)}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid rgba(255,178,36,.6);outline-offset:2px}
