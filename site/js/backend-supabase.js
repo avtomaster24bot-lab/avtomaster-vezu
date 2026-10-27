@@ -156,6 +156,16 @@ export const live = {
   async reviewRegistration(id, approve, reason) { return rpc('am_review_registration', { p_id: id, p_approve: !!approve, p_reason: reason || null }); },
   async adminRequests() { return rpc('am_admin_requests'); },
   async adminStats() { return rpc('am_admin_stats'); },
+  // ---- обновление 7: админы города и права
+  async adminList() { return rpc('am_admin_list'); },
+  async adminUsers(q = '') { return rpc('am_admin_users', { p_q: q || '', p_limit: 100 }); },
+  async setRole(userId, role, city = null) { return rpc('am_admin_set_role', { p_user: userId, p_role: role, p_city: city || null }); },
+  async blockUser(userId, block, reason = '') { return rpc('am_admin_block', { p_user: userId, p_block: !!block, p_reason: reason || '' }); },
+  async adminLog() {
+    return must(await (await from('am_admin_log')).select('*, actor:am_profiles!am_admin_log_actor_id_fkey(username,full_name), target:am_profiles!am_admin_log_target_user_fkey(username,full_name)').order('id', { ascending: false }).limit(100));
+  },
+  async settings(city = '') { if (!(await this.caps()).v7) return []; return must(await (await from('am_settings')).select('*').in('city', ['', city || ''])); },
+  async setSetting(key, city, value) { return rpc('am_set_setting', { p_key: key, p_city: city || '', p_value: value }); },
   async pendingReviews() { return must(await (await from('am_reviews')).select('*, p:am_providers(name)').eq('is_published', false).order('id')).map((x) => ({ ...x, provider_name: x.p?.name })); },
   async moderateReview(id, publish) { return rpc('am_moderate_review', { p_id: id, p_publish: !!publish }); },
   async adminProviders() { return must(await (await from('am_providers')).select('*').order('id')); },
@@ -170,7 +180,8 @@ export const live = {
     // 42P01 — таблицы ещё нет (миграция не применена); ошибка прав (аноним) значит таблица есть
     const missing = (x) => !!(x.error && /does not exist|42P01|PGRST205|schema cache/i.test(x.error.message + x.error.code));
     const [r4, r5] = await Promise.all([(await from('am_products')).select('id').limit(1), (await from('am_order_messages')).select('id').limit(1)]);
-    capsCache = { v3: !missing(r), v4: !missing(r4), v5: !missing(r4) && !missing(r5) };
+    const r7 = await (await from('am_settings')).select('key').limit(1);
+    capsCache = { v3: !missing(r), v4: !missing(r4), v5: !missing(r4) && !missing(r5), v7: !missing(r7) };
     return capsCache;
   },
   async uploadRequestPhoto(blob) {

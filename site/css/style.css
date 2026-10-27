@@ -309,3 +309,9 @@ a.tile:hover,button.tile:hover{transform:translateY(-4px);box-shadow:var(--sh2);
 a.tile.franchise:hover{box-shadow:0 18px 42px rgba(124,58,237,.4);border-color:transparent}
 @media (prefers-reduced-motion:no-preference){.tile.franchise .i{animation:ptpulse 2.8s ease-in-out infinite}@keyframes ptpulse{0%,100%{box-shadow:0 0 0 0 rgba(255,194,77,.5)}50%{box-shadow:0 0 0 8px rgba(255,194,77,0)}}}
 @media (max-width:420px){.pt-badge{position:static;display:inline-block;margin-bottom:6px}}
+
+/* админка: города и их админы, таблица прав, объявление города */
+.city-admins{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}.city-admins .tile{padding:12px}
+.tblwrap{overflow-x:auto}.matrix td,.matrix th{text-align:center;white-space:nowrap}.matrix td:first-child,.matrix th:first-child{text-align:left;white-space:normal}
+.city-notice{margin:12px 0;background:rgba(79,140,255,.1);border:1px solid rgba(79,140,255,.3);border-radius:16px;padding:12px 14px}
+.ucard .row form{flex-wrap:wrap}

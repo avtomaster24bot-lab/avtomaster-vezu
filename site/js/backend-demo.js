@@ -48,6 +48,7 @@ function initial() {
     'u-master': { id: 'u-master', username: 'demo_master', full_name: 'Демо Мастер', phone: '+77002223344', city: C, role: 'client', consent: true },
     'u-admin': { id: 'u-admin', username: 'demo_admin', full_name: 'Демо Админ', phone: '+77003334455', city: C, role: 'global_admin', consent: true },
     'u-other': { id: 'u-other', username: null, full_name: 'Другой клиент (демо)', phone: '+77009990000', city: C, role: 'client', consent: true },
+    'u-city': { id: 'u-city', username: 'demo_almaty', full_name: 'Демо Админ Алматы', phone: '+77005556677', city: 'Алматы', role: 'regional_admin', managed_city: 'Алматы', consent: true },
   };
   const R = (id, type, extra) => ({ id, type, user_id: 'u-other', city: C, status: 'new', category_id: null, subcategory: null, service_type: null,
     supplier_type: null, target_provider_id: null, description: '', vehicle_info: '', details: {}, desired_time: null, assigned_time: null,
@@ -115,6 +116,7 @@ const recalc = (pid) => { const rs = load().reviews.filter((x) => x.provider_id 
   p.reviews_count = rs.length; p.rating = rs.length ? Math.round(rs.reduce((s, x) => s + x.rating, 0) / rs.length * 100) / 100 : 0; };
 export const stems = (q) => (q || '').toLowerCase().split(/[^a-zа-яё0-9]+/i).filter((w) => w.length > 1).map((w) => w.length > 4 ? w.slice(0, Math.max(4, w.length - 2)) : w);
 const clone = (x) => JSON.parse(JSON.stringify(x));
+const dlog = (action, target, city, details) => { const d = load(); d.adminLog = d.adminLog || []; d.adminLog.push({ id: d.adminLog.length + 1, actor_id: uid(), action, target_user: target, city, details, created_at: now() }); };
 
 export const demo = {
   mode: 'demo',
@@ -277,7 +279,44 @@ export const demo = {
   async setProviderVerified(pid, v) { const p = prov(pid); if (!p || !isAdmin(p.city)) fail('Нет прав'); p.verified = !!v; save(); },
 
   // ---- обновление 3: фото, чат, статистика, ответы на отзывы
-  async caps() { return { v3: true, v4: true, v5: true }; },
+  async caps() { return { v3: true, v4: true, v5: true, v7: true }; },
+  // ---- обновление 7: админы города и права (та же логика, что в supabase/07_admin_roles.sql)
+  async adminList() { if (!isAdmin()) fail('Нет прав'); return clone(Object.values(load().profiles).filter((u) => u.role !== 'client')); },
+  async adminUsers(q = '') {
+    if (!isAdmin()) fail('Нет прав'); const d = load(), s = String(q || '').toLowerCase().trim(), dg = s.replace(/\D/g, '');
+    return clone(Object.values(d.profiles).filter((u) => isAdmin(u.city) && (!s || (u.username || '').toLowerCase().includes(s) || (u.full_name || '').toLowerCase().includes(s) || (dg.length >= 4 && (u.phone || '').replace(/\D/g, '').includes(dg))))
+      .map((u) => ({ ...u, requests: d.requests.filter((r) => r.user_id === u.id).length, orgs: d.providers.filter((p) => p.owner_id === u.id).length, created_at: u.created_at || ago(20000) })));
+  },
+  async setRole(userId, role, city = null) {
+    const m = me(); if (m?.role !== 'global_admin') fail('Назначать администраторов может только главный администратор');
+    const d = load(), u = d.profiles[userId]; if (!u) fail('Пользователь не найден');
+    if (!['client', 'regional_admin', 'global_admin'].includes(role)) fail('Неизвестная роль');
+    if (u.blocked_at && role !== 'client') fail('Пользователь заблокирован');
+    if (role === 'regional_admin' && !d.cities.some((c) => c.name === city)) fail('Выберите город');
+    if (u.role === 'global_admin' && role !== 'global_admin' && Object.values(d.profiles).filter((x) => x.role === 'global_admin').length <= 1) fail('Нельзя снять последнего главного администратора');
+    dlog('role', userId, role === 'regional_admin' ? city : null, { from: u.role, to: role, city, username: u.username });
+    Object.assign(u, { role, managed_city: role === 'regional_admin' ? city : null }); save(); return 'Готово';
+  },
+  async blockUser(userId, block, reason = '') {
+    const d = load(), u = d.profiles[userId]; if (!u) fail('Пользователь не найден');
+    if (!isAdmin(u.city)) fail('Нет прав'); if (userId === uid()) fail('Нельзя заблокировать себя');
+    if (u.role !== 'client') fail('Сначала снимите с пользователя права администратора');
+    if (block && !String(reason).trim()) fail('Укажите причину блокировки');
+    Object.assign(u, { blocked_at: block ? now() : null, blocked_reason: block ? String(reason).trim().slice(0, 300) : null });
+    dlog(block ? 'block' : 'unblock', userId, u.city, { reason }); save();
+  },
+  async adminLog() {
+    if (!isAdmin()) fail('Нет прав'); const d = load(), m = me(), P = (x) => (x && d.profiles[x] ? { username: d.profiles[x].username, full_name: d.profiles[x].full_name } : null);
+    return clone((d.adminLog || []).filter((x) => m.role === 'global_admin' || (x.city && isAdmin(x.city))).slice().reverse().map((x) => ({ ...x, actor: P(x.actor_id), target: P(x.target_user) })));
+  },
+  async settings(city = '') { return clone((load().settings || []).filter((x) => x.city === '' || x.city === (city || ''))); },
+  async setSetting(key, city, value) {
+    const c = city || '', m = me(); if (key !== 'city_notice') fail('Неизвестная настройка');
+    if (c === '' ? m?.role !== 'global_admin' : !isAdmin(c)) fail('Нет прав на этот город');
+    const d = load(); d.settings = (d.settings || []).filter((x) => !(x.key === key && x.city === c));
+    if (value != null && String(value).trim()) { if (String(value).length > 500) fail('Текст до 500 символов'); d.settings.push({ key, city: c, value, updated_at: now() }); }
+    dlog('setting', null, c || null, { key, value }); save();
+  },
   async uploadRequestPhoto(blob) { if (!uid()) fail('Войдите'); return putPhoto(`req/${uid()}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`, blob); },
   async photoUrls(paths) { const m = photos(); return (paths || []).map((x) => (/^(assets|https?:|data:)/.test(x) ? x : m[x]) || ''); },
   async uploadProviderPhoto(pid, blob) { const p = prov(pid); if (!p || (p.owner_id !== uid() && !isAdmin(p.city))) fail('Нет прав'); return new Promise((ok, no) => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.onerror = () => no(new Error('Не удалось прочитать фото')); fr.readAsDataURL(blob); }); },

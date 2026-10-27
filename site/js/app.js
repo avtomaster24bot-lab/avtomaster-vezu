@@ -92,6 +92,11 @@ async function boot() {
   try { S.caps = await api.caps(); } catch { S.caps = { v3: false }; }
   await refreshMe();
   window.addEventListener('hashchange', () => { render(); window.scrollTo(0, 0); });
+  // права (админ / админ города) подтягиваются без перезахода: при возврате на вкладку, не чаще раза в 30 с
+  const recheck = async () => { if (IS_DEMO || !S.me || document.hidden || Date.now() - meAt < 30000) return;
+    const was = `${S.me.role}|${S.me.managed_city || ''}`; await refreshMe();
+    if (S.me && `${S.me.role}|${S.me.managed_city || ''}` !== was) { toast(isAdmin() ? `Права обновлены: ${roleName(S.me)}` : 'Права администратора сняты'); render(); } };
+  document.addEventListener('visibilitychange', recheck); window.addEventListener('focus', recheck);
   $('#citySel').addEventListener('change', (e) => { S.city = e.target.value; localStorage.setItem('am24v-city', S.city); render(); });
   $('#themeBtn').onclick = () => applyTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light', true);
   document.addEventListener('click', (e) => {
@@ -104,7 +109,9 @@ async function boot() {
   render();
 }
 function applyTheme(t, save) { document.documentElement.dataset.theme = t; $('meta[name=theme-color]')?.setAttribute('content', t === 'light' ? '#F6F4EF' : '#0F0F0F'); $('#themeBtn').innerHTML = ic(t === 'light' ? 'moon' : 'sun'); $('#themeBtn').setAttribute('aria-label', t === 'light' ? 'Тёмная тема' : 'Светлая тема'); if (save) localStorage.setItem('am24v-theme', t); }
+let meAt = 0;
 async function refreshMe() {
+  meAt = Date.now();
   try { S.me = await api.session(); } catch (e) { S.me = null; toast(e.message, true); }
   if (S.me?.city && !localStorage.getItem('am24v-city')) S.city = S.me.city;
   try { S.myProv = S.me ? await api.myProviders() : []; } catch { S.myProv = []; }
@@ -198,7 +205,9 @@ function suggest(text) {
 const franchiseUrl = () => `https://t.me/${CONFIG.PARTNER_BOT}?text=${encodeURIComponent(`Хочу выкупить права на представительство АвтоМастер24 в городе ${S.city || CONFIG.DEFAULT_CITY}`)}`;
 async function home() {
   const fv = favs();
-  const favList = fv.length ? (await Promise.all(fv.slice(0, 6).map((id) => api.getProvider(id).catch(() => null)))).filter(Boolean) : [];
+  const [favList, sets] = await Promise.all([fv.length ? Promise.all(fv.slice(0, 6).map((id) => api.getProvider(id).catch(() => null))).then((a) => a.filter(Boolean)) : [],
+    S.caps.v7 ? api.settings(S.city).catch(() => []) : []]);
+  const cityNotice = sets.find((x) => x.key === 'city_notice' && x.city === S.city)?.value;
   const onboard = localStorage.getItem('am24v-onboarded') ? '' : `<div class="card onboard" id="onb" role="region" aria-label="Подсказки для первого визита"><button class="x" id="onbX" aria-label="Скрыть подсказки">${ic('x')}</button>
     <div class="onb-h">${ic('bulb')}<div><b>Впервые здесь? Три подсказки</b><small>Займёт 10 секунд</small></div></div>
     <ul class="onb-tips"><li>${ic('search')}<span><b>Поиск понимает простые слова.</b> Напишите «стучит подвеска» или «закрыл ключи» — подскажем нужную услугу.</span></li>
@@ -211,6 +220,7 @@ async function home() {
     <div class="search" role="search">${ic('search', 'search-ic')}<input id="q" type="search" placeholder="Что случилось? Например: стучит подвеска, сел аккумулятор" aria-label="Что случилось с машиной?" autocomplete="off"><div id="sugg" class="sugg" role="listbox"></div></div>
     <div class="row"><a class="btn p" href="#/new/sto">${ic('plus')} Новая заявка</a><a class="btn glass" href="#/catalog/sto">${ic('search')} Выбрать мастера</a><a class="btn glass" href="#/prices">${ic('tag')} Цены</a></div>
     <ul class="trust"><li>${ic('check')} Бесплатно для клиентов</li><li>${ic('clock')} Отклик обычно за 5–15 минут</li><li>${ic('star')} Рейтинг по реальным заказам</li></ul></div></section>
+  ${cityNotice ? `<div class="notice city-notice" role="status">📣 <b>${esc(S.city)}:</b> <span data-ugc>${esc(cityNotice)}</span></div>` : ''}
   ${onboard}
   <div class="sec-h"><h2>Что случилось?</h2><a class="small" href="#/catalog/sto">Все мастера ${ic('arrow')}</a></div>
   <div class="grid photo-grid">${Object.entries(KINDS).map(([k, x]) => `<a class="tile ph-tile" href="#/new/${k}"><img src="${IMG[k]}" alt="" loading="lazy" width="560" height="420"><span class="kind-ic">${ic(KIND_IC[k])}</span><span class="ph-txt"><b>${x.title}</b><small>${x.desc}</small></span></a>`).join('')}</div>
@@ -230,9 +240,10 @@ async function home() {
     <a class="tile" href="#/business"><div class="i">${ic('idcard')}</div><b>Добавить свой бизнес</b><small>Есть СТО, эвакуатор, мойка, магазин или грузовик? Бесплатная визитка с QR и заявки от клиентов</small></a>
     <a class="tile" href="#/tariffs"><div class="i">${ic('card')}</div><b>Тарифы</b><small>Визитка бесплатно, Про, магазин, печать</small></a>
     <a class="tile" href="#/garage"><div class="i">${ic('car')}</div><b>Мой гараж</b><small>Авто и регламент ТО</small></a>
-    <a class="tile franchise" href="${franchiseUrl()}" target="_blank" rel="noopener" data-franchise><span class="pt-badge">Для инвесторов</span><div class="i">${ic('crown')}</div><b>Франшиза в твоём городе</b><small>Выкупите права на представительство. Успейте занять свой город!</small><span class="pt-go">${ic('pin')} ${esc(S.city || CONFIG.DEFAULT_CITY)} · написать в Telegram ${ic('arrow')}</span></a>
+    <a class="tile franchise" href="${franchiseUrl()}" target="_blank" rel="noopener" data-franchise><span class="pt-badge">Для инвесторов</span><div class="i">${ic('crown')}</div><b>Франшиза в твоём городе</b><small>Выкупите права на представительство. Успейте занять свой город!</small><span class="pt-go">${ic('pin')} ${esc(S.city || CONFIG.DEFAULT_CITY)} ${ic('arrow')}</span></a>
     ${S.myProv.length ? `<a class="tile" href="#/cabinet"><div class="i">${ic('wrench')}</div><b>Кабинет исполнителя</b><small>Входящие заявки</small></a>` : ''}
-    ${isAdmin() ? `<a class="tile" href="#/admin"><div class="i">${ic('shield')}</div><b>Админ-панель</b><small>Модерация и статистика</small></a>` : ''}
+    ${isAdmin() ? `<a class="tile" href="#/admin"><div class="i">${ic('shield')}</div><b>Админ-панель</b><small>${isG() ? 'Вся платформа: модерация, пользователи, журнал' : `Ваш город: ${esc(S.me.managed_city || '')}`}</small></a>` : ''}
+    ${isG() && S.caps.v7 ? `<a class="tile" href="#/admin?t=admins"><div class="i">${ic('user')}</div><b>Админы города</b><small>Назначить, кто отвечает за город</small></a>` : ''}
     <button class="tile" data-install hidden><div class="i">${ic('phone')}</div><b>Установить приложение</b><small>Иконка на экране телефона, работает как приложение</small></button></div>
   <footer class="foot small muted">© АвтоМастер24 · <a href="#/tariffs">Тарифы</a> · <a href="#/business">Для бизнеса</a> · <a href="order.html">Мои заказы</a> · <a href="${franchiseUrl()}" target="_blank" rel="noopener" data-franchise>Франшиза</a></footer>`;
 }
@@ -919,15 +930,106 @@ async function tariffs() {
 }
 
 // ------------------------------------------------------------ админ
-const adminTabs = (tab) => `<div class="tabs">${[['stats', '📊 Статистика'], ['regs', '🗂 Регистрации'], ['reqs', '📋 Заявки'], ...(S.caps.v4 ? [['disp', '📢 Диспетчер']] : []), ['reviews', '⭐ Отзывы'], ['provs', '🏢 Исполнители'], ['cities', '🏙 Города']].map(([t, n]) => `<a href="#/admin?t=${t}" class="${t === tab ? 'on' : ''}">${n}</a>`).join('')}</div>`;
+// ------------------------------------------------------------ админы города и права (обновление 7, перенос со старого сайта)
+const ROLE_N = { client: 'Пользователь', regional_admin: 'Админ города', global_admin: 'Главный админ' };
+const roleName = (u) => u?.role === 'regional_admin' ? `${ROLE_N.regional_admin} (${u.managed_city || '—'})` : ROLE_N[u?.role] || 'Пользователь';
+const userLine = (u) => `<b>${esc(u?.full_name || '—')}</b>${u?.username ? ` <span class="muted">@${esc(u.username)}</span>` : ''}`;
+function rightsMatrix() {
+  const Y = '✅', N = '—', C = '🏙';
+  const rows = [['Заявки, чат, отзывы от своего имени', Y, Y, Y], ['Одобрять организации, «Проверен», отключать', N, C, Y], ['Модерировать отзывы', N, C, Y],
+    ['Заявки и статистика', N, C, Y], ['Пользователи: просмотр, блокировка', N, C, Y], ['Объявление для города', N, C, Y],
+    ['Журнал действий администраторов', N, C, Y], ['Справочник городов', N, N, Y], ['Назначать и снимать админов города', N, N, Y]];
+  return `<div class="card"><h3>🔐 Кто что может</h3><div class="tblwrap"><table class="matrix"><tr><th>Действие</th><th>Пользователь</th><th>Админ города</th><th>Главный админ</th></tr>
+    ${rows.map((r) => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('')}</table></div>
+    <p class="small muted">🏙 — только в своём городе. Права проверяет база данных (RLS и функции), а не только сайт.</p></div>`;
+}
+function adminRoleCard() {
+  if (isG()) return `<div class="card"><h3>👑 Вы — главный администратор ${siteBadge()}</h3><p class="small">Вся платформа и все города. <a href="#/admin?t=admins">Админы города</a> — назначить человека отвечать за свой город; <a href="#/admin?t=users">Пользователи</a> — поиск и блокировка; <a href="#/admin?t=log">Журнал</a> — кто что менял.</p></div>`;
+  return `<div class="card"><h3>🏙 Вы — админ города: ${esc(S.me.managed_city || '')}</h3><p class="small">Одобряете организации, ставите «Проверен», модерируете отзывы, блокируете нарушителей и пишете объявление для своего города. Назначать админов может только главный администратор.</p><details><summary class="small">Таблица прав</summary>${rightsMatrix()}</details></div>`;
+}
+async function adminUsersTab(q) {
+  const list = await api.adminUsers(q.q || ''); const cities = S.ref.cities.filter((c) => c.active);
+  return `<form class="card row" id="uSearch"><input name="q" class="grow" value="${esc(q.q || '')}" placeholder="Имя, @username или телефон" aria-label="Поиск пользователя"><button class="p">Найти</button></form>
+    <p class="small muted">${isG() ? 'Все пользователи' : `Пользователи города ${esc(S.me.managed_city || '')}`}: ${list.length}${list.length >= 100 ? '+ (уточните поиск)' : ''}</p>
+    ${list.map((u) => `<div class="card ucard"><div class="row between"><span>${userLine(u)}</span><span class="badge ${u.role === 'client' ? 'grey' : 'gold'}">${esc(roleName(u))}</span></div>
+      <div class="small">${u.phone ? tel(u.phone) : ''} ${esc(u.city || '')} · заявок: ${u.requests ?? 0} · организаций: ${u.orgs ?? 0}${u.created_at ? ' · с ' + dt(u.created_at) : ''}</div>
+      ${u.blocked_at ? `<div class="notice warn small">⛔ Заблокирован ${dt(u.blocked_at)}: ${esc(u.blocked_reason || '')}</div>` : ''}
+      <div class="row" style="margin-top:8px">${u.id === S.me.id ? '<span class="small muted">Это вы</span>' : u.role !== 'client' ? '<span class="small muted">Администратора нельзя заблокировать — сначала снимите права</span>'
+        : u.blocked_at ? `<button class="ok sm" data-unblk="${esc(u.id)}">Разблокировать</button>` : `<button class="danger sm" data-blk="${esc(u.id)}">Заблокировать</button>`}
+      ${isG() && u.id !== S.me.id ? `<form class="row" data-role="${esc(u.id)}"><select name="role" aria-label="Роль">${Object.entries(ROLE_N).map(([k, n]) => `<option value="${k}" ${u.role === k ? 'selected' : ''}>${n}</option>`).join('')}</select>
+        <select name="city" aria-label="Город для админа города"><option value="">— город —</option>${cities.map((c) => `<option ${c.name === (u.managed_city || u.city) ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select><button class="sm">Сохранить роль</button></form>` : ''}</div></div>`).join('') || empty('👤', 'Никого не нашли', '', 'Пользователь появляется здесь после первого входа на сайт через Telegram.')}`;
+}
+async function adminAdminsTab() {
+  const [admins, log] = await Promise.all([api.adminList(), api.adminLog().catch(() => [])]);
+  const cities = S.ref.cities.filter((c) => c.active); const globals = admins.filter((a) => a.role === 'global_admin').length;
+  const byCity = {}; admins.filter((a) => a.role === 'regional_admin').forEach((a) => { (byCity[a.managed_city] = byCity[a.managed_city] || []).push(a); });
+  return `<div class="card"><h3>👥 Администраторы</h3><div class="tblwrap"><table><tr><th>Кто</th><th>Роль</th><th></th></tr>${admins.map((a) => `<tr><td>${userLine(a)}</td><td>${esc(roleName(a))}</td>
+      <td>${a.role === 'global_admin' && globals <= 1 ? '<span class="small muted">последний главный</span>' : `<button class="danger sm" data-demote="${esc(a.id)}" data-name="${esc(a.full_name || a.username || '')}">${a.id === S.me.id ? 'Снять с себя' : 'Снять права'}</button>`}</td></tr>`).join('')}</table></div></div>
+    <div class="card"><h3>🏙 Города и их админы</h3><div class="grid city-admins">${cities.map((c) => `<div class="tile"><b>${esc(c.name)}</b><small>${(byCity[c.name] || []).map((a) => '@' + esc(a.username || a.full_name || '')).join(', ') || '<span class="muted">админа нет</span>'}</small></div>`).join('')}</div></div>
+    <form class="card" id="admForm"><h3>➕ Назначить админа города</h3>${hint('Человек должен один раз войти на этот сайт через Telegram. Потом впишите его @username и выберите город — он сразу получит раздел «Админ» в меню.')}
+      <label>Telegram username</label><input name="username" required placeholder="@username" autocomplete="off">
+      <label>Роль</label><select name="role" id="admRole"><option value="regional_admin">Админ города — один город</option><option value="global_admin">Главный админ — вся платформа</option></select>
+      <div id="admCity"><label>Город</label><select name="city">${cities.map((c) => `<option ${c.name === S.city ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select></div>
+      <button class="p" style="margin-top:12px">Назначить</button></form>
+    ${rightsMatrix()}
+    <div class="card"><h3>📜 Последние действия</h3>${logRows(log.slice(0, 10))}<a href="#/admin?t=log" class="small">Весь журнал →</a></div>`;
+}
+async function adminSettingsTab(q) {
+  const city = isG() ? (q.c || S.city || '') : (S.me.managed_city || ''); const cities = S.ref.cities.filter((c) => c.active);
+  const cur = (await api.settings(city)).find((x) => x.key === 'city_notice' && x.city === city)?.value || '';
+  return `<div class="card">${isG() ? `<label>Город</label><select id="setCity">${cities.map((c) => `<option ${c.name === city ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>` : `<p class="small">Город: <b>${esc(city)}</b></p>`}</div>
+    <form class="card" id="setForm" data-city="${esc(city)}"><h3>📣 Объявление для города ${esc(city)}</h3>${hint('Объявление видят все на главной странице, когда выбран этот город. Оставьте поле пустым, чтобы убрать объявление.')}
+      <textarea name="city_notice" rows="3" maxlength="500" placeholder="Например: в праздники эвакуаторы работают с 9 до 21">${esc(cur)}</textarea>
+      <button class="p" style="margin-top:10px">Сохранить</button></form>`;
+}
+const ACT_N = { role: 'Роль', block: 'Блокировка', unblock: 'Разблокировка', setting: 'Объявление', provider: 'Организация', registration: 'Регистрация' };
+const logDetails = (x) => { const d = x.details || {};
+  if (x.action === 'role') return `${ROLE_N[d.from] || d.from} → ${ROLE_N[d.to] || d.to}${d.city ? ' (' + esc(d.city) + ')' : ''}`;
+  if (x.action === 'setting') return esc(typeof d.value === 'string' ? d.value.slice(0, 60) : d.value == null ? 'убрано' : String(d.value));
+  if (x.action === 'provider') return `${esc(d.name || '')}: ${d.is_active ? 'активна' : 'отключена'}${d.verified ? ', ✔ проверена' : ''}`;
+  if (x.action === 'registration') return `${esc(d.name || '')}: ${esc(d.status || '')}${d.reason ? ' — ' + esc(d.reason) : ''}`;
+  return esc(d.reason || ''); };
+const logRows = (log) => log.length ? `<div class="tblwrap"><table><tr><th>Когда</th><th>Кто</th><th>Действие</th><th>Кому</th><th>Подробности</th></tr>${log.map((x) => `<tr><td class="small">${dt(x.created_at)}</td><td class="small">${x.actor ? userLine(x.actor) : '—'}</td><td>${esc(ACT_N[x.action] || x.action)}${x.city ? ` <span class="small muted">${esc(x.city)}</span>` : ''}</td><td class="small">${x.target ? userLine(x.target) : '—'}</td><td class="small">${logDetails(x)}</td></tr>`).join('')}</table></div>` : '<p class="small muted">Пока пусто</p>';
+async function adminLogTab() { return `<div class="card"><h3>📜 Журнал действий администраторов</h3><p class="small muted">Назначения и снятия админов, блокировки, объявления, одобрения и отключения организаций.${isG() ? '' : ' Показаны действия по вашему городу.'}</p>${logRows(await api.adminLog())}</div>`; }
+function adminRolesAfter(v) {
+  const us = $('#uSearch', v); if (us) us.onsubmit = (e) => { e.preventDefault(); location.hash = `#/admin?t=users&q=${encodeURIComponent(us.q.value.trim())}`; };
+  $$('[data-blk]', v).forEach((b) => b.onclick = () => { const r = prompt('Причина блокировки (увидит пользователь):'); if (r && r.trim()) act(b, () => api.blockUser(b.dataset.blk, true, r.trim()), 'Пользователь заблокирован'); });
+  $$('[data-unblk]', v).forEach((b) => b.onclick = () => act(b, () => api.blockUser(b.dataset.unblk, false, ''), 'Разблокирован'));
+  $$('form[data-role]', v).forEach((f) => f.onsubmit = (e) => { e.preventDefault(); const d = formData(f);
+    if (d.role === 'regional_admin' && !d.city) return toast('Выберите город', true);
+    if (d.role === 'global_admin' && !confirm('Назначить ГЛАВНЫМ администратором? Он получит полный доступ ко всей платформе, включая назначение админов.')) return;
+    act($('button', f), () => api.setRole(f.dataset.role, d.role, d.city), 'Роль сохранена'); });
+  $$('[data-demote]', v).forEach((b) => b.onclick = () => { if (confirm(`Снять права администратора с «${b.dataset.name}»?`)) act(b, async () => { await api.setRole(b.dataset.demote, 'client', null); if (b.dataset.demote === S.me.id) { await refreshMe(); location.hash = '#/'; } }, 'Права сняты'); });
+  const af = $('#admForm', v); if (af) {
+    const sync = () => { $('#admCity', af).hidden = af.role.value !== 'regional_admin'; }; af.role.onchange = sync; sync();
+    af.onsubmit = (e) => { e.preventDefault(); const d = formData(af); const un = d.username.replace(/^@/, '').trim().toLowerCase();
+      if (d.role === 'global_admin' && !confirm(`Назначить @${un} ГЛАВНЫМ администратором? Он получит полный доступ ко всей платформе.`)) return;
+      act($('button', af), async () => { const u = (await api.adminUsers(un)).find((x) => (x.username || '').toLowerCase() === un);
+        if (!u) throw new Error('Пользователь не найден: пусть сначала войдёт на сайт через Telegram');
+        await api.setRole(u.id, d.role, d.role === 'regional_admin' ? d.city : null); }, 'Администратор назначен'); };
+  }
+  const sc = $('#setCity', v); if (sc) sc.onchange = () => { location.hash = `#/admin?t=settings&c=${encodeURIComponent(sc.value)}`; };
+  const sf = $('#setForm', v); if (sf) sf.onsubmit = (e) => { e.preventDefault(); act($('button', sf), () => api.setSetting('city_notice', sf.dataset.city, sf.city_notice.value.trim() || null), 'Объявление сохранено'); };
+}
+const isG = () => S.me?.role === 'global_admin';
+const adminTabs = (tab) => `<div class="tabs">${[['stats', '📊 Обзор'], ['regs', '🗂 Регистрации'], ['reqs', '📋 Заявки'], ...(S.caps.v4 ? [['disp', '📢 Диспетчер']] : []), ['reviews', '⭐ Отзывы'], ['provs', '🏢 Исполнители'],
+  ...(S.caps.v7 ? [['users', '👤 Пользователи'], ...(isG() ? [['admins', '👥 Админы города']] : []), ['settings', '📣 Объявление'], ['log', '📜 Журнал']] : []), ...(isG() ? [['cities', '🏙 Города']] : [])]
+  .map(([t, n]) => `<a href="#/admin?t=${t}" class="${t === tab ? 'on' : ''}">${n}</a>`).join('')}</div>`;
 async function admin(_, q) {
+  if (S.me && !isAdmin() && !IS_DEMO) await refreshMe(); // только что назначили — подхватываем роль без перезахода
   if (!isAdmin()) return `<h1>Админ-панель</h1>${S.me ? '<div class="card">Нет доступа. Админа назначают в базе (см. README).</div>' : needLogin('админ-панели')}`;
   const tab = q.t || 'stats';
   if (tab === 'disp' && S.caps.v4) { const L = await api.dispatchLeads(); autoRefresh(); return `<h1>🛡 Админ-панель ${siteBadge()}</h1>${adminTabs(tab)}<p class="small muted">Заявки без выбранного исполнителя — их прислали диспетчеру в ${PRIMARY.label}.</p>${L.map(leadCard).join('') || empty('📢', 'Пока пусто')}`; }
-  const head = `<h1>🛡 Админ-панель ${siteBadge()}</h1>${adminTabs(tab)}<p class="small muted">Права администратора действуют только на этом сайте (база VEZU). На старом сайте АвтоМастер24 они назначаются отдельно.</p>`;
+  const head = `<h1>🛡 Админ-панель ${siteBadge()}</h1>${!isG() ? `<p class="small">Ваш город: <b>${esc(S.me.managed_city || '')}</b></p>` : ''}${adminTabs(tab)}<p class="small muted">Права администратора действуют только на этом сайте (база VEZU). На старом сайте АвтоМастер24 они назначаются отдельно.</p>`;
   if (tab === 'stats') { const s = await api.adminStats();
     const L = { users: 'Пользователей', providers: 'Исполнителей', requests: 'Заявок всего', active: 'Активных заявок', completed: 'Выполнено', turnover: 'Оборот по выполненным', pending_regs: 'Ждут одобрения', pending_reviews: 'Отзывы на модерации' };
-    return head + `<div class="grid">${Object.entries(L).map(([k, n]) => `<div class="tile"><small>${n}</small><b class="price">${k === 'turnover' ? money(s[k]) : s[k]}</b></div>`).join('')}</div>`; }
+    return head + adminRoleCard() + `<div class="grid">${Object.entries(L).map(([k, n]) => `<div class="tile"><small>${n}</small><b class="price">${k === 'turnover' ? money(s[k]) : s[k]}</b></div>`).join('')}</div>`; }
+  if (['users', 'admins', 'settings', 'log'].includes(tab) && !S.caps.v7) return head + `<div class="card"><h3>Нужно обновить базу</h3><p>Раздел заработает после применения <code>supabase/07_admin_roles.sql</code>.</p></div>`;
+  if (tab === 'users') return head + await adminUsersTab(q);
+  if (tab === 'admins' && isG()) return head + await adminAdminsTab();
+  if (tab === 'settings') return head + await adminSettingsTab(q);
+  if (tab === 'log') return head + await adminLogTab();
+  if (tab === 'cities' && !isG()) return head + '<div class="card">Справочник городов меняет главный администратор.</div>';
   if (tab === 'regs') { const g = await api.adminRegistrations();
     return head + (g.map((x) => `<div class="card"><div class="row between"><b>${KINDS[x.kind].icon} ${esc(x.name)}</b>${badge(x.status)}</div><div class="small">${esc(x.city)} · ${esc(x.address)} · ${tel(x.phone)} · ${dt(x.created_at)}</div>
       ${x.details?.specs?.length ? `<div class="small muted">${x.details.specs.map(catName).join(', ')}</div>` : ''}${x.details?.service_type ? `<div class="small muted">${URGENT[x.details.service_type]}</div>` : ''}
@@ -943,6 +1045,7 @@ async function admin(_, q) {
     <form class="row" id="cityForm" style="margin-top:10px"><input name="name" class="grow" placeholder="Новый город" required><button class="p">Добавить</button></form></div>`;
 }
 admin.after = (v) => {
+  adminRolesAfter(v);
   $$('[data-ok]', v).forEach((b) => b.onclick = () => act(b, () => api.reviewRegistration(+b.dataset.ok, true), 'Одобрено — организация создана'));
   $$('[data-no]', v).forEach((b) => b.onclick = () => { const r = prompt('Причина отказа'); if (r !== null) act(b, () => api.reviewRegistration(+b.dataset.no, false, r), 'Отклонено'); });
   $$('[data-pub]', v).forEach((b) => b.onclick = () => act(b, () => api.moderateReview(+b.dataset.pub, true), 'Опубликовано'));
