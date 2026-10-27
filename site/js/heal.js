@@ -10,8 +10,9 @@
     if (!localStorage.getItem('am24v-migrated')) {
       var own = /^am24-(my-orders|demo-db-v5|demo-user|demo-photos|force-demo|backend|cart-.*|last-wa-.*)$/; // были только у гибрида
       var shared = /^am24-(theme|city|fav|onboarded)$/; // есть и у старого сайта — копируем, оригинал оставляем
-      for (var i = localStorage.length - 1; i >= 0; i--) {
-        var k = localStorage.key(i); if (!k) continue;
+      var all = []; for (var i = 0; i < localStorage.length; i++) all.push(localStorage.key(i)); // снимок: порядок ключей меняется при записи
+      for (var j = 0; j < all.length; j++) {
+        var k = all[j]; if (!k) continue;
         var m = own.test(k), s = shared.test(k); if (!m && !s) continue;
         var nk = 'am24v-' + k.slice(5);
         if (localStorage.getItem(nk) === null && k !== 'am24-backend') localStorage.setItem(nk, localStorage.getItem(k));
