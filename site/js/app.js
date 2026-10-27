@@ -100,12 +100,16 @@ function installHelp() {
   document.body.appendChild(d); $('[data-ok]', d).focus();
 }
 async function doInstall() {
-  if (S.installEvt) { const ev = S.installEvt; ev.prompt(); const r = await ev.userChoice.catch(() => null); S.installEvt = null; if (r?.outcome === 'accepted') { localStorage.setItem('am24v-installed', '1'); toast('Готово! Значок «АМ24+ВЕЗУ» появится на главном экране'); } syncInstall(); return; }
+  if (S.installEvt) { const ev = S.installEvt; window.__am24vBIP = null; ev.prompt(); const r = await ev.userChoice.catch(() => null); S.installEvt = null; if (r?.outcome === 'accepted') { localStorage.setItem('am24v-installed', '1'); toast('Готово! Значок «АМ24+ВЕЗУ» появится на главном экране'); } syncInstall(); return; }
   installHelp();
 }
 
 // ------------------------------------------------------------ состояние
 const S = { ref: null, me: null, city: localStorage.getItem('am24v-city') || CONFIG.DEFAULT_CITY, myProv: [], timer: null, caps: { v3: false }, cleanups: [], installEvt: null };
+// beforeinstallprompt: берём пойманное heal.js раньше и слушаем дальше
+function gotBIP(e) { S.installEvt = e; localStorage.removeItem('am24v-installed'); syncInstall(); }
+window.__am24vOnBIP = gotBIP; if (window.__am24vBIP) S.installEvt = window.__am24vBIP;
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); if (e !== window.__am24vBIP) gotBIP(e); });
 const isAdmin = () => ['global_admin', 'regional_admin'].includes(S.me?.role);
 const catName = (id) => S.ref.categories.find((c) => c.id === +id)?.name || '';
 const siteUrl = () => location.origin + location.pathname;
@@ -135,7 +139,6 @@ async function boot() {
     const ph = e.target.closest('[data-full]'); if (ph) lightbox(ph.dataset.full);
     const fv = e.target.closest('[data-fav]'); if (fv) { e.preventDefault(); const on = toggleFav(fv.dataset.fav); fv.classList.toggle('on', on); fv.setAttribute('aria-pressed', on); fv.textContent = on ? '♥' : '♡'; toast(on ? 'Добавлено в избранное' : 'Убрано из избранного'); }
   });
-  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); S.installEvt = e; localStorage.removeItem('am24v-installed'); syncInstall(); });
   window.addEventListener('appinstalled', () => { S.installEvt = null; localStorage.setItem('am24v-installed', '1'); syncInstall(); });
   matchMedia('(display-mode: standalone)').addEventListener?.('change', syncInstall);
   if ($('#installBtn')) { $('#installBtn').innerHTML = ic('install'); $('#installBtn').onclick = doInstall; }

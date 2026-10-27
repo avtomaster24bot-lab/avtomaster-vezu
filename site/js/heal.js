@@ -2,7 +2,7 @@
 // 1) если за 12 с страница так и не отрисовалась — показываем плашку с кнопками «Обновить» и «Сбросить и открыть заново»;
 // 2) am24Reset() — чистит старую сессию/кэш/service worker этого сайта (данные других сайтов не трогает).
 (function () {
-  var BUILD = '6.5';
+  var BUILD = '6.6';
   // Старый сайт АвтоМастер24 (/avtomaster24-web/) живёт на том же домене и хранит свои ключи am24-*
   // (в т.ч. сессию am24-auth от своей базы). Гибрид хранит всё под am24v-* и чужие ключи НЕ трогает.
   // Один раз переносим свои настройки, которые раньше лежали под am24-*; сессию am24-auth не трогаем никогда.
@@ -52,3 +52,5 @@
   }
   setTimeout(banner, 12000);
 })();
+// Ловим системное окно установки как можно раньше: Chrome может прислать его до загрузки app.js.
+window.addEventListener('beforeinstallprompt', function (e) { if (!document.getElementById('installBtn')) return; e.preventDefault(); window.__am24vBIP = e; if (window.__am24vOnBIP) window.__am24vOnBIP(e); });
