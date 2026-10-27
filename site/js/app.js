@@ -194,6 +194,8 @@ function suggest(text) {
 }
 
 // ------------------------------------------------------------ главная
+// «Стать партнёром»: чат с главным ботом, текст подставляется в поле ввода (t.me/<bot>?text=…)
+const partnerUrl = () => `https://t.me/${CONFIG.PARTNER_BOT}?text=${encodeURIComponent(`Хочу стать партнёром — город ${S.city || CONFIG.DEFAULT_CITY}`)}`;
 async function home() {
   const fv = favs();
   const favList = fv.length ? (await Promise.all(fv.slice(0, 6).map((id) => api.getProvider(id).catch(() => null)))).filter(Boolean) : [];
@@ -228,12 +230,14 @@ async function home() {
     <a class="tile" href="#/business"><div class="i">${ic('idcard')}</div><b>Для бизнеса</b><small>Визитка с QR: СТО, мойка, эвакуатор, магазин, грузоперевозки</small></a>
     <a class="tile" href="#/tariffs"><div class="i">${ic('card')}</div><b>Тарифы</b><small>Визитка бесплатно, Про, магазин, печать</small></a>
     <a class="tile" href="#/garage"><div class="i">${ic('car')}</div><b>Мой гараж</b><small>Авто и регламент ТО</small></a>
+    <a class="tile partner" href="${partnerUrl()}" target="_blank" rel="noopener" data-partner><span class="pt-badge">Города разбирают</span><div class="i">${ic('star')}</div><b>Стать партнёром</b><small>Выкупите права на представительство в своём городе. Успейте занять свой город!</small><span class="pt-go">Написать в Telegram ${ic('arrow')}</span></a>
     ${S.myProv.length ? `<a class="tile" href="#/cabinet"><div class="i">${ic('wrench')}</div><b>Кабинет исполнителя</b><small>Входящие заявки</small></a>` : ''}
     ${isAdmin() ? `<a class="tile" href="#/admin"><div class="i">${ic('shield')}</div><b>Админ-панель</b><small>Модерация и статистика</small></a>` : ''}
     <button class="tile" data-install hidden><div class="i">${ic('phone')}</div><b>Установить приложение</b><small>Иконка на экране телефона, работает как приложение</small></button></div>
-  <footer class="foot small muted">© АвтоМастер24 · <a href="#/tariffs">Тарифы</a> · <a href="#/business">Для бизнеса</a> · <a href="order.html">Мои заказы</a></footer>`;
+  <footer class="foot small muted">© АвтоМастер24 · <a href="#/tariffs">Тарифы</a> · <a href="#/business">Для бизнеса</a> · <a href="order.html">Мои заказы</a> · <a href="${partnerUrl()}" target="_blank" rel="noopener" data-partner>Стать партнёром</a></footer>`;
 }
 home.after = (v) => {
+  $$('[data-partner]', v).forEach((a) => a.addEventListener('click', () => { a.href = partnerUrl(); }));
   const q = $('#q', v), sg = $('#sugg', v);
   q.oninput = () => { const list = suggest(q.value); sg.innerHTML = list.map((x) => `<a href="${x.href}" role="option"><span>${x.icon}</span><b>${esc(x.title)}</b><small>${esc(x.hint)}</small></a>`).join(''); sg.classList.toggle('on', !!list.length); };
   q.onkeydown = (e) => { if (e.key === 'Enter') { const a = $('a', sg); if (a) location.hash = a.getAttribute('href'); } };

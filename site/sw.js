@@ -1,7 +1,7 @@
 // АвтоМастер24 — service worker. Всегда сначала сеть: страницы — без HTTP-кэша (no-store),
 // скрипты/стили/картинки — с проверкой свежести (no-cache → 304, если не менялись). Кэш — только запасной вариант без сети.
 // При выходе новой версии старые кэши этого сайта (am24v-*) удаляются; кэши старого сайта АвтоМастер24 (am24-*) на том же домене не трогаем, вкладки сразу переходят на новый SW.
-const CACHE = 'am24v-6.1';
+const CACHE = 'am24v-6.2';
 const SHELL = ['./', 'index.html', 'css/style.css', 'js/heal.js', 'js/app.js', 'js/api.js', 'js/config.js', 'js/consts.js', 'js/seed.js', 'js/icons.js',
   'js/backend-demo.js', 'js/backend-supabase.js', 'js/region.js', 'js/messaging.js', 'js/cardkit.js', 'js/card.js', 'js/shop.js', 'js/orders.js', 'js/order.js', 'js/vendor/qrcode.js',
   'card.html', 'shop.html', 'order.html', 'css/shop.css', 'assets/favicon.svg', 'assets/icon-192.png', 'manifest.webmanifest'];
