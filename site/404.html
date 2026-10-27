@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <base href="/avtomaster-vezu/">
-<script src="js/heal.js?v=6.4"></script>
+<script src="js/heal.js?v=6.5"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>АвтоМастер24 — СТО, эвакуатор, мойка, запчасти в Казахстане</title>
 <meta name="description" content="Одна заявка — и мастера вашего города откликаются сами: СТО, эвакуатор, автомойка, запчасти, выездная помощь. Фото, чат, рейтинги и отзывы. Бесплатно для автовладельцев.">
-<meta name="theme-color" content="#0F0F0F">
+<meta name="theme-color" content="#0A0D14">
 <link rel="canonical" href="https://avtomaster24bot-lab.github.io/avtomaster-vezu/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="АвтоМастер24">
@@ -19,14 +19,14 @@
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="assets/icon-180.png">
+<link rel="icon" href="assets/app-icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/app-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="АвтоМастер24">
+<meta name="apple-mobile-web-app-title" content="АМ24+ВЕЗУ"><meta name="application-name" content="АвтоМастер24 + ВЕЗУ">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap"><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" media="print" onload="this.media='all'"><noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"></noscript>
 <link rel="preload" as="image" href="assets/img/hero-640.webp" media="(max-width:700px)"><link rel="preload" as="image" href="assets/img/hero.webp" media="(min-width:701px)">
-<link rel="stylesheet" href="css/style.css?v=6.4">
+<link rel="stylesheet" href="css/style.css?v=6.5">
 <script>try{var t=localStorage.getItem('am24v-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.dataset.theme=t}catch(e){}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"АвтоМастер24","url":"https://avtomaster24bot-lab.github.io/avtomaster-vezu/","applicationCategory":"LifestyleApplication","operatingSystem":"Web","inLanguage":"ru","areaServed":"KZ","offers":{"@type":"Offer","price":"0","priceCurrency":"KZT"},"description":"Заявки в СТО, эвакуатор, автомойку, магазины запчастей и выездным мастерам."}</script>
 <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
@@ -36,6 +36,7 @@
 <header class="top">
   <a href="#/" class="logo" aria-label="АвтоМастер24 + ВЕЗУ — на главную"><img src="assets/favicon.svg" alt=""><span>АВТОМАСТЕР<b>24</b></span><i class="logo-tag">+ВЕЗУ</i></a>
   <select id="citySel" aria-label="Город"></select>
+  <button id="installBtn" class="iconbtn install-btn" type="button" hidden aria-label="Установить приложение на телефон" title="Установить приложение"></button>
   <button id="themeBtn" class="iconbtn" type="button" aria-label="Сменить тему">☀️</button>
   <a href="#/profile" id="meChip" class="chip">Войти</a>
 </header>
@@ -44,7 +45,7 @@
 <nav class="bottom" id="nav" aria-label="Основное меню"></nav>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 <link rel="modulepreload" href="js/api.js"><link rel="modulepreload" href="js/backend-supabase.js"><link rel="modulepreload" href="js/icons.js">
-<script type="module" src="js/app.js?v=6.4"></script>
+<script type="module" src="js/app.js?v=6.5"></script>
 <noscript>Для работы сайта включите JavaScript.</noscript>
 </body>
 </html>

@@ -1,24 +1,28 @@
 {
-  "name": "АвтоМастер24 — СТО, эвакуатор, мойка, запчасти, грузоперевозки",
-  "short_name": "АвтоМастер24",
-  "description": "Заявка в СТО, эвакуатор, мойку, магазины запчастей и выездным мастерам вашего города.",
+  "id": "/avtomaster-vezu/app-am24-vezu",
+  "name": "АвтоМастер24 + ВЕЗУ",
+  "short_name": "АМ24+ВЕЗУ",
+  "description": "СТО, эвакуатор, мойка, запчасти, выездная помощь и грузоперевозки вашего города. Гибрид АвтоМастер24 и ВЕЗУ.",
   "lang": "ru",
-  "start_url": "./#/",
-  "scope": "./",
+  "dir": "ltr",
+  "start_url": "/avtomaster-vezu/?source=pwa#/",
+  "scope": "/avtomaster-vezu/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait",
-  "background_color": "#0F0F0F",
-  "theme_color": "#0F0F0F",
+  "background_color": "#0A0D14",
+  "theme_color": "#0A0D14",
   "categories": ["auto", "lifestyle", "business"],
   "icons": [
-    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "assets/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "assets/app-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/app-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/app-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "assets/app-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "shortcuts": [
-    { "name": "Новая заявка в СТО", "url": "./#/new/sto" },
-    { "name": "Эвакуатор", "url": "./#/new/tow" },
-    { "name": "Грузоперевозка", "url": "./#/new/cargo" },
-    { "name": "Мои заявки", "url": "./#/requests" }
+    { "name": "Новая заявка в СТО", "short_name": "СТО", "url": "/avtomaster-vezu/?source=pwa#/new/sto", "icons": [{ "src": "assets/app-192.png", "sizes": "192x192" }] },
+    { "name": "Эвакуатор", "url": "/avtomaster-vezu/?source=pwa#/new/tow", "icons": [{ "src": "assets/app-192.png", "sizes": "192x192" }] },
+    { "name": "Грузоперевозка", "url": "/avtomaster-vezu/?source=pwa#/new/cargo", "icons": [{ "src": "assets/app-192.png", "sizes": "192x192" }] },
+    { "name": "Мои заказы", "url": "/avtomaster-vezu/order.html", "icons": [{ "src": "assets/app-192.png", "sizes": "192x192" }] }
   ]
 }

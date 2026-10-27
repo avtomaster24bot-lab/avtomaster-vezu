@@ -315,3 +315,20 @@ a.tile.franchise:hover{box-shadow:0 18px 42px rgba(124,58,237,.4);border-color:t
 .tblwrap{overflow-x:auto}.matrix td,.matrix th{text-align:center;white-space:nowrap}.matrix td:first-child,.matrix th:first-child{text-align:left;white-space:normal}
 .city-notice{margin:12px 0;background:rgba(79,140,255,.1);border:1px solid rgba(79,140,255,.3);border-radius:16px;padding:12px 14px}
 .ucard .row form{flex-wrap:wrap}
+/* v6.5 — установка как приложение */
+.install-btn{color:var(--p);background:rgba(255,178,36,.12);border:1px solid rgba(255,178,36,.35);animation:instPulse 2.6s ease-in-out 3}
+.install-btn .ic,.install-btn svg{width:20px;height:20px}
+@keyframes instPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,178,36,.0)}50%{box-shadow:0 0 0 6px rgba(255,178,36,.18)}}
+.inst-ban{position:relative;display:flex;align-items:center;gap:14px;padding:14px 48px 14px 14px;background:linear-gradient(135deg,rgba(255,178,36,.16),rgba(79,140,255,.10) 65%,var(--s1));border-color:rgba(255,178,36,.32)}
+.inst-ban img{flex:none;border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.inst-ban .t{flex:1;min-width:0;display:grid;gap:2px}.inst-ban .t small{color:var(--t2);line-height:1.35}
+.inst-ban .p{flex:none;white-space:nowrap}
+.inst-ban .x{position:absolute;right:8px;top:8px;display:grid;place-items:center;width:30px;height:30px;padding:0;border-radius:50%;background:var(--s2);color:var(--t2)}
+@media(max-width:560px){.inst-ban{flex-wrap:wrap}.inst-ban .t{flex-basis:calc(100% - 70px)}.inst-ban .p{width:100%}}
+.install-sheet{align-items:end;background:rgba(0,0,0,.6);backdrop-filter:blur(4px)}
+@media(min-width:700px){.install-sheet{align-items:center}}
+.install-sheet .sheet{position:relative;width:min(440px,100%);padding:22px 20px 18px;display:grid;gap:14px;text-align:left}
+.install-sheet .lb-x{top:10px;right:10px;width:34px;height:34px;background:var(--s2);color:var(--t2)}
+.inst-h{display:flex;gap:12px;align-items:center;padding-right:36px}.inst-h img{border-radius:14px}.inst-h div{display:grid;gap:2px}.inst-h small{color:var(--t2)}
+.inst-steps{margin:0;padding-left:22px;display:grid;gap:10px;line-height:1.45}.inst-steps .ic,.inst-steps svg{width:18px;height:18px;vertical-align:-3px;color:var(--acc)}
+html.pwa [data-install],html.pwa #installBtn{display:none!important}

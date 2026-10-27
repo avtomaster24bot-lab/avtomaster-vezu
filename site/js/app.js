@@ -73,6 +73,37 @@ function lightbox(src) {
   document.body.appendChild(d); $('.lb-x', d).focus();
 }
 
+// ------------------------------------------------------------ установка как приложение (как у ВЕЗУ)
+const UA = navigator.userAgent || '';
+const IS_IOS = /iPhone|iPad|iPod/i.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const IS_ANDROID = /Android/i.test(UA);
+function standalone() { return matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: minimal-ui)').matches || navigator.standalone === true; }
+function inAppBrowser() { return !!(window.TelegramWebviewProxy || window.TelegramWebview || window.TelegramWebviewProxyProto || /Telegram|FBAN|FBAV|FB_IAB|FBIOS|Instagram|Line\/|MicroMessenger|VKClient|OKApp|; wv\)/i.test(UA)); }
+// Кнопку показываем: если браузер дал системное окно установки; на iPhone/Android — всегда (там покажем инструкцию). Уже установлено — прячем.
+function canInstall() { if (standalone() || localStorage.getItem('am24v-installed')) return false; return !!S.installEvt || IS_IOS || IS_ANDROID; }
+function syncInstall() { const on = canInstall(); $$('[data-install]').forEach((b) => { b.hidden = !on; }); const h = $('#installBtn'); if (h) h.hidden = !on; document.documentElement.classList.toggle('pwa', standalone()); }
+function installHelp() {
+  const inApp = inAppBrowser();
+  const steps = inApp
+    ? `<li>Нажмите <b>⋯</b> вверху справа → <b>«Открыть в браузере»</b> (${IS_IOS ? 'Safari' : 'Chrome'}).</li><li>Там снова нажмите «Установить приложение».</li>`
+    : IS_IOS
+      ? `<li>Нажмите кнопку <b>«Поделиться»</b> ${ic('share')} внизу экрана Safari.</li><li>Прокрутите и выберите <b>«На экран „Домой“»</b>.</li><li>Нажмите <b>«Добавить»</b> — значок появится на главном экране.</li>`
+      : `<li>Откройте меню браузера <b>⋮</b> вверху справа.</li><li>Выберите <b>«Установить приложение»</b> или <b>«Добавить на главный экран»</b>.</li><li>Подтвердите — значок появится на главном экране.</li>`;
+  const d = document.createElement('div'); d.className = 'lightbox install-sheet'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true'); d.setAttribute('aria-label', 'Как установить приложение');
+  d.innerHTML = `<div class="card sheet" onclick="event.stopPropagation()"><button class="x lb-x" aria-label="Закрыть">✕</button>
+    <div class="inst-h"><img src="assets/app-192.png" alt="" width="56" height="56"><div><b>АвтоМастер24 + ВЕЗУ</b><small>Значок на главном экране, открывается как приложение</small></div></div>
+    ${inApp ? '<p class="small">Вы открыли сайт внутри Telegram — отсюда установить нельзя.</p>' : ''}
+    <ol class="inst-steps">${steps}</ol><button class="p" type="button" data-ok>Понятно</button></div>`;
+  const close = () => { d.remove(); document.removeEventListener('keydown', k); };
+  function k(e) { if (e.key === 'Escape') close(); }
+  d.onclick = close; $('.lb-x', d).onclick = close; $('[data-ok]', d).onclick = close; document.addEventListener('keydown', k);
+  document.body.appendChild(d); $('[data-ok]', d).focus();
+}
+async function doInstall() {
+  if (S.installEvt) { const ev = S.installEvt; ev.prompt(); const r = await ev.userChoice.catch(() => null); S.installEvt = null; if (r?.outcome === 'accepted') { localStorage.setItem('am24v-installed', '1'); toast('Готово! Значок «АМ24+ВЕЗУ» появится на главном экране'); } syncInstall(); return; }
+  installHelp();
+}
+
 // ------------------------------------------------------------ состояние
 const S = { ref: null, me: null, city: localStorage.getItem('am24v-city') || CONFIG.DEFAULT_CITY, myProv: [], timer: null, caps: { v3: false }, cleanups: [], installEvt: null };
 const isAdmin = () => ['global_admin', 'regional_admin'].includes(S.me?.role);
@@ -104,11 +135,16 @@ async function boot() {
     const ph = e.target.closest('[data-full]'); if (ph) lightbox(ph.dataset.full);
     const fv = e.target.closest('[data-fav]'); if (fv) { e.preventDefault(); const on = toggleFav(fv.dataset.fav); fv.classList.toggle('on', on); fv.setAttribute('aria-pressed', on); fv.textContent = on ? '♥' : '♡'; toast(on ? 'Добавлено в избранное' : 'Убрано из избранного'); }
   });
-  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); S.installEvt = e; $$('[data-install]').forEach((b) => { b.hidden = false; }); });
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); S.installEvt = e; localStorage.removeItem('am24v-installed'); syncInstall(); });
+  window.addEventListener('appinstalled', () => { S.installEvt = null; localStorage.setItem('am24v-installed', '1'); syncInstall(); });
+  matchMedia('(display-mode: standalone)').addEventListener?.('change', syncInstall);
+  if ($('#installBtn')) { $('#installBtn').innerHTML = ic('install'); $('#installBtn').onclick = doInstall; }
+  document.addEventListener('click', (e) => { if (e.target.closest('[data-install]')) { e.preventDefault(); doInstall(); } });
+  syncInstall();
   if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((r) => r.update?.()).catch(() => {});
   render();
 }
-function applyTheme(t, save) { document.documentElement.dataset.theme = t; $('meta[name=theme-color]')?.setAttribute('content', t === 'light' ? '#F6F4EF' : '#0F0F0F'); $('#themeBtn').innerHTML = ic(t === 'light' ? 'moon' : 'sun'); $('#themeBtn').setAttribute('aria-label', t === 'light' ? 'Тёмная тема' : 'Светлая тема'); if (save) localStorage.setItem('am24v-theme', t); }
+function applyTheme(t, save) { document.documentElement.dataset.theme = t; $('meta[name=theme-color]')?.setAttribute('content', t === 'light' ? '#F6F4EF' : '#0A0D14'); $('#themeBtn').innerHTML = ic(t === 'light' ? 'moon' : 'sun'); $('#themeBtn').setAttribute('aria-label', t === 'light' ? 'Тёмная тема' : 'Светлая тема'); if (save) localStorage.setItem('am24v-theme', t); }
 let meAt = 0;
 async function refreshMe() {
   meAt = Date.now();
@@ -154,7 +190,7 @@ async function render() {
   const sk = same ? 0 : setTimeout(() => { if (seq === renderSeq) v.innerHTML = skeleton(); }, 250);
   try {
     const html = await fn(arg, q) || ''; clearTimeout(sk); if (seq !== renderSeq) return;
-    v.innerHTML = html; fn.after?.(v, arg, q); hydratePhotos(v);
+    v.innerHTML = html; fn.after?.(v, arg, q); hydratePhotos(v); syncInstall();
   } catch (e) { clearTimeout(sk); if (seq === renderSeq) v.innerHTML = `<div class="card"><h3>Ошибка</h3><p>${esc(e.message)}</p><a class="btn" href="#/">На главную</a></div>`; }
 }
 const needLogin = (what = 'этого действия') => `<div class="card center"><div class="big-i">🔐</div><h2>Нужно войти</h2><p class="muted">Для ${what} войдите через Telegram — это занимает 5 секунд. Телефон вы укажете сами, и его увидит только исполнитель, который возьмёт вашу заявку.</p><a class="btn p" href="#/login">Войти</a></div>`;
@@ -222,6 +258,7 @@ async function home() {
     <ul class="trust"><li>${ic('check')} Бесплатно для клиентов</li><li>${ic('clock')} Отклик обычно за 5–15 минут</li><li>${ic('star')} Рейтинг по реальным заказам</li></ul></div></section>
   ${cityNotice ? `<div class="notice city-notice" role="status">📣 <b>${esc(S.city)}:</b> <span data-ugc>${esc(cityNotice)}</span></div>` : ''}
   ${onboard}
+  ${canInstall() && Date.now() - (+localStorage.getItem('am24v-inst-hide') || 0) > 7 * 864e5 ? `<div class="card inst-ban" id="instBan" role="region" aria-label="Установить приложение"><img src="assets/app-192.png" alt="" width="52" height="52"><div class="t"><b>Установите приложение на телефон</b><small>Значок «АМ24+ВЕЗУ» на главном экране — заявка за пару касаний, без поиска сайта</small></div><button class="p sm" type="button" data-install>${ic('install')} Установить</button><button class="x" type="button" aria-label="Скрыть на неделю">${ic('x')}</button></div>` : ''}
   <div class="sec-h"><h2>Что случилось?</h2><a class="small" href="#/catalog/sto">Все мастера ${ic('arrow')}</a></div>
   <div class="grid photo-grid">${Object.entries(KINDS).map(([k, x]) => `<a class="tile ph-tile" href="#/new/${k}"><img src="${IMG[k]}" alt="" loading="lazy" width="560" height="420"><span class="kind-ic">${ic(KIND_IC[k])}</span><span class="ph-txt"><b>${x.title}</b><small>${x.desc}</small></span></a>`).join('')}</div>
   ${howBlock()}
@@ -244,7 +281,7 @@ async function home() {
     ${S.myProv.length ? `<a class="tile" href="#/cabinet"><div class="i">${ic('wrench')}</div><b>Кабинет исполнителя</b><small>Входящие заявки</small></a>` : ''}
     ${isAdmin() ? `<a class="tile" href="#/admin"><div class="i">${ic('shield')}</div><b>Админ-панель</b><small>${isG() ? 'Вся платформа: модерация, пользователи, журнал' : `Ваш город: ${esc(S.me.managed_city || '')}`}</small></a>` : ''}
     ${isG() && S.caps.v7 ? `<a class="tile" href="#/admin?t=admins"><div class="i">${ic('user')}</div><b>Админы города</b><small>Назначить, кто отвечает за город</small></a>` : ''}
-    <button class="tile" data-install hidden><div class="i">${ic('phone')}</div><b>Установить приложение</b><small>Иконка на экране телефона, работает как приложение</small></button></div>
+    <button class="tile" data-install hidden><div class="i">${ic('install')}</div><b>Установить приложение</b><small>Значок на экране телефона, открывается как приложение</small></button></div>
   <footer class="foot small muted">© АвтоМастер24 · <a href="#/tariffs">Тарифы</a> · <a href="#/business">Для бизнеса</a> · <a href="order.html">Мои заказы</a> · <a href="${franchiseUrl()}" target="_blank" rel="noopener" data-franchise>Франшиза</a></footer>`;
 }
 home.after = (v) => {
@@ -259,7 +296,8 @@ home.after = (v) => {
   installBtns(v);
 };
 function installBtns(v) {
-  $$('[data-install]', v).forEach((b) => { b.hidden = !S.installEvt; b.onclick = async () => { if (!S.installEvt) return; S.installEvt.prompt(); await S.installEvt.userChoice.catch(() => {}); S.installEvt = null; b.hidden = true; }; });
+  syncInstall();
+  const ib = $('#instBan', v); if (ib) $('.x', ib).onclick = (e) => { e.stopPropagation(); localStorage.setItem('am24v-inst-hide', String(Date.now())); ib.remove(); };
 }
 
 // ------------------------------------------------------------ каталог и карточка исполнителя
@@ -681,7 +719,7 @@ async function profile() {
     <button class="p" style="margin-top:12px">Сохранить</button></form>
     ${regs.length ? `<div class="card"><h3>Мои заявки на подключение бизнеса</h3>${regs.map((g) => `<div class="row between small"><span>${KINDS[g.kind].icon} ${esc(g.name)}</span>${badge(g.status)}</div>${g.reason ? `<div class="small muted">${esc(g.reason)}</div>` : ''}`).join('')}</div>` : ''}
     <div class="card row">${S.myProv.length ? '<a class="btn" href="#/cabinet">🛠 Кабинет исполнителя</a>' : '<a class="btn" href="#/business">💼 Подключить бизнес</a>'}${isAdmin() ? '<a class="btn" href="#/admin">🛡 Админ</a>' : ''}<a class="btn" href="#/garage">🚗 Гараж</a>
-    ${IS_DEMO ? '' : '<a class="btn" href="?demo=1#/">🧪 Посмотреть демо</a>'}<button class="btn" data-install hidden>📲 Установить приложение</button><button class="danger" id="delData">Удалить мои данные</button><button class="ghost" id="logout">Выйти</button></div>`;
+    ${IS_DEMO ? '' : '<a class="btn" href="?demo=1#/">🧪 Посмотреть демо</a>'}<button class="btn p" data-install hidden>${ic('install')} Установить приложение</button><button class="danger" id="delData">Удалить мои данные</button><button class="ghost" id="logout">Выйти</button></div>`;
 }
 profile.after = (v) => {
   const f = $('#prf', v); if (!f) return login.after(v);
