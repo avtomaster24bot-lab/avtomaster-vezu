@@ -2,12 +2,29 @@
 // 1) если за 12 с страница так и не отрисовалась — показываем плашку с кнопками «Обновить» и «Сбросить и открыть заново»;
 // 2) am24Reset() — чистит старую сессию/кэш/service worker этого сайта (данные других сайтов не трогает).
 (function () {
-  var BUILD = '6.0';
+  var BUILD = '6.1';
+  // Старый сайт АвтоМастер24 (/avtomaster24-web/) живёт на том же домене и хранит свои ключи am24-*
+  // (в т.ч. сессию am24-auth от своей базы). Гибрид хранит всё под am24v-* и чужие ключи НЕ трогает.
+  // Один раз переносим свои настройки, которые раньше лежали под am24-*; сессию am24-auth не трогаем никогда.
+  try {
+    if (!localStorage.getItem('am24v-migrated')) {
+      var own = /^am24-(my-orders|demo-db-v5|demo-user|demo-photos|force-demo|backend|cart-.*|last-wa-.*)$/; // были только у гибрида
+      var shared = /^am24-(theme|city|fav|onboarded)$/; // есть и у старого сайта — копируем, оригинал оставляем
+      for (var i = localStorage.length - 1; i >= 0; i--) {
+        var k = localStorage.key(i); if (!k) continue;
+        var m = own.test(k), s = shared.test(k); if (!m && !s) continue;
+        var nk = 'am24v-' + k.slice(5);
+        if (localStorage.getItem(nk) === null && k !== 'am24-backend') localStorage.setItem(nk, localStorage.getItem(k));
+        if (m) localStorage.removeItem(k);
+      }
+      localStorage.setItem('am24v-migrated', '1');
+    }
+  } catch (e) {}
   window.AM24_BUILD = BUILD;
   window.am24Reset = function () {
-    try { ['am24-auth', 'am24-backend'].forEach(function (k) { localStorage.removeItem(k); }); sessionStorage.removeItem('am24-ready'); } catch (e) {}
+    try { ['am24v-auth', 'am24v-backend'].forEach(function (k) { localStorage.removeItem(k); }); sessionStorage.removeItem('am24v-ready'); } catch (e) {}
     var jobs = [];
-    try { if (window.caches) jobs.push(caches.keys().then(function (ks) { return Promise.all(ks.filter(function (k) { return k.indexOf('am24-') === 0; }).map(function (k) { return caches.delete(k); })); })); } catch (e) {}
+    try { if (window.caches) jobs.push(caches.keys().then(function (ks) { return Promise.all(ks.filter(function (k) { return k.indexOf('am24v-') === 0; }).map(function (k) { return caches.delete(k); })); })); } catch (e) {}
     try { if (navigator.serviceWorker) jobs.push(navigator.serviceWorker.getRegistrations().then(function (rs) { return Promise.all(rs.filter(function (r) { return r.scope.indexOf('/avtomaster-vezu/') > -1; }).map(function (r) { return r.unregister(); })); })); } catch (e) {}
     Promise.all(jobs).catch(function () {}).then(function () { var u = location.href.replace(/([?&])_r=\d+/, '$1'); location.replace(u + (u.indexOf('?') > -1 ? '&' : '?') + '_r=' + Date.now()); });
   };
@@ -21,9 +38,9 @@
     return /^\s*Загрузка…\s*$/.test(m.textContent || '');
   }
   function banner() {
-    if (!stuck() || document.getElementById('am24-heal')) return;
+    if (!stuck() || document.getElementById('am24v-heal')) return;
     var d = document.createElement('div');
-    d.id = 'am24-heal'; d.setAttribute('role', 'alert'); d.className = 'heal';
+    d.id = 'am24v-heal'; d.setAttribute('role', 'alert'); d.className = 'heal';
     d.innerHTML = '<b>Страница не загрузилась</b><span>Обычно помогает сброс сохранённых данных этого сайта (вход и кэш). Ваши заказы в базе не пропадут.</span>' +
       '<div class="heal-row"><button type="button" id="healR">Обновить</button><button type="button" id="healX" class="p">Сбросить и открыть заново</button></div>' +
       (errs.length ? '<small>' + String(errs[errs.length - 1]).replace(/[<>&]/g, '').slice(0, 140) + '</small>' : '');

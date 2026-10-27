@@ -43,9 +43,9 @@ function openNow(wh) {
 const openChip = (wh) => { const o = openNow(wh); return o == null ? '' : o ? '<span class="chip-s ok">● Открыто</span>' : '<span class="chip-s off">● Закрыто</span>'; };
 
 // избранное — хранится в браузере
-const favs = () => { try { return JSON.parse(localStorage.getItem('am24-fav')) || []; } catch { return []; } };
+const favs = () => { try { return JSON.parse(localStorage.getItem('am24v-fav')) || []; } catch { return []; } };
 const isFav = (id) => favs().includes(+id);
-const toggleFav = (id) => { const f = favs(); const i = f.indexOf(+id); if (i >= 0) f.splice(i, 1); else f.push(+id); localStorage.setItem('am24-fav', JSON.stringify(f)); return i < 0; };
+const toggleFav = (id) => { const f = favs(); const i = f.indexOf(+id); if (i >= 0) f.splice(i, 1); else f.push(+id); localStorage.setItem('am24v-fav', JSON.stringify(f)); return i < 0; };
 
 // сжатие фото перед загрузкой
 async function compress(file, max = IS_DEMO ? 900 : 1600, q = IS_DEMO ? 0.7 : 0.82) {
@@ -74,14 +74,14 @@ function lightbox(src) {
 }
 
 // ------------------------------------------------------------ состояние
-const S = { ref: null, me: null, city: localStorage.getItem('am24-city') || CONFIG.DEFAULT_CITY, myProv: [], timer: null, caps: { v3: false }, cleanups: [], installEvt: null };
+const S = { ref: null, me: null, city: localStorage.getItem('am24v-city') || CONFIG.DEFAULT_CITY, myProv: [], timer: null, caps: { v3: false }, cleanups: [], installEvt: null };
 const isAdmin = () => ['global_admin', 'regional_admin'].includes(S.me?.role);
 const catName = (id) => S.ref.categories.find((c) => c.id === +id)?.name || '';
 const siteUrl = () => location.origin + location.pathname;
 
 async function boot() {
   try { window.Telegram?.WebApp?.ready(); window.Telegram?.WebApp?.expand(); } catch { /* ignore */ }
-  applyTheme(localStorage.getItem('am24-theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
+  applyTheme(localStorage.getItem('am24v-theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
   try { S.ref = await api.ref(); }
   catch (e) {
     $('#view').innerHTML = `<div class="card center"><div class="big-i">📡</div><h2>Не удалось загрузить данные</h2><p class="muted">${esc(e.message || e)}</p>
@@ -92,7 +92,7 @@ async function boot() {
   try { S.caps = await api.caps(); } catch { S.caps = { v3: false }; }
   await refreshMe();
   window.addEventListener('hashchange', () => { render(); window.scrollTo(0, 0); });
-  $('#citySel').addEventListener('change', (e) => { S.city = e.target.value; localStorage.setItem('am24-city', S.city); render(); });
+  $('#citySel').addEventListener('change', (e) => { S.city = e.target.value; localStorage.setItem('am24v-city', S.city); render(); });
   $('#themeBtn').onclick = () => applyTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light', true);
   document.addEventListener('click', (e) => {
     const t = e.target.closest('.tip'); $$('.tip.open').forEach((x) => x !== t && x.classList.remove('open')); if (t) { e.preventDefault(); t.classList.toggle('open'); }
@@ -103,10 +103,10 @@ async function boot() {
   if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((r) => r.update?.()).catch(() => {});
   render();
 }
-function applyTheme(t, save) { document.documentElement.dataset.theme = t; $('meta[name=theme-color]')?.setAttribute('content', t === 'light' ? '#F6F4EF' : '#0F0F0F'); $('#themeBtn').innerHTML = ic(t === 'light' ? 'moon' : 'sun'); $('#themeBtn').setAttribute('aria-label', t === 'light' ? 'Тёмная тема' : 'Светлая тема'); if (save) localStorage.setItem('am24-theme', t); }
+function applyTheme(t, save) { document.documentElement.dataset.theme = t; $('meta[name=theme-color]')?.setAttribute('content', t === 'light' ? '#F6F4EF' : '#0F0F0F'); $('#themeBtn').innerHTML = ic(t === 'light' ? 'moon' : 'sun'); $('#themeBtn').setAttribute('aria-label', t === 'light' ? 'Тёмная тема' : 'Светлая тема'); if (save) localStorage.setItem('am24v-theme', t); }
 async function refreshMe() {
   try { S.me = await api.session(); } catch (e) { S.me = null; toast(e.message, true); }
-  if (S.me?.city && !localStorage.getItem('am24-city')) S.city = S.me.city;
+  if (S.me?.city && !localStorage.getItem('am24v-city')) S.city = S.me.city;
   try { S.myProv = S.me ? await api.myProviders() : []; } catch { S.myProv = []; }
 }
 
@@ -197,7 +197,7 @@ function suggest(text) {
 async function home() {
   const fv = favs();
   const favList = fv.length ? (await Promise.all(fv.slice(0, 6).map((id) => api.getProvider(id).catch(() => null)))).filter(Boolean) : [];
-  const onboard = localStorage.getItem('am24-onboarded') ? '' : `<div class="card onboard" id="onb" role="region" aria-label="Подсказки для первого визита"><button class="x" id="onbX" aria-label="Скрыть подсказки">${ic('x')}</button>
+  const onboard = localStorage.getItem('am24v-onboarded') ? '' : `<div class="card onboard" id="onb" role="region" aria-label="Подсказки для первого визита"><button class="x" id="onbX" aria-label="Скрыть подсказки">${ic('x')}</button>
     <div class="onb-h">${ic('bulb')}<div><b>Впервые здесь? Три подсказки</b><small>Займёт 10 секунд</small></div></div>
     <ul class="onb-tips"><li>${ic('search')}<span><b>Поиск понимает простые слова.</b> Напишите «стучит подвеска» или «закрыл ключи» — подскажем нужную услугу.</span></li>
     <li>${ic('lock')}<span><b>Можно без регистрации.</b> Заявка уйдёт мастеру в ${PRIMARY.label}, а переписка и цена останутся в чате на сайте.</span></li>
@@ -237,7 +237,7 @@ home.after = (v) => {
   const q = $('#q', v), sg = $('#sugg', v);
   q.oninput = () => { const list = suggest(q.value); sg.innerHTML = list.map((x) => `<a href="${x.href}" role="option"><span>${x.icon}</span><b>${esc(x.title)}</b><small>${esc(x.hint)}</small></a>`).join(''); sg.classList.toggle('on', !!list.length); };
   q.onkeydown = (e) => { if (e.key === 'Enter') { const a = $('a', sg); if (a) location.hash = a.getAttribute('href'); } };
-  const hide = () => { localStorage.setItem('am24-onboarded', '1'); const o = $('#onb', v); if (o) { o.classList.add('bye'); setTimeout(() => o.remove(), 250); } };
+  const hide = () => { localStorage.setItem('am24v-onboarded', '1'); const o = $('#onb', v); if (o) { o.classList.add('bye'); setTimeout(() => o.remove(), 250); } };
   [$('#onbX', v), $('#onbOk', v)].forEach((b) => { if (b) b.onclick = hide; });
   $$('[data-how]', v).forEach((b) => b.onclick = () => { $$('[data-how]', v).forEach((x) => { x.classList.toggle('on', x === b); x.setAttribute('aria-selected', x === b); });
     $$('[data-how-panel]', v).forEach((p) => { p.hidden = p.dataset.howPanel !== b.dataset.how; }); });
@@ -639,16 +639,19 @@ prices.after = (v) => {
 };
 
 // ------------------------------------------------------------ вход и профиль
+const siteBadge = () => `<span class="site-badge" title="Этот сайт: ${esc(CONFIG.SITE_LABEL)}">${esc(CONFIG.SITE_LABEL)}</span>`;
 async function login() {
   if (S.me) { location.hash = '#/profile'; return ''; }
   if (IS_DEMO) return `<h1>Вход</h1><div class="card"><p>Сайт в демо-режиме — выберите, за кого войти:</p><div class="row"><button class="p" data-demo2="client">👤 Клиент</button><button data-demo2="master">🛠 Исполнитель (СТО, мойка, эвакуатор…)</button><button data-demo2="admin">🛡 Администратор</button></div></div>`;
-  return `<h1>Вход</h1><div class="card"><p>Войдите через Telegram. Мы получаем только имя и username — телефон вы укажете сами в профиле.</p><div id="tgw"></div>
-    <p class="small muted">Если кнопка не появилась — отключите блокировщик рекламы или откройте сайт в обычном браузере.</p></div>`;
+  return `<h1>Вход ${siteBadge()}</h1><div class="card"><p>Вы входите на сайт <b>${esc(CONFIG.SITE_LABEL)}</b> (гибрид АвтоМастер24 и ВЕЗУ, адрес …/avtomaster-vezu/). Это отдельный аккаунт: вход и права здесь не связаны со старым сайтом АвтоМастер24 (…/avtomaster24-web/), там вы остаётесь в своей учётной записи.</p>
+    <p>Войдите через Telegram. Мы получаем только имя и username, а телефон вы укажете сами в профиле.</p><div id="tgw"></div>
+    ${hint(`В окне Telegram будет имя бота входа @${esc(CONFIG.TELEGRAM_LOGIN_BOT)}: он только подтверждает, что это вы. Сообщения он не присылает.`)}
+    <p class="small muted">Если кнопка не появилась, отключите блокировщик рекламы или откройте сайт в обычном браузере.</p></div>`;
 }
 login.after = (v) => {
   $$('[data-demo2]', v).forEach((b) => b.onclick = async () => { await api.loginDemo(b.dataset.demo2); await refreshMe(); location.hash = b.dataset.demo2 === 'master' ? '#/cabinet' : b.dataset.demo2 === 'admin' ? '#/admin' : '#/profile'; });
   const box = $('#tgw', v); if (!box) return;
-  window.onTelegramAuth = async (u) => { try { await api.loginTelegram(u); await refreshMe(); toast('Добро пожаловать!'); location.hash = S.me?.phone ? '#/' : '#/profile'; } catch (e) { toast(e.message, true); } };
+  window.onTelegramAuth = async (u) => { try { await api.loginTelegram(u); await refreshMe(); toast(`Добро пожаловать на ${CONFIG.SITE_LABEL}!`); location.hash = S.me?.phone ? '#/' : '#/profile'; } catch (e) { toast(e.message, true); } };
   const s = document.createElement('script'); s.async = true; s.src = 'https://telegram.org/js/telegram-widget.js?22';
   s.dataset.telegramLogin = CONFIG.TELEGRAM_LOGIN_BOT; s.dataset.size = 'large'; s.dataset.radius = '12'; s.dataset.onauth = 'onTelegramAuth(user)'; s.dataset.requestAccess = 'write';
   box.appendChild(s);
@@ -667,7 +670,7 @@ async function profile() {
 }
 profile.after = (v) => {
   const f = $('#prf', v); if (!f) return login.after(v);
-  f.onsubmit = (e) => { e.preventDefault(); const d = formData(f); act($('button', f), async () => { S.me = await api.updateProfile({ ...d, consent: !!d.consent }); S.city = d.city; localStorage.setItem('am24-city', S.city); }, 'Профиль сохранён'); };
+  f.onsubmit = (e) => { e.preventDefault(); const d = formData(f); act($('button', f), async () => { S.me = await api.updateProfile({ ...d, consent: !!d.consent }); S.city = d.city; localStorage.setItem('am24v-city', S.city); }, 'Профиль сохранён'); };
   installBtns(v);
   $('#logout', v).onclick = async () => { await api.logout(); await refreshMe(); location.hash = '#/'; };
   $('#delData', v).onclick = () => { if (confirm('Удалить телефон и согласие? Заявки и отзывы сохранятся.')) act(null, async () => { await api.deleteMyData(); await refreshMe(); }, 'Данные удалены'); };
@@ -732,7 +735,7 @@ function notifyLeads(L) {
   const seen = S.leadSeen || (S.leadSeen = new Map()); const first = !S.leadSeenInit; S.leadSeenInit = true;
   for (const x of L.filter(unread)) {
     if (!first && seen.get(x.id) !== x.last_msg_at && 'Notification' in window && Notification.permission === 'granted') {
-      try { const n = new Notification(`Новое сообщение · заявка №${x.id}`, { body: `${x.customer_name || 'Клиент'} написал(а) в чате`, icon: 'assets/icon-192.png', tag: 'am24-order-' + x.id }); n.onclick = () => { location.href = ownerOrderUrl(x.id); }; } catch { /* ignore */ }
+      try { const n = new Notification(`Новое сообщение · заявка №${x.id}`, { body: `${x.customer_name || 'Клиент'} написал(а) в чате`, icon: 'assets/icon-192.png', tag: 'am24v-order-' + x.id }); n.onclick = () => { location.href = ownerOrderUrl(x.id); }; } catch { /* ignore */ }
     }
     seen.set(x.id, x.last_msg_at);
   }
@@ -745,7 +748,7 @@ async function cabinet(_, q) {
   if (!S.myProv.length) return `<h1>Кабинет исполнителя</h1><div class="card"><p>У вас пока нет подключённой организации.</p><a class="btn p" href="#/business">Подключить бизнес</a></div>`;
   const p = S.myProv.find((x) => x.id === +q.p) || S.myProv[0];
   const tab = q.t || 'feed';
-  const head = `<h1>🛠 Кабинет</h1><div class="tabs">${S.myProv.map((x) => `<a href="#/cabinet?p=${x.id}&t=${tab}" class="${x.id === p.id ? 'on' : ''}">${KINDS[x.kind].icon} ${esc(x.name)}</a>`).join('')}</div>
+  const head = `<h1>🛠 Кабинет ${siteBadge()}</h1><div class="tabs">${S.myProv.map((x) => `<a href="#/cabinet?p=${x.id}&t=${tab}" class="${x.id === p.id ? 'on' : ''}">${KINDS[x.kind].icon} ${esc(x.name)}</a>`).join('')}</div>
     ${p.is_active ? '' : '<div class="notice warn">Организация отключена администратором — новые заявки не приходят.</div>'}
     <div class="tabs">${[['feed', '📥 Заявки'], ...(S.caps.v4 ? [['leads', S.caps.v5 ? '💬 Заявки и чаты' : `📲 ${PRIMARY.label}`], ['card', '🪪 Визитка']] : []), ...(S.caps.v4 && p.kind === 'parts' ? [['shop', '🛍 Магазин']] : []), ...(p.kind === 'sto' ? [['prices', '💰 Прайс']] : []), ['reviews', '⭐ Отзывы'], ['org', '🏢 Профиль'], ...(S.caps.v4 ? [] : [['link', '🔗 Ссылка']])].map(([t, n]) => `<a href="#/cabinet?p=${p.id}&t=${t}" class="${t === tab ? 'on' : ''}">${n}</a>`).join('')}</div>`;
   if (tab === 'prices') {
@@ -916,8 +919,8 @@ const adminTabs = (tab) => `<div class="tabs">${[['stats', '📊 Статист�
 async function admin(_, q) {
   if (!isAdmin()) return `<h1>Админ-панель</h1>${S.me ? '<div class="card">Нет доступа. Админа назначают в базе (см. README).</div>' : needLogin('админ-панели')}`;
   const tab = q.t || 'stats';
-  if (tab === 'disp' && S.caps.v4) { const L = await api.dispatchLeads(); autoRefresh(); return `<h1>🛡 Админ-панель</h1>${adminTabs(tab)}<p class="small muted">Заявки без выбранного исполнителя — их прислали диспетчеру в ${PRIMARY.label}.</p>${L.map(leadCard).join('') || empty('📢', 'Пока пусто')}`; }
-  const head = `<h1>🛡 Админ-панель</h1>${adminTabs(tab)}`;
+  if (tab === 'disp' && S.caps.v4) { const L = await api.dispatchLeads(); autoRefresh(); return `<h1>🛡 Админ-панель ${siteBadge()}</h1>${adminTabs(tab)}<p class="small muted">Заявки без выбранного исполнителя — их прислали диспетчеру в ${PRIMARY.label}.</p>${L.map(leadCard).join('') || empty('📢', 'Пока пусто')}`; }
+  const head = `<h1>🛡 Админ-панель ${siteBadge()}</h1>${adminTabs(tab)}<p class="small muted">Права администратора действуют только на этом сайте (база VEZU). На старом сайте АвтоМастер24 они назначаются отдельно.</p>`;
   if (tab === 'stats') { const s = await api.adminStats();
     const L = { users: 'Пользователей', providers: 'Исполнителей', requests: 'Заявок всего', active: 'Активных заявок', completed: 'Выполнено', turnover: 'Оборот по выполненным', pending_regs: 'Ждут одобрения', pending_reviews: 'Отзывы на модерации' };
     return head + `<div class="grid">${Object.entries(L).map(([k, n]) => `<div class="tile"><small>${n}</small><b class="price">${k === 'turnover' ? money(s[k]) : s[k]}</b></div>`).join('')}</div>`; }

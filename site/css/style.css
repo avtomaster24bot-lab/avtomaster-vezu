@@ -294,3 +294,7 @@ a.tile:hover,button.tile:hover{transform:translateY(-4px);box-shadow:var(--sh2);
 @media print{body:before,.top,.bottom,.heal,.demobar{display:none!important}}
 .ph-tile{min-height:220px}.ph-tile .ph-txt{padding:40px 14px 14px}
 @media (max-width:600px){.top select{max-width:118px}.ph-tile{min-height:160px}}
+
+.site-badge{display:inline-flex;align-items:center;vertical-align:middle;margin-left:8px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:800;letter-spacing:0;background:rgba(79,140,255,.14);color:var(--acc);border:1px solid rgba(79,140,255,.3)}
+.logo-tag{font-style:normal;font-size:10.5px;font-weight:800;margin-left:6px;padding:2px 7px;border-radius:999px;background:rgba(79,140,255,.16);color:var(--acc);border:1px solid rgba(79,140,255,.3);letter-spacing:.3px}
+@media (max-width:420px){.logo-tag{display:none}}

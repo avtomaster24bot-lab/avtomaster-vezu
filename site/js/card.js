@@ -25,7 +25,7 @@ function openNow(wh) {
 const veh = (id) => CARGO_VEHICLES.find((v) => v.id === id);
 
 function theme() {
-  const b = $('#themeBtn'); const set = (t, save) => { document.documentElement.dataset.theme = t; b.textContent = t === 'light' ? '🌙' : '☀️'; if (save) localStorage.setItem('am24-theme', t); };
+  const b = $('#themeBtn'); const set = (t, save) => { document.documentElement.dataset.theme = t; b.textContent = t === 'light' ? '🌙' : '☀️'; if (save) localStorage.setItem('am24v-theme', t); };
   set(document.documentElement.dataset.theme || 'dark'); b.onclick = () => set(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light', true);
   if (IS_DEMO) { const bar = $('#demoBar'); bar.hidden = false; bar.innerHTML = `<b>ДЕМО</b><span>визитка вымышленная, данные только в этом браузере.</span>${FORCED_DEMO ? '<button data-leave>Выйти из демо</button>' : ''}`;
     const lv = $('[data-leave]', bar); if (lv) lv.onclick = () => { leaveDemo(); location.href = './'; }; }

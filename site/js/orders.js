@@ -5,7 +5,7 @@ import { baseUrl } from './cardkit.js';
 
 export const ownerOrderUrl = (id) => `${baseUrl()}order.html?id=${+id}&as=owner`;
 export const orderUrl = (id, token) => `${baseUrl()}order.html?id=${+id}${token ? '&t=' + encodeURIComponent(token) : ''}`;
-const MKEY = 'am24-my-orders';
+const MKEY = 'am24v-my-orders';
 export const myOrders = () => { try { return JSON.parse(localStorage.getItem(MKEY)) || []; } catch { return []; } };
 export function rememberOrder(o) {
   const L = myOrders().filter((x) => !(x.id === o.id && x.demo === o.demo));
@@ -30,7 +30,7 @@ export function startOrder(args) {
     const full = o ? `${text}\n\n💬 Чат по заявке №${o.id} на сайте (ответить клиенту, предложить цену):\n${ownerOrderUrl(o.id)}` : text;
     const link = to ? sendLink(to, full) : '';
     go(link);
-    if (o && link) try { sessionStorage.setItem('am24-last-wa-' + o.id, link); } catch { /* ignore */ }
+    if (o && link) try { sessionStorage.setItem('am24v-last-wa-' + o.id, link); } catch { /* ignore */ }
     if (o) rememberOrder({ id: o.id, token: o.token, title, provider: providerName || '', created_at: new Date().toISOString(), demo: !!demo });
     return { ...(o || {}), link, chatUrl: o ? orderUrl(o.id, o.token) : null, opened: !!w, to, text };
   })().catch((e) => { try { if (w && !w.closed && w.location.href === 'about:blank') w.close(); } catch { /* ignore */ } throw e; });

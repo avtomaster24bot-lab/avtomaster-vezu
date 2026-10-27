@@ -20,7 +20,7 @@ const ph = (x, big) => { const [a, b] = GRAD[hash(x.category || x.name) % GRAD.l
     ${x.photo ? `<img src="${esc(x.photo)}" alt="${esc(x.name)}" loading="lazy">` : `${big ? '' : `<span class="nm">${esc(x.name)}</span>`}<span class="ico">${ICON[x.category] || '📦'}</span>`}</div>`; };
 
 const id = +new URLSearchParams(location.search).get('id');
-const CK = `am24-cart-${id}`;
+const CK = `am24v-cart-${id}`;
 const S = { p: null, items: [], cat: '', q: '', sort: 'new', caps: {} };
 const cart = () => { try { return JSON.parse(localStorage.getItem(CK)) || {}; } catch { return {}; } };
 const setCart = (c) => { localStorage.setItem(CK, JSON.stringify(c)); badge(); };

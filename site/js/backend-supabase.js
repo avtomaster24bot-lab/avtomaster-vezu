@@ -8,14 +8,15 @@ const pingOrder = (chan) => { const ch = chan && orderSub[chan]; if (ch) ch.send
 const LEAD4 = 'id,provider_id,kind,source,user_id,customer_name,customer_phone,message,payload,total,status,created_at,updated_at';
 const LEAD5 = LEAD4 + ',chan,agreed_price,rating,review,rated_at,paid_at,done_at,closed_at,chat_purged_at,last_msg_at,last_from,owner_seen_at,client_seen_at';
 const leadCols = async () => ((await live.caps()).v5 ? LEAD5 : LEAD4);
-// Старая сессия от другого проекта Supabase (сайт переехал на новый проект) ломает все запросы (401 JWT) —
+// Сессия гибрида хранится под am24v-auth (у старого сайта АвтоМастер24 на этом же домене — am24-auth, её не трогаем).
+// Старая сессия от другого проекта Supabase ломает все запросы (401 JWT) —
 // удаляем её до создания клиента. Так же поступаем при смене адреса базы в config.js.
 const PROJECT_REF = (/^https:\/\/([a-z0-9]+)\.supabase\.co/.exec(CONFIG.SUPABASE_URL || '') || [])[1] || '';
-function dropAuth() { try { localStorage.removeItem('am24-auth'); sessionStorage.removeItem('am24-ready'); } catch { /* ignore */ } }
+function dropAuth() { try { localStorage.removeItem('am24v-auth'); sessionStorage.removeItem('am24v-ready'); } catch { /* ignore */ } }
 (function purgeStaleAuth() {
   try {
-    if (localStorage.getItem('am24-backend') !== CONFIG.SUPABASE_URL) { dropAuth(); localStorage.setItem('am24-backend', CONFIG.SUPABASE_URL); }
-    const raw = localStorage.getItem('am24-auth'); if (!raw) return;
+    if (localStorage.getItem('am24v-backend') !== CONFIG.SUPABASE_URL) { dropAuth(); localStorage.setItem('am24v-backend', CONFIG.SUPABASE_URL); }
+    const raw = localStorage.getItem('am24v-auth'); if (!raw) return;
     const s = JSON.parse(raw); const tok = s?.access_token || s?.currentSession?.access_token;
     const pl = tok ? JSON.parse(atob(tok.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))) : null;
     const ref = pl?.ref || (/https:\/\/([a-z0-9]+)\.supabase\.co/.exec(pl?.iss || '') || [])[1];
@@ -26,7 +27,7 @@ let sbP = null;
 function client() {
   // один клиент на страницу (параллельные вызовы ждут один и тот же промис)
   if (!sbP) sbP = import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({ createClient }) =>
-    (sb = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true, storageKey: 'am24-auth' } })))
+    (sb = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true, storageKey: 'am24v-auth' } })))
     .catch((e) => { sbP = null; throw new Error('Не удалось загрузить модуль базы данных — проверьте интернет и обновите страницу'); });
   return sbP;
 }
@@ -50,7 +51,7 @@ const from = async (t) => (await client()).from(t);
 export async function supabaseReady() {
   if (CONFIG.FORCE_DEMO || !/^https:\/\//.test(CONFIG.SUPABASE_URL || '') || !CONFIG.SUPABASE_ANON_KEY) return false;
   try {
-    const c = JSON.parse(sessionStorage.getItem('am24-ready') || 'null');
+    const c = JSON.parse(sessionStorage.getItem('am24v-ready') || 'null');
     if (c && Date.now() - c.t < 60000) return c.ok;
   } catch { /* ignore */ }
   let ok = false;
@@ -59,7 +60,7 @@ export async function supabaseReady() {
     const r = await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/am_cities?select=id&limit=1`, { headers: { apikey: CONFIG.SUPABASE_ANON_KEY }, signal: ctrl.signal });
     clearTimeout(tm); ok = r.ok;
   } catch { ok = false; }
-  try { sessionStorage.setItem('am24-ready', JSON.stringify({ ok, t: Date.now() })); } catch { /* ignore */ }
+  try { sessionStorage.setItem('am24v-ready', JSON.stringify({ ok, t: Date.now() })); } catch { /* ignore */ }
   return ok;
 }
 

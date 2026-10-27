@@ -22,11 +22,11 @@ const ID = +Q.get('id');
 const AS_OWNER = Q.get('as') === 'owner';
 let TOKEN = AS_OWNER ? '' : Q.get('t') || '';
 if (!TOKEN && ID && !AS_OWNER) TOKEN = myOrders().find((x) => x.id === ID && !!x.demo === IS_DEMO)?.token || '';
-const lastWa = () => { try { return sessionStorage.getItem('am24-last-wa-' + ID) || ''; } catch { return ''; } };
+const lastWa = () => { try { return sessionStorage.getItem('am24v-last-wa-' + ID) || ''; } catch { return ''; } };
 const S = { o: null, msgs: [], last: 0, caps: {}, unsub: null, poll: null };
 
 function chrome() {
-  const b = $('#themeBtn'); const set = (t, save) => { document.documentElement.dataset.theme = t; b.textContent = t === 'light' ? '🌙' : '☀️'; if (save) localStorage.setItem('am24-theme', t); };
+  const b = $('#themeBtn'); const set = (t, save) => { document.documentElement.dataset.theme = t; b.textContent = t === 'light' ? '🌙' : '☀️'; if (save) localStorage.setItem('am24v-theme', t); };
   set(document.documentElement.dataset.theme || 'dark'); b.onclick = () => set(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light', true);
   if (IS_DEMO) { const bar = $('#demoBar'); bar.hidden = false;
     const mineTok = myOrders().find((x) => x.id === ID && x.demo)?.token;
@@ -167,7 +167,7 @@ function bind() {
 
 function notify(m) {
   if (!('Notification' in window) || Notification.permission !== 'granted' || !document.hidden) return;
-  try { new Notification(`Новое сообщение · заявка №${S.o.id}`, { body: m.offer_price ? `Предложение цены: ${money(m.offer_price)}` : (m.body || 'Фото').slice(0, 120), icon: 'assets/icon-192.png', tag: 'am24-order-' + S.o.id }); } catch { /* ignore */ }
+  try { new Notification(`Новое сообщение · заявка №${S.o.id}`, { body: m.offer_price ? `Предложение цены: ${money(m.offer_price)}` : (m.body || 'Фото').slice(0, 120), icon: 'assets/icon-192.png', tag: 'am24v-order-' + S.o.id }); } catch { /* ignore */ }
 }
 
 async function refresh(full) {

@@ -2,7 +2,7 @@
 // только в этом браузере (localStorage). Все люди и организации здесь — вымышленные.
 import { SEED } from './seed.js';
 
-const KEY = 'am24-demo-db-v5', UKEY = 'am24-demo-user', PKEY = 'am24-demo-photos';
+const KEY = 'am24v-demo-db-v5', UKEY = 'am24v-demo-user', PKEY = 'am24v-demo-photos';
 const now = () => new Date().toISOString();
 const tok = () => (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()) + Date.now()).replace(/[^a-z0-9]/gi, '').slice(0, 32);
 const plus = (min) => new Date(Date.now() + min * 60000).toISOString();
