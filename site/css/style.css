@@ -299,14 +299,13 @@ a.tile:hover,button.tile:hover{transform:translateY(-4px);box-shadow:var(--sh2);
 .logo-tag{font-style:normal;font-size:10.5px;font-weight:800;margin-left:6px;padding:2px 7px;border-radius:999px;background:rgba(79,140,255,.16);color:var(--acc);border:1px solid rgba(79,140,255,.3);letter-spacing:.3px}
 @media (max-width:420px){.logo-tag{display:none}}
 
-/* плитка «Стать партнёром» */
-.tile.partner{position:relative;overflow:hidden;border:1.5px solid transparent;background:linear-gradient(var(--s1),var(--s1)) padding-box,var(--pg) border-box;box-shadow:0 10px 30px rgba(255,150,30,.18)}
-.tile.partner:before{content:"";position:absolute;inset:-40% -30% auto auto;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(255,178,36,.28),transparent 70%);pointer-events:none}
-.tile.partner .i{background:var(--pg);color:#1a1100}
-.tile.partner b{color:var(--t)}
-.pt-badge{position:absolute;top:10px;right:10px;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:999px;background:rgba(255,178,36,.16);color:var(--p);border:1px solid rgba(255,178,36,.35)}
-.pt-go{display:inline-flex;align-items:center;gap:4px;margin-top:8px;font-size:12.5px;font-weight:800;color:var(--p)}
-a.tile.partner:hover{box-shadow:0 18px 40px rgba(255,150,30,.3)}
-@media (prefers-reduced-motion:no-preference){.tile.partner .i{animation:ptpulse 2.8s ease-in-out infinite}@keyframes ptpulse{0%,100%{box-shadow:0 0 0 0 rgba(255,178,36,.45)}50%{box-shadow:0 0 0 8px rgba(255,178,36,0)}}}
-[data-theme=light] .pt-badge,[data-theme=light] .pt-go{color:#B45309}
+/* плитка «Франшиза в твоём городе» — отдельный «инвесторский» акцент (фиолетовый → золото), не путать с «Добавить свой бизнес» */
+.tile.franchise{position:relative;overflow:hidden;border:1.5px solid transparent;color:#fff;background:linear-gradient(140deg,#2a1650,#4b1f7a 55%,#7a3b12) padding-box,linear-gradient(135deg,#C084FC,#FFC24D) border-box;box-shadow:0 12px 32px rgba(124,58,237,.28)}
+.tile.franchise:before{content:"";position:absolute;right:-50px;top:-50px;width:170px;height:170px;border-radius:50%;background:radial-gradient(circle,rgba(255,194,77,.35),transparent 70%);pointer-events:none}
+.tile.franchise .i{background:linear-gradient(135deg,#FFD27A,#FF9F1C);color:#3b1d00}
+.tile.franchise b{color:#fff}.tile.franchise small{color:#E9DDFB}
+.pt-badge{position:absolute;top:10px;right:10px;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.12);color:#FFD27A;border:1px solid rgba(255,210,122,.45)}
+.pt-go{display:inline-flex;align-items:center;flex-wrap:wrap;gap:4px;margin-top:8px;font-size:12.5px;font-weight:800;color:#FFD27A}
+a.tile.franchise:hover{box-shadow:0 18px 42px rgba(124,58,237,.4);border-color:transparent}
+@media (prefers-reduced-motion:no-preference){.tile.franchise .i{animation:ptpulse 2.8s ease-in-out infinite}@keyframes ptpulse{0%,100%{box-shadow:0 0 0 0 rgba(255,194,77,.5)}50%{box-shadow:0 0 0 8px rgba(255,194,77,0)}}}
 @media (max-width:420px){.pt-badge{position:static;display:inline-block;margin-bottom:6px}}

@@ -21,7 +21,7 @@ export const CONFIG = {
   TELEGRAM_AUTH_URL: 'https://sfgrwquitlnzlkyzashb.supabase.co/functions/v1/am-telegram-auth',
   TELEGRAM_LOGIN_BOT: 'VeloMaster24bot',
 
-  // Главный клиентский бот АвтоМастер24 (t.me/avtomaster_24_bot, «АвтоМастер24») — плитка «Стать партнёром»
+  // Главный клиентский бот АвтоМастер24 (t.me/avtomaster_24_bot, «АвтоМастер24») — плитка «Франшиза в твоём городе»
   PARTNER_BOT: 'avtomaster_24_bot',
 
   // Основной Telegram-бот сервиса (кнопка «Открыть бота»)
