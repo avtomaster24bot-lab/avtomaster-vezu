@@ -23,7 +23,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="АвтоМастер24">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap"><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" media="print" onload="this.media=\'all\'"><noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"></noscript>
 <link rel="preload" as="image" href="assets/img/hero-640.webp" media="(max-width:700px)"><link rel="preload" as="image" href="assets/img/hero.webp" media="(min-width:701px)">
 <link rel="stylesheet" href="css/style.css?v=6.0">
 <script>try{var t=localStorage.getItem('am24-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.dataset.theme=t}catch(e){}</script>
@@ -42,6 +42,7 @@
 <main id="view" tabindex="-1"><div class="sk-wrap" aria-busy="true"><div class="sk sk-h"></div><div class="sk sk-c"></div><div class="sk sk-c"></div></div></main>
 <nav class="bottom" id="nav" aria-label="Основное меню"></nav>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<link rel="modulepreload" href="js/api.js"><link rel="modulepreload" href="js/backend-supabase.js"><link rel="modulepreload" href="js/icons.js">
 <script type="module" src="js/app.js?v=6.0"></script>
 <noscript>Для работы сайта включите JavaScript.</noscript>
 </body>
