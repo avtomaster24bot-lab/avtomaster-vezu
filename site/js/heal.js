@@ -7,7 +7,7 @@
   // (в т.ч. сессию am24-auth от своей базы). Гибрид хранит всё под am24v-* и чужие ключи НЕ трогает.
   // Один раз переносим свои настройки, которые раньше лежали под am24-*; сессию am24-auth не трогаем никогда.
   try {
-    if (!localStorage.getItem('am24v-migrated')) {
+    if (!localStorage.getItem('am24v-mig2')) {
       var own = /^am24-(my-orders|demo-db-v5|demo-user|demo-photos|force-demo|backend|cart-.*|last-wa-.*)$/; // были только у гибрида
       var shared = /^am24-(theme|city|fav|onboarded)$/; // есть и у старого сайта — копируем, оригинал оставляем
       var all = []; for (var i = 0; i < localStorage.length; i++) all.push(localStorage.key(i)); // снимок: порядок ключей меняется при записи
@@ -18,7 +18,7 @@
         if (localStorage.getItem(nk) === null && k !== 'am24-backend') localStorage.setItem(nk, localStorage.getItem(k));
         if (m) localStorage.removeItem(k);
       }
-      localStorage.setItem('am24v-migrated', '1');
+      localStorage.setItem('am24v-mig2', '1');
     }
   } catch (e) {}
   window.AM24_BUILD = BUILD;
