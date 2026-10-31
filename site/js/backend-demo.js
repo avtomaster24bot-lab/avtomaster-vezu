@@ -1,8 +1,13 @@
 // ДЕМО-бэкенд: та же логика, что в функциях Supabase (supabase/01_schema.sql), но данные хранятся
 // только в этом браузере (localStorage). Все люди и организации здесь — вымышленные.
 import { SEED } from './seed.js';
+import { CONFIG } from './config.js';
+// Все телефоны в демо — один несуществующий номер-пример (CONFIG.EXAMPLE_PHONE): кнопки с ним никуда не звонят и не пишут.
+const EX_PHONE = '+' + String(CONFIG.EXAMPLE_PHONE || '70000000000').replace(/\D/g, '');
 
-const KEY = 'am24v-demo-db-v5', UKEY = 'am24v-demo-user', PKEY = 'am24v-demo-photos';
+// v6: демо-данные пересозданы без похожих на настоящие номеров; старую копию (v5) удаляем
+try { localStorage.removeItem('am24v-demo-db-v5'); } catch { /* ignore */ }
+const KEY = 'am24v-demo-db-v6', UKEY = 'am24v-demo-user', PKEY = 'am24v-demo-photos';
 const now = () => new Date().toISOString();
 const tok = () => (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()) + Date.now()).replace(/[^a-z0-9]/gi, '').slice(0, 32);
 const plus = (min) => new Date(Date.now() + min * 60000).toISOString();
@@ -10,45 +15,45 @@ const ago = (min) => new Date(Date.now() - min * 60000).toISOString();
 const C = 'Талдыкорган';
 
 function initial() {
-  const P = (id, kind, name, extra = {}) => ({ id, kind, owner_id: null, name, city: C, address: '', phone: '+7 700 000 00 ' + String(id).padStart(2, '0'),
+  const P = (id, kind, name, extra = {}) => ({ id, kind, owner_id: null, name, city: C, address: '', phone: EX_PHONE,
     working_hours: '09:00-19:00', specs: [], supplier_type: null, service_type: null, boxes: 1, slot_minutes: 60, delivery: false,
     rating: 0, reviews_count: 0, is_active: true, created_at: ago(9000), about: '', photos: [], whatsapp: '', verified: false, card: {}, store_url: '', shop_enabled: false, ...extra });
   const providers = [
-    P(1, 'sto', 'Демо-СТО «Мотор»', { owner_id: 'u-master', address: 'ул. Примерная, 1', specs: [1, 2, 7, 8, 9], rating: 4.8, reviews_count: 12, verified: true, whatsapp: '+77000000001',
+    P(1, 'sto', 'Демо-СТО «Мотор»', { owner_id: 'u-master', address: 'ул. Примерная, 1', specs: [1, 2, 7, 8, 9], rating: 4.8, reviews_count: 12, verified: true, whatsapp: EX_PHONE,
       about: 'Ремонт двигателя, ходовой и компьютерная диагностика. 4 подъёмника, гарантия на работы 6 месяцев. Можно подождать в зоне отдыха с Wi‑Fi.', photos: ['assets/img/sto.webp', 'assets/img/master.webp'],
       card: { slogan: 'Честный ремонт с гарантией 6 месяцев', services: [{ name: 'Компьютерная диагностика', price: 5000 }, { name: 'Замена масла', price: 4000 }, { name: 'Ремонт ходовой', price: 'от 8000' }, { name: 'Развал-схождение 3D', price: 7000 }], tg: 'demo_motor', payments: ['kaspi', 'cash', 'card'] } }),
     P(2, 'sto', 'Демо-СТО «Ходовая+»', { address: 'ул. Примерная, 15', specs: [2, 5, 11], rating: 4.5, reviews_count: 7, about: 'Подвеска, рулевое, развал-схождение 3D.' }),
     P(3, 'sto', 'Демо-СТО «Автоэлектрик»', { address: 'пр. Демо, 8', specs: [3, 15], rating: 4.2, reviews_count: 3 }),
-    P(4, 'tow', 'Демо-эвакуатор «Быстрый»', { owner_id: 'u-master', rating: 4.9, reviews_count: 20, working_hours: 'Круглосуточно', verified: true, whatsapp: '+77000000004', about: 'Ломаная платформа, город и межгород. Подача 20–40 минут.', photos: ['assets/img/tow.webp'],
+    P(4, 'tow', 'Демо-эвакуатор «Быстрый»', { owner_id: 'u-master', rating: 4.9, reviews_count: 20, working_hours: 'Круглосуточно', verified: true, whatsapp: EX_PHONE, about: 'Ломаная платформа, город и межгород. Подача 20–40 минут.', photos: ['assets/img/tow.webp'],
       card: { slogan: 'Подача за 20–40 минут, 24/7', services: [{ name: 'Эвакуация по городу', price: 12000 }, { name: 'Межгород', price: '250 ₸/км' }, { name: 'Спецтехника', price: 'договорная' }], payments: ['kaspi', 'cash'] } }),
     P(5, 'tow', 'Демо-эвакуатор «Сокол»', { rating: 4.4, reviews_count: 5, working_hours: 'Круглосуточно' }),
-    P(6, 'wash', 'Демо-мойка «Блеск»', { owner_id: 'u-master', address: 'ул. Чистая, 3', boxes: 3, slot_minutes: 30, working_hours: '08:00-22:00', rating: 4.7, reviews_count: 15, verified: true, photos: ['assets/img/wash.webp'], about: 'Три бокса, бесконтактная и ручная мойка, химчистка.', whatsapp: '+77000000006',
+    P(6, 'wash', 'Демо-мойка «Блеск»', { owner_id: 'u-master', address: 'ул. Чистая, 3', boxes: 3, slot_minutes: 30, working_hours: '08:00-22:00', rating: 4.7, reviews_count: 15, verified: true, photos: ['assets/img/wash.webp'], about: 'Три бокса, бесконтактная и ручная мойка, химчистка.', whatsapp: EX_PHONE,
       card: { services: [{ name: 'Кузов', price: 2500 }, { name: 'Комплекс', price: 5000 }, { name: 'Химчистка салона', price: 25000 }], payments: ['kaspi', 'cash'] } }),
     P(7, 'wash', 'Демо-мойка «Аква»', { address: 'ул. Водная, 9', boxes: 2, working_hours: '09:00-21:00', rating: 4.3, reviews_count: 4 }),
-    P(8, 'parts', 'Демо-магазин «Запчасть»', { owner_id: 'u-master', supplier_type: 'shop', delivery: true, rating: 4.6, reviews_count: 9, photos: ['assets/img/parts.webp'], whatsapp: '+77000000008',
+    P(8, 'parts', 'Демо-магазин «Запчасть»', { owner_id: 'u-master', supplier_type: 'shop', delivery: true, rating: 4.6, reviews_count: 9, photos: ['assets/img/parts.webp'], whatsapp: EX_PHONE,
       address: 'ул. Магазинная, 5', about: 'Масла, фильтры, тормоза, свет и аккумуляторы. Подбор по VIN, доставка по городу.', shop_enabled: true,
       card: { slogan: 'Подбор по VIN за 5 минут', services: [{ name: 'Подбор по VIN', price: 'бесплатно' }, { name: 'Доставка по городу', price: 1000 }], payments: ['kaspi', 'cash', 'card'], shop_title: 'Запчасть — интернет-магазин', shop_accent: '#E8B84B' } }),
-    P(9, 'parts', 'Демо-авторазбор «Японец»', { supplier_type: 'razborka', rating: 4.1, reviews_count: 6, whatsapp: '+77000000009', store_url: 'https://biznes-shablon.vercel.app/catalog',
+    P(9, 'parts', 'Демо-авторазбор «Японец»', { supplier_type: 'razborka', rating: 4.1, reviews_count: 6, whatsapp: EX_PHONE, store_url: 'https://biznes-shablon.vercel.app/catalog',
       about: 'Б/у запчасти на японские авто. Свой интернет-магазин на «Учёт + Магазин» — кнопка «Магазин» ведёт туда.' }),
-    P(10, 'urgent', 'Демо-мастер «Замки 24»', { owner_id: 'u-master', service_type: 'locksmith', working_hours: 'Круглосуточно', rating: 5, reviews_count: 8, photos: ['assets/img/help.webp'], whatsapp: '+77000000010',
+    P(10, 'urgent', 'Демо-мастер «Замки 24»', { owner_id: 'u-master', service_type: 'locksmith', working_hours: 'Круглосуточно', rating: 5, reviews_count: 8, photos: ['assets/img/help.webp'], whatsapp: EX_PHONE,
       card: { services: [{ name: 'Вскрытие авто', price: 'от 7000' }, { name: 'Изготовление ключа', price: 'от 15000' }] } }),
     P(11, 'urgent', 'Демо-шиномонтаж на выезде', { service_type: 'tire', rating: 4.5, reviews_count: 4 }),
     P(12, 'urgent', 'Демо-электрик на выезде', { service_type: 'electrician', rating: 4.0, reviews_count: 2 }),
     P(13, 'sto', 'Демо-СТО «Алматы Сервис»', { city: 'Алматы', specs: [], rating: 4.6, reviews_count: 30 }),
-    P(14, 'cargo', 'Демо-перевозчик «Газель 24»', { owner_id: 'u-master', working_hours: '08:00-22:00', rating: 4.9, reviews_count: 14, verified: true, whatsapp: '+77000000014',
+    P(14, 'cargo', 'Демо-перевозчик «Газель 24»', { owner_id: 'u-master', working_hours: '08:00-22:00', rating: 4.9, reviews_count: 14, verified: true, whatsapp: EX_PHONE,
       photos: ['assets/img/cargo/v-gazel.webp'], about: 'Газель с тентом, аккуратно перевезём мебель и технику. Есть грузчики.',
       card: { slogan: 'Переезды и мебель — быстро и бережно', cargo: { vehicle: 'gazel', extras: ['Грузчики', 'Тент', 'Ремни'], price: 6000, unit: 'час' }, zones: 'Весь город и пригороды', services: [{ name: 'Переезд квартиры', price: 'от 15000' }, { name: 'Грузчик', price: '3000/час' }], payments: ['kaspi', 'cash'] } }),
-    P(15, 'cargo', 'Демо-грузовик «Три тонны»', { working_hours: 'Круглосуточно', rating: 4.6, reviews_count: 6, whatsapp: '+77000000015', photos: ['assets/img/cargo/v-truck3.webp'],
+    P(15, 'cargo', 'Демо-грузовик «Три тонны»', { working_hours: 'Круглосуточно', rating: 4.6, reviews_count: 6, whatsapp: EX_PHONE, photos: ['assets/img/cargo/v-truck3.webp'],
       card: { cargo: { vehicle: 'truck3', extras: ['Тент'], price: 9000, unit: 'час' }, zones: 'Город и межгород', services: [{ name: 'Стройматериалы', price: 'от 12000' }] } }),
-    P(16, 'cargo', 'Демо-каблук «Мелкий груз»', { working_hours: '09:00-20:00', rating: 4.3, reviews_count: 3, whatsapp: '+77000000016', photos: ['assets/img/cargo/v-kabluk.webp'],
+    P(16, 'cargo', 'Демо-каблук «Мелкий груз»', { working_hours: '09:00-20:00', rating: 4.3, reviews_count: 3, whatsapp: EX_PHONE, photos: ['assets/img/cargo/v-kabluk.webp'],
       card: { cargo: { vehicle: 'kabluk', extras: [], price: 4000, unit: 'час' }, zones: 'По городу' } }),
   ];
   const profiles = {
-    'u-client': { id: 'u-client', username: 'demo_client', full_name: 'Демо Клиент', phone: '+77001112233', city: C, role: 'client', consent: true },
-    'u-master': { id: 'u-master', username: 'demo_master', full_name: 'Демо Мастер', phone: '+77002223344', city: C, role: 'client', consent: true },
-    'u-admin': { id: 'u-admin', username: 'demo_admin', full_name: 'Демо Админ', phone: '+77003334455', city: C, role: 'global_admin', consent: true },
-    'u-other': { id: 'u-other', username: null, full_name: 'Другой клиент (демо)', phone: '+77009990000', city: C, role: 'client', consent: true },
-    'u-city': { id: 'u-city', username: 'demo_almaty', full_name: 'Демо Админ Алматы', phone: '+77005556677', city: 'Алматы', role: 'regional_admin', managed_city: 'Алматы', consent: true },
+    'u-client': { id: 'u-client', username: 'demo_client', full_name: 'Демо Клиент', phone: EX_PHONE, city: C, role: 'client', consent: true },
+    'u-master': { id: 'u-master', username: 'demo_master', full_name: 'Демо Мастер', phone: EX_PHONE, city: C, role: 'client', consent: true },
+    'u-admin': { id: 'u-admin', username: 'demo_admin', full_name: 'Демо Админ', phone: EX_PHONE, city: C, role: 'global_admin', consent: true },
+    'u-other': { id: 'u-other', username: null, full_name: 'Другой клиент (демо)', phone: EX_PHONE, city: C, role: 'client', consent: true },
+    'u-city': { id: 'u-city', username: 'demo_almaty', full_name: 'Демо Админ Алматы', phone: EX_PHONE, city: 'Алматы', role: 'regional_admin', managed_city: 'Алматы', consent: true },
   };
   const R = (id, type, extra) => ({ id, type, user_id: 'u-other', city: C, status: 'new', category_id: null, subcategory: null, service_type: null,
     supplier_type: null, target_provider_id: null, description: '', vehicle_info: '', details: {}, desired_time: null, assigned_time: null,
@@ -74,10 +79,10 @@ function initial() {
   }
   return { seq: 100, profiles, providers, requests, reviews, prices, offers: [], declines: [], messages: [], vehicles: [
     { id: 1, user_id: 'u-client', brand: 'Toyota', model: 'Corolla', year: 2012, plate: '123ABC05', engine_volume: '1.6' }],
-    registrations: [{ id: 1, user_id: 'u-other', kind: 'sto', name: 'Демо-заявка: СТО «Новое»', phone: '+77005550000', address: 'ул. Новая, 1', city: C, details: { specs: [1, 2] }, status: 'pending', created_at: ago(60) }],
+    registrations: [{ id: 1, user_id: 'u-other', kind: 'sto', name: 'Демо-заявка: СТО «Новое»', phone: EX_PHONE, address: 'ул. Новая, 1', city: C, details: { specs: [1, 2] }, status: 'pending', created_at: ago(60) }],
     cities: SEED.cities.map((c) => ({ ...c })), products: demoProducts(), leads: [
-      { id: 1, provider_id: 14, kind: 'cargo', source: 'card', customer_name: 'Айгерим', customer_phone: '+77011112233', message: 'Переезд: Шевченко 10 → Абая 55, завтра в 10:00', payload: { what: 'Переезд' }, total: null, status: 'new', created_at: ago(30) },
-      { id: 2, provider_id: 8, kind: 'order', source: 'shop', customer_name: 'Ерлан', customer_phone: '+77012223344', message: 'Масло 5W-30 4 л × 1, Фильтр масляный × 1', payload: { items: [] }, total: 21400, status: 'in_work', created_at: ago(120) }].map((x) => ({ ...x, token: tok(), chan: tok(), last_msg_at: x.created_at, last_from: 'client' })),
+      { id: 1, provider_id: 14, kind: 'cargo', source: 'card', customer_name: 'Айгерим', customer_phone: EX_PHONE, message: 'Переезд: Шевченко 10 → Абая 55, завтра в 10:00', payload: { what: 'Переезд' }, total: null, status: 'new', created_at: ago(30) },
+      { id: 2, provider_id: 8, kind: 'order', source: 'shop', customer_name: 'Ерлан', customer_phone: EX_PHONE, message: 'Масло 5W-30 4 л × 1, Фильтр масляный × 1', payload: { items: [] }, total: 21400, status: 'in_work', created_at: ago(120) }].map((x) => ({ ...x, token: tok(), chan: tok(), last_msg_at: x.created_at, last_from: 'client' })),
     orderMsgs: [
       { id: 1, lead_id: 1, author: 'system', body: 'Заявка создана. Здесь можно уточнить детали и цену — переписка остаётся на сайте.', created_at: ago(30) },
       { id: 2, lead_id: 2, author: 'system', body: 'Заявка создана. Здесь можно уточнить детали и цену — переписка остаётся на сайте.', created_at: ago(120) },

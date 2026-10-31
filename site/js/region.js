@@ -9,7 +9,7 @@ const enc = encodeURIComponent;
 export const REGIONS = {
   KZ: {
     code: 'KZ', country: 'Казахстан', lang: 'ru', locale: 'ru-RU', currency: 'KZT', symbol: '₸', tz: 'Asia/Almaty',
-    phone: { cc: '7', len: 11, re: /^7\d{10}$/, placeholder: '+7 7XX XXX XX XX', example: '+7 701 234 56 78', fix: (d) => d.replace(/^8(?=\d{10}$)/, '7') },
+    phone: { cc: '7', len: 11, re: /^7\d{10}$/, placeholder: '+7 7XX XXX XX XX', example: '+7 000 000 00 00', fix: (d) => d.replace(/^8(?=\d{10}$)/, '7') },
     maps: { name: '2ГИС', search: (q) => `https://2gis.kz/search/${enc(q)}`, point: (lat, lon) => `https://2gis.kz/geo/${lon},${lat}`,
       alt: { name: 'Google Maps', search: (q) => `https://www.google.com/maps/search/?api=1&query=${enc(q)}`, point: (lat, lon) => `https://www.google.com/maps?q=${lat},${lon}` } },
     payments: [['kaspi', 'Kaspi перевод / Kaspi QR'], ['cash', 'Наличные'], ['card', 'Безнал / карта']],
@@ -17,7 +17,7 @@ export const REGIONS = {
   },
   RU: {
     code: 'RU', country: 'Россия', lang: 'ru', locale: 'ru-RU', currency: 'RUB', symbol: '₽', tz: 'Europe/Moscow',
-    phone: { cc: '7', len: 11, re: /^7\d{10}$/, placeholder: '+7 9XX XXX XX XX', example: '+7 912 345 67 89', fix: (d) => d.replace(/^8(?=\d{10}$)/, '7') },
+    phone: { cc: '7', len: 11, re: /^7\d{10}$/, placeholder: '+7 9XX XXX XX XX', example: '+7 000 000 00 00', fix: (d) => d.replace(/^8(?=\d{10}$)/, '7') },
     maps: { name: 'Яндекс Карты', search: (q) => `https://yandex.ru/maps/?text=${enc(q)}`, point: (lat, lon) => `https://yandex.ru/maps/?pt=${lon},${lat}&z=16&l=map`,
       alt: { name: '2ГИС', search: (q) => `https://2gis.ru/search/${enc(q)}`, point: (lat, lon) => `https://2gis.ru/geo/${lon},${lat}` } },
     payments: [['sbp', 'СБП (перевод по номеру)'], ['cash', 'Наличные'], ['card', 'Карта']],

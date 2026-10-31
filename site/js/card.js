@@ -4,7 +4,7 @@ import { CONFIG } from './config.js';
 import { api, IS_DEMO, FORCED_DEMO, leaveDemo } from './api.js';
 import { KINDS, CARD_ROLE, URGENT, SUPPLIER, WASH_SERVICES, CAR_TYPES, WHEELS, PARTS_ORIG, PARTS_DELIVERY, CARGO_SERVICES, CARGO_VEHICLES, CARGO_WHEN } from './consts.js';
 import { REGION, money, mapSearch, mapPoint, fmtPhone, validPhone } from './region.js';
-import { PRIMARY, sendLink, requestText, ownerContact } from './messaging.js';
+import { PRIMARY, sendLink, requestText, ownerContact, telHref, openSend } from './messaging.js';
 import { startOrder, myOrders } from './orders.js';
 import { qrSvg, qrPng, download, vcard, share, cardUrl, shopUrl, hasShop, isExternalShop } from './cardkit.js';
 
@@ -77,7 +77,7 @@ async function main() {
     <div class="row small">${p.verified ? '<span class="vbadge">✔ Проверен</span>' : ''}${open == null ? '' : open ? '<span class="chip-s ok">● Сейчас работает</span>' : '<span class="chip-s off">● Сейчас закрыто</span>'}${p.reviews_count ? `<span class="chip-s">★ ${Number(p.rating).toFixed(1)} · ${p.reviews_count} отз.</span>` : ''}<span class="chip-s">📍 ${esc(p.city)}</span></div></div></div></section>
   ${c.slogan ? `<p class="vc-slogan">${esc(c.slogan)}</p>` : ''}
   ${caps.v5 ? '<a class="btn p block vc-chat" href="#orderF">💬 Написать здесь, на сайте — ответ придёт в чат</a>' : ''}
-  <div class="vc-main">${to ? `<a class="btn wa big" id="waBtn" target="_blank" rel="noopener" href="${esc(sendLink(to, `Здравствуйте! Нашёл вашу визитку на ${CONFIG.SITE_NAME}: ${url}`))}">${PRIMARY.icon} Написать в ${PRIMARY.label}</a>` : ''}${p.phone ? `<a class="btn big" href="tel:+${esc(String(p.phone).replace(/\D/g, ''))}">📞 Позвонить</a>` : ''}</div>
+  <div class="vc-main">${to ? `<a class="btn wa big" id="waBtn" target="_blank" rel="noopener" href="${esc(sendLink(to, `Здравствуйте! Нашёл вашу визитку на ${CONFIG.SITE_NAME}: ${url}`))}">${PRIMARY.icon} Написать в ${PRIMARY.label}</a>` : ''}${p.phone ? `<a class="btn big" href="${esc(telHref(p.phone))}">📞 Позвонить</a>` : ''}</div>
   ${shopBtn}
   <div class="vc-acts"><a class="btn" id="vcf" href="#" download="${esc(p.name)}.vcf">👤 В контакты</a><button id="shareBtn">🔗 Поделиться</button><button id="qrBtn">▦ QR-код</button>
     ${c.tg ? `<a class="btn" href="https://t.me/${esc(c.tg)}" target="_blank" rel="noopener">✈️ Telegram</a>` : ''}${c.ig ? `<a class="btn" href="https://instagram.com/${esc(c.ig)}" target="_blank" rel="noopener">📷 Instagram</a>` : ''}</div>
@@ -127,7 +127,7 @@ async function main() {
       return;
     }
     const link = sendLink(to, text);
-    window.open(link, '_blank', 'noopener'); // открываем сразу — по нажатию, чтобы браузер не заблокировал окно
+    openSend(link); // открываем сразу — по нажатию, чтобы браузер не заблокировал окно
     $('#sent').innerHTML = `<div class="notice">✅ Открываем ${PRIMARY.label}… Если не открылся — <a class="btn sm wa" id="waAgain" target="_blank" rel="noopener" href="${esc(link)}">${PRIMARY.icon} открыть ещё раз</a></div>`;
     if (caps.v4) api.createLead(lead)
       .then((n) => { $('#sent').insertAdjacentHTML('beforeend', `<p class="small muted">Заявка №${n} сохранена у исполнителя.</p>`); }).catch(() => {});

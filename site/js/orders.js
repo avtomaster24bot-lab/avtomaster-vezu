@@ -1,6 +1,6 @@
 // Заказ = заявка с визитки/магазина/сайта + чат на сайте (order.html). WhatsApp — уведомление со ссылкой на чат.
 import { api } from './api.js';
-import { sendLink } from './messaging.js';
+import { sendLink, isExampleHref, exampleToast } from './messaging.js';
 import { baseUrl } from './cardkit.js';
 
 export const ownerOrderUrl = (id) => `${baseUrl()}order.html?id=${+id}&as=owner`;
@@ -18,7 +18,7 @@ export const forgetOrder = (id) => localStorage.setItem(MKEY, JSON.stringify(myO
 export function startOrder(args) {
   let w = null;
   try { w = window.open('', '_blank'); if (w) w.opener = null; } catch { w = null; }
-  const go = (link) => { if (!w) return; if (link) w.location.href = link; else try { w.close(); } catch { /* ignore */ } };
+  const go = (link) => { if (isExampleHref(link)) { try { w?.close(); } catch { /* ignore */ } exampleToast(); return; } if (!w) return; if (link) w.location.href = link; else try { w.close(); } catch { /* ignore */ } };
   return (async () => {
     const { to, text, lead, title, providerName, demo } = typeof args === 'function' ? await args() : args;
     const caps = await api.caps().catch(() => ({}));

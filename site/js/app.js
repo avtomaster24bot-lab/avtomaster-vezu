@@ -3,7 +3,7 @@ import { api, IS_DEMO, FORCED_DEMO, leaveDemo } from './api.js';
 import { KINDS, URGENT, SUPPLIER, TOW_VEHICLES, WHEELS, WASH_SERVICES, CAR_TYPES, PARTS_URGENCY, PARTS_ORIG, PARTS_DELIVERY, STATUS, effStatus,
   CARD_ROLE, CARGO_SERVICES, CARGO_VEHICLES, CARGO_WHEN, CARGO_EXTRAS, LEAD_STATUS } from './consts.js';
 import { REGION, money as rMoney, mapSearch, mapPoint, fmtPhone, validPhone } from './region.js';
-import { PRIMARY, sendLink, requestText, ownerContact, dispatcherPhone } from './messaging.js';
+import { PRIMARY, sendLink, requestText, ownerContact, dispatcherPhone, isExamplePhone, EXAMPLE_HREF, openSend } from './messaging.js';
 import { startOrder, orderUrl, ownerOrderUrl, myOrders } from './orders.js';
 import { ic, KIND_IC } from './icons.js';
 import { qrSvg, qrPng, download, cardUrl, shopUrl, hasShop, isExternalShop, share as shareLink } from './cardkit.js';
@@ -18,7 +18,7 @@ const hm = (s) => new Date(s).toLocaleTimeString('ru-RU', { hour: '2-digit', min
 const stars = (r) => `<span class="stars" aria-label="Рейтинг ${Number(r || 0).toFixed(1)} из 5">${'★'.repeat(Math.round(r || 0))}${'☆'.repeat(5 - Math.round(r || 0))}</span>`;
 const badge = (st) => { const [t, c] = STATUS[st] || [st, 'grey']; return `<span class="badge ${c}">${esc(t)}</span>`; };
 const digits = (p) => String(p || '').replace(/[^\d+]/g, '');
-const tel = (p) => p ? `<a class="btn sm" href="tel:${esc(digits(p))}">📞 ${esc(p)}</a>` : '';
+const tel = (p) => p ? `<a class="btn sm" href="${esc(isExamplePhone(p) ? EXAMPLE_HREF : 'tel:' + digits(p))}">📞 ${esc(p)}</a>` : '';
 const wa = (p, text = '', label = `${PRIMARY.icon} ${PRIMARY.label}`, cls = 'btn sm wa') => p && sendLink(p, text) ? `<a class="${cls}" target="_blank" rel="noopener" href="${esc(sendLink(p, text))}">${label}</a>` : '';
 const tip = (t) => `<button type="button" class="tip" aria-label="Подсказка: ${esc(t)}" data-tip="${esc(t)}">?</button>`;
 const opts = (name, list, sel, type = 'radio') => `<div class="opts">${list.map(([v, t]) => `<label class="opt"><input type="${type}" name="${name}" value="${esc(v)}" ${(Array.isArray(sel) ? sel.includes(v) : sel === v) ? 'checked' : ''}><span>${esc(t)}</span></label>`).join('')}</div>`;
@@ -513,7 +513,7 @@ async function sendGuest(v, btn, kind, p, d) {
     if (S.caps.v4) leadId = await api.createLead(lead);
     v.innerHTML = sentCard({ to, text, prov, leadId });
     $('#copyTxt', v).onclick = () => { navigator.clipboard?.writeText(text); toast('Текст скопирован'); };
-    try { window.open(sendLink(to, text), '_blank', 'noopener'); } catch { /* блокировщик окон — есть кнопка */ }
+    openSend(sendLink(to, text)); // блокировщик окон — есть кнопка
   } catch (e) { toast(e.message, true); btn.disabled = false; }
 }
 const sentCard = ({ to, text, prov, leadId }) => `<div class="card center sent"><div class="big-i">✅</div><h2>Заявка готова</h2>

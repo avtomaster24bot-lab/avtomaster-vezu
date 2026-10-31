@@ -4,7 +4,7 @@ import { CONFIG } from './config.js';
 import { api, IS_DEMO, FORCED_DEMO, leaveDemo } from './api.js';
 import { SHOP_DELIVERY } from './consts.js';
 import { REGION, money, mapSearch, validPhone } from './region.js';
-import { PRIMARY, sendLink, orderText, ownerContact } from './messaging.js';
+import { PRIMARY, sendLink, orderText, ownerContact, openSend } from './messaging.js';
 import { cardUrl, externalStore } from './cardkit.js';
 import { startOrder } from './orders.js';
 
@@ -115,7 +115,7 @@ function openCart() {
         .catch((er) => { btn.disabled = false; toast(er.message); });
       return;
     }
-    window.open(link, '_blank', 'noopener');
+    openSend(link);
     $('#done').innerHTML = `<div class="sh-note">✅ Заказ сформирован — открываем ${PRIMARY.label}. Не открылся? <a class="btn sm wa" id="waOrder" href="${esc(link)}" target="_blank" rel="noopener">Открыть ещё раз</a></div>`;
     if (S.caps.v4) api.createLead(lead)
       .then((n) => { $('#done').insertAdjacentHTML('beforeend', `<p class="sh-muted">Заказ №${n} сохранён у магазина.</p>`); localStorage.removeItem(CK); badge(); }).catch(() => {});

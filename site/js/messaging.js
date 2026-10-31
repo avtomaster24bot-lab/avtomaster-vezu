@@ -6,18 +6,38 @@
 import { REGION, normPhone, fmtPhone, money } from './region.js';
 import { CONFIG } from './config.js';
 
+// ---- Номер-пример (CONFIG.EXAMPLE_PHONE): ссылки с ним не открывают мессенджер, а показывают подсказку
+export const EXAMPLE_HREF = '#example-phone';
+export const EXAMPLE_MSG = 'Это пример — номер появится после добавления визитки';
+const exDigits = () => String(CONFIG.EXAMPLE_PHONE || '').replace(/\D/g, '');
+export const isExamplePhone = (to) => { const d = String(to || '').replace(/\D/g, ''); return !!d && (d === exDigits() || /^7?0{10}$/.test(d)); };
+export const isExampleHref = (href) => String(href || '').includes(EXAMPLE_HREF);
+export function exampleToast() {
+  if (typeof document === 'undefined') return;
+  let t = document.getElementById('toast');
+  if (!t) { t = document.createElement('div'); t.id = 'toast'; t.className = 'toast'; t.setAttribute('role', 'status'); document.body.appendChild(t); }
+  t.textContent = 'ℹ️ ' + EXAMPLE_MSG; t.className = 'toast'; t.hidden = false; clearTimeout(t._h); t._h = setTimeout(() => { t.hidden = true; }, 4500);
+}
+export const telHref = (p) => (isExamplePhone(p) ? EXAMPLE_HREF : `tel:+${normPhone(p)}`);
+// Открыть ссылку на мессенджер (по нажатию). Для номера-примера — только подсказка.
+export function openSend(link) { if (isExampleHref(link)) { exampleToast(); return null; } try { return window.open(link, '_blank', 'noopener'); } catch { return null; } }
+if (typeof document !== 'undefined') document.addEventListener('click', (e) => {
+  const a = e.target.closest?.('a[href]'); if (!a || !isExampleHref(a.getAttribute('href'))) return;
+  e.preventDefault(); e.stopPropagation(); exampleToast();
+}, true);
+
 export const CHANNELS = {
   whatsapp: {
     id: 'whatsapp', label: 'WhatsApp', icon: '💬',
     // https://wa.me/<номер>?text=<текст> — открывает чат с владельцем и готовым сообщением (телефон и компьютер)
-    link: (to, text) => { const d = normPhone(to); return d ? `https://wa.me/${d}${text ? '?text=' + encodeURIComponent(text) : ''}` : ''; },
+    link: (to, text) => { if (isExamplePhone(to)) return EXAMPLE_HREF; const d = normPhone(to); return d ? `https://wa.me/${d}${text ? '?text=' + encodeURIComponent(text) : ''}` : ''; },
   },
   telegram: {
     id: 'telegram', label: 'Telegram', icon: '✈️',
     // username — откроет чат (текст Telegram в ссылку на чат не подставляет, поэтому даём «Поделиться» с текстом)
     link: (to, text) => { const u = String(to || '').replace(/^@/, '').replace(/^https?:\/\/t\.me\//, ''); return u ? `https://t.me/${u}` : `https://t.me/share/url?url=&text=${encodeURIComponent(text || '')}`; },
   },
-  sms: { id: 'sms', label: 'SMS', icon: '✉️', link: (to, text) => { const d = normPhone(to); return d ? `sms:+${d}${text ? '?body=' + encodeURIComponent(text) : ''}` : ''; } },
+  sms: { id: 'sms', label: 'SMS', icon: '✉️', link: (to, text) => { if (isExamplePhone(to)) return EXAMPLE_HREF; const d = normPhone(to); return d ? `sms:+${d}${text ? '?body=' + encodeURIComponent(text) : ''}` : ''; } },
 };
 export const channel = (id) => CHANNELS[id] || CHANNELS.whatsapp;
 // Главный канал для заявок (по умолчанию WhatsApp; регион может предложить другой — CONFIG.MESSENGER перекрывает)
